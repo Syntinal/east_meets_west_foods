@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice">
+  <rect width="400" height="300" fill="#f2c1a3"/>
+  <!-- dark red bowl rim -->
+  <ellipse cx="200" cy="170" rx="190" ry="120" fill="#7a0a1c"/>
+  <ellipse cx="200" cy="170" rx="178" ry="110" fill="#9c0b22"/>
+  <!-- chili oil surface -->
+  <ellipse cx="200" cy="170" rx="170" ry="100" fill="#c8102e"/>
+  <!-- darker chili oil pools -->
+  <g fill="#9c0b22" opacity="0.6">
+    <ellipse cx="120" cy="150" rx="40" ry="14"/>
+    <ellipse cx="280" cy="180" rx="50" ry="16"/>
+    <ellipse cx="180" cy="220" rx="60" ry="14"/>
+  </g>
+  <!-- floating chili flakes -->
+  <g fill="#5a0510">
+    <path d="M80,140 l6,2 l-2,4 l-5,-1 z"/>
+    <path d="M310,150 l5,3 l-3,4 l-4,-2 z"/>
+    <path d="M250,135 l4,2 l-2,4 l-4,-1 z"/>
+    <path d="M150,200 l5,2 l-2,4 l-4,-2 z"/>
+    <path d="M340,200 l4,3 l-2,4 l-4,-2 z"/>
+    <path d="M70,210 l5,3 l-3,3 l-4,-2 z"/>
+  </g>
+  <!-- wontons floating - folded triangle/pillow shapes -->
+  <g>
+    <!-- wonton 1 -->
+    <g transform="translate(120,150) rotate(-15)">
+      <path d="M-30,0 L0,-22 L30,0 L20,18 L-20,18 Z" fill="#fdf6e3" stroke="#d4a872" stroke-width="2"/>
+      <path d="M-12,-8 Q0,-14 12,-8" stroke="#a07c54" stroke-width="1.5" fill="none"/>
+    </g>
+    <!-- wonton 2 -->
+    <g transform="translate(220,165) rotate(20)">
+      <path d="M-32,0 L0,-24 L32,0 L22,20 L-22,20 Z" fill="#fdf6e3" stroke="#d4a872" stroke-width="2"/>
+      <path d="M-14,-10 Q0,-16 14,-10" stroke="#a07c54" stroke-width="1.5" fill="none"/>
+    </g>
+    <!-- wonton 3 -->
+    <g transform="translate(290,140) rotate(-10)">
+      <path d="M-28,0 L0,-20 L28,0 L18,16 L-18,16 Z" fill="#fdf6e3" stroke="#d4a872" stroke-width="2"/>
+      <path d="M-10,-6 Q0,-12 10,-6" stroke="#a07c54" stroke-width="1.5" fill="none"/>
+    </g>
+    <!-- wonton 4 -->
+    <g transform="translate(170,210) rotate(8)">
+      <path d="M-30,0 L0,-22 L30,0 L20,18 L-20,18 Z" fill="#fdf6e3" stroke="#d4a872" stroke-width="2"/>
+      <path d="M-12,-8 Q0,-14 12,-8" stroke="#a07c54" stroke-width="1.5" fill="none"/>
+    </g>
+    <!-- wonton 5 -->
+    <g transform="translate(265,215) rotate(-22)">
+      <path d="M-26,0 L0,-18 L26,0 L16,14 L-16,14 Z" fill="#fdf6e3" stroke="#d4a872" stroke-width="2"/>
+      <path d="M-10,-6 Q0,-10 10,-6" stroke="#a07c54" stroke-width="1.5" fill="none"/>
+    </g>
+  </g>
+  <!-- scallion green slices -->
+  <g fill="#7eb24a" stroke="#558b2f" stroke-width="0.8">
+    <ellipse cx="95" cy="170" rx="6" ry="3"/>
+    <ellipse cx="320" cy="160" rx="6" ry="3"/>
+    <ellipse cx="155" cy="135" rx="5" ry="2.5"/>
+    <ellipse cx="240" cy="195" rx="6" ry="3"/>
+    <ellipse cx="310" cy="210" rx="5" ry="2.5"/>
+  </g>
+  <!-- sesame seeds -->
+  <g fill="#fdf6e3">
+    <ellipse cx="100" cy="125" rx="2" ry="1"/>
+    <ellipse cx="190" cy="120" rx="2" ry="1"/>
+    <ellipse cx="280" cy="118" rx="2" ry="1"/>
+    <ellipse cx="130" cy="240" rx="2" ry="1"/>
+    <ellipse cx="240" cy="245" rx="2" ry="1"/>
+  </g>
+</svg>

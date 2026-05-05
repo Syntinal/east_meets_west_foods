@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice">
+  <rect width="400" height="300" fill="#f7d6c0"/>
+  <!-- white plate -->
+  <ellipse cx="200" cy="170" rx="190" ry="120" fill="#fff8f0"/>
+  <ellipse cx="200" cy="170" rx="170" ry="105" fill="#fff" opacity="0.8"/>
+  <!-- har gow style: translucent pink dumplings -->
+  <!-- back row -->
+  <g>
+    <ellipse cx="120" cy="160" rx="46" ry="30" fill="#f8c8b3"/>
+    <ellipse cx="120" cy="160" rx="42" ry="26" fill="#fbdcc8" opacity="0.8"/>
+    <!-- shrimp inside (curve hint) -->
+    <path d="M95,158 Q120,145 145,158" stroke="#e87a5a" stroke-width="3" fill="none" opacity="0.7"/>
+    <ellipse cx="200" cy="150" rx="50" ry="32" fill="#f8c8b3"/>
+    <ellipse cx="200" cy="150" rx="46" ry="28" fill="#fbdcc8" opacity="0.8"/>
+    <path d="M170,148 Q200,134 230,148" stroke="#e87a5a" stroke-width="3" fill="none" opacity="0.7"/>
+    <ellipse cx="285" cy="162" rx="44" ry="30" fill="#f8c8b3"/>
+    <ellipse cx="285" cy="162" rx="40" ry="26" fill="#fbdcc8" opacity="0.8"/>
+    <path d="M260,160 Q285,147 310,160" stroke="#e87a5a" stroke-width="3" fill="none" opacity="0.7"/>
+  </g>
+  <!-- pleats -->
+  <g stroke="#d18d6e" stroke-width="1.8" fill="none" stroke-linecap="round">
+    <path d="M86,156 Q92,144 100,154 Q108,142 116,152 Q124,142 132,152 Q140,144 148,156"/>
+    <path d="M164,146 Q172,132 180,144 Q188,130 196,142 Q204,130 212,142 Q220,132 228,146"/>
+    <path d="M253,158 Q259,146 267,156 Q275,144 283,154 Q291,144 299,154 Q307,146 313,158"/>
+  </g>
+  <!-- front row -->
+  <g>
+    <ellipse cx="160" cy="208" rx="44" ry="28" fill="#f8c8b3"/>
+    <ellipse cx="160" cy="208" rx="40" ry="24" fill="#fbdcc8" opacity="0.8"/>
+    <path d="M134,206 Q160,192 186,206" stroke="#e87a5a" stroke-width="3" fill="none" opacity="0.7"/>
+    <ellipse cx="250" cy="210" rx="44" ry="28" fill="#f8c8b3"/>
+    <ellipse cx="250" cy="210" rx="40" ry="24" fill="#fbdcc8" opacity="0.8"/>
+    <path d="M224,208 Q250,194 276,208" stroke="#e87a5a" stroke-width="3" fill="none" opacity="0.7"/>
+  </g>
+  <g stroke="#d18d6e" stroke-width="1.8" fill="none" stroke-linecap="round">
+    <path d="M126,204 Q132,194 140,202 Q148,192 156,200 Q164,192 172,200 Q180,194 188,204"/>
+    <path d="M216,206 Q222,196 230,204 Q238,194 246,202 Q254,194 262,202 Q270,196 276,206"/>
+  </g>
+  <!-- ginger slivers -->
+  <g fill="#e8c060" stroke="#a88a30" stroke-width="0.8">
+    <path d="M70,130 L82,128 L80,134 L72,134 Z"/>
+    <path d="M320,135 L332,132 L330,140 L322,140 Z"/>
+  </g>
+  <!-- microgreens -->
+  <g stroke="#5d8a3a" stroke-width="2" stroke-linecap="round">
+    <line x1="55" y1="195" x2="65" y2="200"/>
+    <line x1="60" y1="190" x2="68" y2="198"/>
+    <line x1="335" y1="200" x2="345" y2="195"/>
+  </g>
+</svg>

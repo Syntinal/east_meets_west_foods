@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>East Meets West Dumpling House</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600&display=swap"
+    rel="stylesheet"
+  />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- ============ TOP UTILITY BAR ============ -->
+  <div class="utility-bar">
+    <div class="utility-inner">
+      <ul class="social-list" aria-label="Social media">
+        <li><a href="#" aria-label="Facebook">f</a></li>
+        <li><a href="#" aria-label="Instagram">IG</a></li>
+        <li><a href="#" aria-label="Pinterest">P</a></li>
+        <li><a href="#" aria-label="YouTube">YT</a></li>
+      </ul>
+      <form class="search-form" role="search" onsubmit="return false">
+        <input type="search" placeholder="Search the menu..." aria-label="Search" />
+        <button type="submit" aria-label="Search">⌕</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============ MAIN HEADER ============ -->
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="#home" class="logo-link" aria-label="East Meets West Dumpling House home">
+        <span class="title-block">
+          <span class="title-text">dumplings</span>
+        </span>
+      </a>
+      <p class="brand-tagline">East Meets West Dumpling House</p>
+      <p class="brand-sub">Hand-folded daily &nbsp;·&nbsp; Steamed &amp; pan-fried &nbsp;·&nbsp; Family-style</p>
+    </div>
+  </header>
+
+  <!-- ============ STICKY NAV ============ -->
+  <nav class="primary-nav" aria-label="Primary">
+    <ul class="primary-nav-list">
+      <li><a href="#home">Home</a></li>
+      <li><a href="#menu">Menu</a></li>
+      <li><a href="#dumplings">Dumplings</a></li>
+      <li><a href="#bao">Bao Buns</a></li>
+      <li><a href="#story">Our Story</a></li>
+      <li><a href="#visit">Visit</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+  </nav>
+
+  <!-- ============ HERO ============ -->
+  <section id="home" class="hero">
+    <div class="hero-inner">
+      <div class="hero-photo" aria-hidden="true">
+        <!-- stylized illustration: stack of bamboo steamers -->
+        <svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Steamer of dumplings">
+          <defs>
+            <radialGradient id="steam" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#fff" stop-opacity="0.9"/>
+              <stop offset="100%" stop-color="#fff" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+          <!-- steam puffs -->
+          <ellipse cx="60" cy="30" rx="22" ry="14" fill="url(#steam)"/>
+          <ellipse cx="120" cy="20" rx="28" ry="16" fill="url(#steam)"/>
+          <ellipse cx="170" cy="34" rx="18" ry="12" fill="url(#steam)"/>
+          <!-- steamer body -->
+          <ellipse cx="110" cy="80" rx="92" ry="22" fill="#e8d4a8"/>
+          <rect x="18" y="80" width="184" height="40" fill="#d4b87c"/>
+          <ellipse cx="110" cy="120" rx="92" ry="22" fill="#b8956a"/>
+          <!-- weave lines -->
+          <g stroke="#a07c54" stroke-width="1.5" opacity="0.5">
+            <line x1="30" y1="92" x2="190" y2="92"/>
+            <line x1="30" y1="100" x2="190" y2="100"/>
+            <line x1="30" y1="108" x2="190" y2="108"/>
+          </g>
+          <!-- dumplings on top -->
+          <g fill="#f4ead8" stroke="#c8a878" stroke-width="1.5">
+            <ellipse cx="70" cy="72" rx="22" ry="14"/>
+            <ellipse cx="115" cy="68" rx="22" ry="14"/>
+            <ellipse cx="158" cy="74" rx="20" ry="13"/>
+          </g>
+          <!-- pleats -->
+          <g stroke="#a07c54" stroke-width="1.5" fill="none">
+            <path d="M52,72 Q58,62 64,70 Q70,60 76,70 Q82,62 88,72"/>
+            <path d="M97,68 Q103,58 109,66 Q115,56 121,66 Q127,58 133,68"/>
+            <path d="M140,74 Q146,64 152,72 Q158,62 164,72 Q170,64 176,74"/>
+          </g>
+          <!-- chopsticks -->
+          <g stroke="#7a4a2a" stroke-width="3" stroke-linecap="round">
+            <line x1="180" y1="40" x2="210" y2="100"/>
+            <line x1="190" y1="38" x2="218" y2="96"/>
+          </g>
+        </svg>
+      </div>
+      <div class="hero-text">
+        <h1 class="hero-headline">
+          Welcome — we're <em>East Meets West</em>.
+        </h1>
+        <p class="hero-body">
+          A family-run dumpling house pulling from two kitchens, one in
+          Shanghai and one across the Pacific. Every wrapper is rolled by
+          hand, every filling made fresh each morning, and every plate served
+          the way our grandmothers would've wanted — hot, generous, and
+          shared.
+        </p>
+        <p class="hero-byline">— The Lin Family · Bao, Mei, Jun &amp; Lily</p>
+        <a href="#story" class="btn btn-primary">Meet Our Family →</a>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider" aria-hidden="true">* &nbsp; * &nbsp; *</div>
+
+  <!-- ============ FEATURED MENU ============ -->
+  <section id="menu" class="section">
+    <div class="container">
+      <header class="section-head">
+        <p class="eyebrow">Featured</p>
+        <h2 class="section-title">Most-Loved Plates</h2>
+        <p class="section-lede">
+          The dumplings, buns, and noodles our regulars come back for. Listed
+          below in no particular order — they're all the favorite of someone
+          on staff.
+        </p>
+      </header>
+
+      <div class="menu-grid">
+        <article class="menu-card">
+          <div class="menu-card-img menu-img-1" aria-hidden="true"></div>
+          <div class="menu-card-body">
+            <p class="card-tag">Steamed · Classic</p>
+            <h3>Pork &amp; Chive Jiaozi</h3>
+            <p>Northern-style with fresh garlic chive and toasted sesame oil.</p>
+            <div class="card-foot"><span class="price">$12</span><a href="#" class="card-link">View →</a></div>
+          </div>
+        </article>
+
+        <article class="menu-card">
+          <div class="menu-card-img menu-img-2" aria-hidden="true"></div>
+          <div class="menu-card-body">
+            <p class="card-tag">Pan-Fried · Soup</p>
+            <h3>Sheng Jian Bao</h3>
+            <p>Crisp-bottomed soup buns with a hot, juicy pork center.</p>
+            <div class="card-foot"><span class="price">$13</span><a href="#" class="card-link">View →</a></div>
+          </div>
+        </article>
+
+        <article class="menu-card">
+          <div class="menu-card-img menu-img-3" aria-hidden="true"></div>
+          <div class="menu-card-body">
+            <p class="card-tag">Steamed · Seafood</p>
+            <h3>Shrimp &amp; Ginger</h3>
+            <p>Sweet shrimp, scallion, and a touch of Shaoxing wine.</p>
+            <div class="card-foot"><span class="price">$14</span><a href="#" class="card-link">View →</a></div>
+          </div>
+        </article>
+
+        <article class="menu-card">
+          <div class="menu-card-img menu-img-4" aria-hidden="true"></div>
+          <div class="menu-card-body">
+            <p class="card-tag">Bao · House Specialty</p>
+            <h3>Char Siu Bao</h3>
+            <p>Fluffy steamed buns filled with sweet-savory roast pork.</p>
+            <div class="card-foot"><span class="price">$11</span><a href="#" class="card-link">View →</a></div>
+          </div>
+        </article>
+
+        <article class="menu-card">
+          <div class="menu-card-img menu-img-5" aria-hidden="true"></div>
+          <div class="menu-card-body">
+            <p class="card-tag">Wonton · Spicy</p>
+            <h3>Hong You Chao Shou</h3>
+            <p>Pork wontons in chili oil, black vinegar, and crushed peanut.</p>
+            <div class="card-foot"><span class="price">$11</span><a href="#" class="card-link">View →</a></div>
+          </div>
+        </article>
+
+        <article class="menu-card">
+          <div class="menu-card-img menu-img-6" aria-hidden="true"></div>
+          <div class="menu-card-body">
+            <p class="card-tag">Vegetarian</p>
+            <h3>Mushroom &amp; Tofu</h3>
+            <p>Shiitake, wood ear, silken tofu — fully plant-based.</p>
+            <div class="card-foot"><span class="price">$12</span><a href="#" class="card-link">View →</a></div>
+          </div>
+        </article>
+
+        <article class="menu-card">
+          <div class="menu-card-img menu-img-7" aria-hidden="true"></div>
+          <div class="menu-card-body">
+            <p class="card-tag">Bao · Sweet</p>
+            <h3>Custard Lava Bao</h3>
+            <p>Salted egg yolk custard with a slow, oozing center.</p>
+            <div class="card-foot"><span class="price">$9</span><a href="#" class="card-link">View →</a></div>
+          </div>
+        </article>
+
+        <article class="menu-card">
+          <div class="menu-card-img menu-img-8" aria-hidden="true"></div>
+          <div class="menu-card-body">
+            <p class="card-tag">Noodle</p>
+            <h3>Dan Dan Mian</h3>
+            <p>Hand-pulled noodles, ground pork, sesame, Sichuan peppercorn.</p>
+            <div class="card-foot"><span class="price">$13</span><a href="#" class="card-link">View →</a></div>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider" aria-hidden="true">* &nbsp; * &nbsp; *</div>
+
+  <!-- ============ STORY ============ -->
+  <section id="story" class="section section-cream">
+    <div class="container story-grid">
+      <div class="story-photo" aria-hidden="true">
+        <svg viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg">
+          <!-- rolling pin and dough scene -->
+          <rect x="0" y="0" width="240" height="240" fill="#faf3e6"/>
+          <!-- table -->
+          <rect x="0" y="180" width="240" height="60" fill="#d4b88a"/>
+          <!-- flour dust -->
+          <g fill="#fff" opacity="0.7">
+            <circle cx="50" cy="186" r="2"/>
+            <circle cx="80" cy="190" r="1.5"/>
+            <circle cx="170" cy="184" r="2"/>
+            <circle cx="200" cy="188" r="1.5"/>
+          </g>
+          <!-- dough ball -->
+          <ellipse cx="80" cy="160" rx="34" ry="22" fill="#f4ead8"/>
+          <!-- rolling pin -->
+          <rect x="120" y="148" width="100" height="18" rx="9" fill="#a07c54"/>
+          <rect x="110" y="153" width="14" height="8" rx="4" fill="#7a4a2a"/>
+          <rect x="216" y="153" width="14" height="8" rx="4" fill="#7a4a2a"/>
+          <!-- finished dumpling -->
+          <g transform="translate(40,90)">
+            <ellipse cx="40" cy="30" rx="34" ry="20" fill="#f4ead8" stroke="#c8a878" stroke-width="1.5"/>
+            <path d="M14,30 Q22,18 30,28 Q38,16 46,28 Q54,18 62,28 Q68,22 70,30" stroke="#a07c54" stroke-width="1.5" fill="none"/>
+          </g>
+          <!-- red bowl with sauce -->
+          <g transform="translate(150,80)">
+            <ellipse cx="40" cy="40" rx="40" ry="14" fill="#9c0b22"/>
+            <path d="M0,40 Q40,76 80,40 Z" fill="#c8102e"/>
+            <ellipse cx="40" cy="40" rx="34" ry="10" fill="#3a0f15"/>
+          </g>
+        </svg>
+      </div>
+      <div class="story-text">
+        <p class="eyebrow">Our Story</p>
+        <h2 class="section-title">Two kitchens, one table.</h2>
+        <p>
+          East Meets West began as a Sunday tradition between two
+          grandmothers — one folding jiaozi in a Shanghai apartment, one
+          rolling out dough in a Midwestern farmhouse. Their grandkids grew
+          up trading recipes across time zones, and eventually decided the
+          rest of the neighborhood deserved a taste.
+        </p>
+        <p>
+          We don't take shortcuts. No frozen wrappers, no commissary fillings.
+          Every morning starts at 6 a.m. with a stand mixer, a rolling pin,
+          and a long playlist.
+        </p>
+        <p class="story-sign">— Bao, Mei, Jun &amp; Lily Lin</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider" aria-hidden="true">* &nbsp; * &nbsp; *</div>
+
+  <!-- ============ NEWSLETTER ============ -->
+  <section class="newsletter">
+    <div class="container newsletter-inner">
+      <h2 class="section-title">Join the Family Table.</h2>
+      <p class="section-lede">
+        Sign up for our newsletter and get a free zine — <em>10 Dumplings to
+        Fold at Home</em> — plus first dibs on seasonal specials and pop-up
+        nights.
+      </p>
+      <form class="newsletter-form" onsubmit="return false">
+        <input type="email" placeholder="your@email.com" aria-label="Email address" required />
+        <button type="submit" class="btn btn-primary">Subscribe</button>
+      </form>
+      <p class="newsletter-fine">No spam. Unsubscribe anytime.</p>
+    </div>
+  </section>
+
+  <div class="divider" aria-hidden="true">* &nbsp; * &nbsp; *</div>
+
+  <!-- ============ VISIT ============ -->
+  <section id="visit" class="section">
+    <div class="container visit-grid">
+      <div>
+        <p class="eyebrow">Visit</p>
+        <h2 class="section-title">Find us. Sit down. Stay a while.</h2>
+        <div class="visit-row">
+          <strong>Address</strong>
+          <span>128 Market Street, Suite 4</span>
+        </div>
+        <div class="visit-row">
+          <strong>Hours</strong>
+          <span>Mon–Thu &nbsp;11:00 – 21:00<br/>Fri–Sun &nbsp;11:00 – 22:00</span>
+        </div>
+        <div class="visit-row">
+          <strong>Reservations</strong>
+          <span>(555) 010-2288</span>
+        </div>
+      </div>
+      <aside class="visit-card">
+        <h3>Order Pickup</h3>
+        <p>Skip the line. Most pickup orders ready in under 20 minutes.</p>
+        <a href="#" class="btn btn-primary btn-block">Start an Order</a>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ============ FOOTER ============ -->
+  <footer id="contact" class="site-footer">
+    <div class="container footer-grid">
+      <div class="footer-brand">
+        <span class="footer-mark">东 · 西</span>
+        <p>East Meets West Dumpling House</p>
+        <p class="muted">Hand-folded since the family table.</p>
+      </div>
+      <div>
+        <h4>Explore</h4>
+        <ul>
+          <li><a href="#menu">Full Menu</a></li>
+          <li><a href="#dumplings">Dumplings</a></li>
+          <li><a href="#bao">Bao Buns</a></li>
+          <li><a href="#story">Our Story</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Visit</h4>
+        <ul>
+          <li>128 Market Street</li>
+          <li>(555) 010-2288</li>
+          <li><a href="#">Get Directions</a></li>
+          <li><a href="#">Reserve a Table</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Follow</h4>
+        <ul class="footer-social">
+          <li><a href="#">Facebook</a></li>
+          <li><a href="#">Instagram</a></li>
+          <li><a href="#">Pinterest</a></li>
+          <li><a href="#">YouTube</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom container">
+      <p>&copy; East Meets West Dumpling House · All Rights Reserved</p>
+      <a href="#home" class="back-to-top">Back to Top ↑</a>
+    </div>
+  </footer>
+</body>
+</html>
