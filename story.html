@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Our Story — East Meets West Dumplings Bar</title>
+  <meta name="description" content="How East Meets West began — a husband inspired by his wife's authentic Northern Chinese recipes, passed down through generations of Mongol and Haan ancestry." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Bowlby+One&family=Saira+Stencil+One&family=Fredoka:wght@500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+SC:wght@500;700;900&display=swap"
+    rel="stylesheet"
+  />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- ============ STICKY NAV (TOP) ============ -->
+  <nav class="primary-nav" aria-label="Primary">
+    <div class="nav-inner">
+      <button
+        class="nav-toggle"
+        type="button"
+        aria-expanded="false"
+        aria-controls="nav-menu"
+        aria-label="Toggle navigation menu">
+        <span class="nav-toggle-icon" aria-hidden="true">
+          <span class="nav-toggle-bar"></span>
+          <span class="nav-toggle-bar"></span>
+          <span class="nav-toggle-bar"></span>
+        </span>
+      </button>
+      <ul id="nav-menu" class="primary-nav-list">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="menu.html">Menu</a></li>
+        <li><a href="sauce.html">The Sauce</a></li>
+        <li><a href="story.html" aria-current="page">Our Story</a></li>
+        <li><a href="contact.html">Contact</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- ============ STORY ============ -->
+  <main>
+    <section class="section">
+      <div class="container story-grid">
+        <div class="story-photo">
+          <img src="assets/photos/chef.jpeg" alt="Chef at the East Meets West storefront" />
+        </div>
+        <div class="story-text text-panel">
+          <p class="eyebrow">Our Story</p>
+          <h1 class="section-title">About East Meets West LLC.</h1>
+          <p>
+            Several years ago, at potluck social dinners, I began to notice
+            that food lines would invariably merge to my wife's Chinese
+            dumplings line, and thought Americans might enjoy this delicious
+            food if we could commercialize these ancient recipes. After nearly
+            two years of substantial research and development — with many
+            failures — we believe that we have created an authentic product
+            that many Americans will enjoy.
+          </p>
+          <p>
+            All of the recipes are authentic and likely passed down through
+            many generations of my wife's Mongol and Haan ancestry near the
+            Mongolian and Russian border in Northern China.
+          </p>
+          <p>
+            Along with our authentic line of dumplings, in future months we
+            plan on introducing an Americana line of dumplings under the
+            mantra: <em>"Of course Americans change everything, even food."</em>
+            Some initial ideas are Memphis Sweet BBQ dumplings as well as other
+            innovations.
+          </p>
+          <p>
+            We hope that you enjoy these traditional Chinese recipes as much as
+            we do.
+          </p>
+
+          <blockquote class="pull-quote">
+            <p>"Nothing is more important than the food."</p>
+            <cite>— Richard, Chef</cite>
+          </blockquote>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ============ FOOTER ============ -->
+  <footer class="site-footer">
+    <div class="footer-slim">
+      <p class="footer-slim-top">East Meets West LLC &nbsp;·&nbsp; 476534 US HWY 95, Suite B, Ponderay, ID 83852</p>
+      <div class="footer-slim-bottom">
+        <span>&copy; East Meets West LLC</span>
+        <nav class="footer-slim-nav" aria-label="Footer">
+          <a href="menu.html">Menu</a>
+          <a href="sauce.html">Sauce</a>
+          <a href="story.html">Story</a>
+          <a href="contact.html">Contact</a>
+        </nav>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      var toggle = document.querySelector('.nav-toggle');
+      var menu = document.getElementById('nav-menu');
+      if (!toggle || !menu) return;
+
+      function setOpen(open) {
+        menu.classList.toggle('is-open', open);
+        toggle.classList.toggle('is-open', open);
+        toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      }
+
+      toggle.addEventListener('click', function () {
+        setOpen(!menu.classList.contains('is-open'));
+      });
+
+      menu.querySelectorAll('a').forEach(function (link) {
+        link.addEventListener('click', function () { setOpen(false); });
+      });
+    })();
+  </script>
+</body>
+</html>

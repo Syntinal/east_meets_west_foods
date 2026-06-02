@@ -1,0 +1,23 @@
+# Static site served by nginx, routed through the shared Traefik gateway.
+services:
+  web:
+    image: nginx:alpine
+    container_name: east_meets_west_web
+    restart: unless-stopped
+    # Serve the entire project directory read-only; no compose edits needed for new pages.
+    volumes:
+      - ./:/usr/share/nginx/html:ro
+    networks:
+      - default
+      - proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.eastmeetswest.rule=Host(`east-meets-west.localhost`)"
+      - "traefik.http.routers.eastmeetswest.entrypoints=web"
+      - "traefik.http.services.eastmeetswest.loadbalancer.server.port=80"
+      - "traefik.docker.network=proxy"
+
+networks:
+  # Shared with the Traefik gateway (created once via: docker network create proxy)
+  proxy:
+    external: true

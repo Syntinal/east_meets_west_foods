@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Menu — East Meets West Dumplings Bar</title>
+  <meta name="description" content="Our menu: hand-folded pork and vegetable bao buns, dumplings, and combination platters. Dumpling flavors change weekly. Drinks available." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Bowlby+One&family=Saira+Stencil+One&family=Fredoka:wght@500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+SC:wght@500;700;900&display=swap"
+    rel="stylesheet"
+  />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- ============ STICKY NAV (TOP) ============ -->
+  <nav class="primary-nav" aria-label="Primary">
+    <div class="nav-inner">
+      <button
+        class="nav-toggle"
+        type="button"
+        aria-expanded="false"
+        aria-controls="nav-menu"
+        aria-label="Toggle navigation menu">
+        <span class="nav-toggle-icon" aria-hidden="true">
+          <span class="nav-toggle-bar"></span>
+          <span class="nav-toggle-bar"></span>
+          <span class="nav-toggle-bar"></span>
+        </span>
+      </button>
+      <ul id="nav-menu" class="primary-nav-list">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="menu.html" aria-current="page">Menu</a></li>
+        <li><a href="sauce.html">The Sauce</a></li>
+        <li><a href="story.html">Our Story</a></li>
+        <li><a href="contact.html">Contact</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- ============ MENU ============ -->
+  <main>
+    <section class="section">
+      <div class="container">
+        <header class="section-head">
+          <div class="text-panel text-panel--inline">
+            <p class="eyebrow">Menu</p>
+            <h1 class="section-title">East Meets West Menu</h1>
+            <p class="section-lede">
+              Three offerings, made well. Dumpling flavors change weekly.
+            </p>
+          </div>
+        </header>
+
+        <div class="menu-grid">
+          <!-- Bao Buns -->
+          <article class="menu-card">
+            <div class="menu-card-img">
+              <img src="assets/photos/bao-steamer.jpeg" alt="Steamed bao buns" />
+            </div>
+            <div class="menu-card-body">
+              <p class="card-tag">Northern Chinese</p>
+              <h2>Pork &amp; Vegetable Bao Buns</h2>
+              <p>
+                Authentic, ancient, Chinese filled buns with fresh, local pork
+                from Wood's Meats and alternating vegetables such as leeks and
+                cabbage. Authentic Chinese fermented dough adds chewiness and a
+                wonderful bite.
+              </p>
+              <ul class="price-list">
+                <li><span>3 Buns</span><strong>$5.99</strong><em>1 sauce</em></li>
+                <li><span>6 Buns</span><strong>$10.99</strong><em>1 sauce</em></li>
+                <li><span>12 Buns</span><strong>$19.99</strong><em>2 sauces</em></li>
+              </ul>
+            </div>
+          </article>
+
+          <!-- Dumplings -->
+          <article class="menu-card">
+            <div class="menu-card-img">
+              <img src="assets/photos/dumplings-steamer.jpeg" alt="Steamed dumplings" />
+            </div>
+            <div class="menu-card-body">
+              <p class="card-tag">Northern Chinese</p>
+              <h2>Pork &amp; Vegetable Dumplings</h2>
+              <p>
+                Ancient, authentic Chinese dumplings — sized larger than
+                traditional Chinese dumplings for American taste — filled with
+                fresh Wood's pork and alternating vegetables such as leeks and
+                cabbage.
+              </p>
+              <ul class="price-list">
+                <li><span>3 Large Dumplings</span><strong>$5.99</strong><em>1 sauce</em></li>
+                <li><span>6 Large Dumplings</span><strong>$10.99</strong><em>1 sauce</em></li>
+                <li><span>12 Large Dumplings</span><strong>$19.99</strong><em>2 sauces</em></li>
+              </ul>
+            </div>
+          </article>
+
+          <!-- Combination -->
+          <article class="menu-card">
+            <div class="menu-card-img">
+              <img src="assets/photos/dumplings-tray.jpeg" alt="Tray of dumplings" />
+            </div>
+            <div class="menu-card-body">
+              <p class="card-tag">Best of Both</p>
+              <h2>Combination: Buns &amp; Dumplings</h2>
+              <p>
+                Designed to allow guests to experience the combined taste of
+                dumplings and buns.
+              </p>
+              <ul class="price-list">
+                <li><span>3 Dumplings + 3 Buns</span><strong>$10.99</strong><em>1 sauce</em></li>
+                <li><span>6 Dumplings + 6 Buns</span><strong>$19.99</strong><em>2 sauces</em></li>
+              </ul>
+            </div>
+          </article>
+        </div>
+
+        <!-- Drinks -->
+        <div class="drinks">
+          <h3>Drinks</h3>
+          <ul class="drinks-list">
+            <li><span>Water</span><strong>$1</strong></li>
+            <li><span>Soft Drinks</span><strong>$2</strong></li>
+            <li><span>Chinese Drinks</span><strong>$3</strong></li>
+          </ul>
+        </div>
+
+        <p class="menu-note text-panel">
+          Dumpling flavors change weekly. In the coming months we plan on
+          offering an "Americana" line of dumplings under the moniker — yes, as
+          Americans, we change everything. Some initial ideas include Memphis
+          Sweet BBQ as well as other flavors.
+        </p>
+        <p class="menu-note muted text-panel">
+          There are gluten and soy-based products (soy sauce, oil, etc.) in
+          this food, as this is part of maintaining authenticity.
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <!-- ============ FOOTER ============ -->
+  <footer class="site-footer">
+    <div class="footer-slim">
+      <p class="footer-slim-top">East Meets West LLC &nbsp;·&nbsp; 476534 US HWY 95, Suite B, Ponderay, ID 83852</p>
+      <div class="footer-slim-bottom">
+        <span>&copy; East Meets West LLC</span>
+        <nav class="footer-slim-nav" aria-label="Footer">
+          <a href="menu.html">Menu</a>
+          <a href="sauce.html">Sauce</a>
+          <a href="story.html">Story</a>
+          <a href="contact.html">Contact</a>
+        </nav>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      var toggle = document.querySelector('.nav-toggle');
+      var menu = document.getElementById('nav-menu');
+      if (!toggle || !menu) return;
+
+      function setOpen(open) {
+        menu.classList.toggle('is-open', open);
+        toggle.classList.toggle('is-open', open);
+        toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      }
+
+      toggle.addEventListener('click', function () {
+        setOpen(!menu.classList.contains('is-open'));
+      });
+
+      menu.querySelectorAll('a').forEach(function (link) {
+        link.addEventListener('click', function () { setOpen(false); });
+      });
+    })();
+  </script>
+</body>
+</html>

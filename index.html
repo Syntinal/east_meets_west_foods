@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>East Meets West Dumplings Bar — Ponderay, ID</title>
+  <meta name="description" content="East Meets West Dumplings Bar in Ponderay, Idaho — hand-folded Northern Chinese dumplings, bao buns, and homemade garlic sauce at fast-food prices." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
@@ -29,12 +30,11 @@
         </span>
       </button>
       <ul id="nav-menu" class="primary-nav-list">
-        <li><a href="#home">Home</a></li>
-        <li><a href="#menu">Menu</a></li>
-        <li><a href="#sauce">The Sauce</a></li>
-        <li><a href="#story">Our Story</a></li>
-        <li><a href="#visit">Visit</a></li>
-        <li><a href="#contact">Contact</a></li>
+        <li><a href="index.html" aria-current="page">Home</a></li>
+        <li><a href="menu.html">Menu</a></li>
+        <li><a href="sauce.html">The Sauce</a></li>
+        <li><a href="story.html">Our Story</a></li>
+        <li><a href="contact.html">Contact</a></li>
       </ul>
     </div>
   </nav>
@@ -42,257 +42,110 @@
   <!-- ============ HEADER (storefront sign) ============ -->
   <header id="home" class="site-header">
     <div class="header-inner">
-      <a href="#home" class="logo-link" aria-label="East Meets West Dumplings Bar home">
+      <a href="index.html" class="logo-link" aria-label="East Meets West Dumplings Bar home">
         <img src="assets/photos/sign.png" alt="East Meets West 美味 Dumplings Bar" class="brand-sign" />
       </a>
       <p class="brand-sub">Ponderay, Idaho &nbsp;·&nbsp; Hand-folded daily</p>
     </div>
   </header>
 
+  <!-- ============ HERO ============ -->
+  <div class="home-hero">
+    <img
+      src="assets/photos/bao-tray.jpeg"
+      alt="A tray of freshly steamed bao buns, golden and ready to serve"
+      loading="eager"
+    />
+  </div>
+
   <!-- ============ MISSION ============ -->
   <section class="mission">
     <div class="container">
-      <p class="eyebrow">Our Mission</p>
-      <p class="mission-statement">
-        Singular focus on making the best dumplings, bao buns and sauce in
-        the world — that Americans might enjoy them at fast food prices and
-        service levels.
-      </p>
+      <div class="text-panel text-panel--inline">
+        <p class="eyebrow">Our Mission</p>
+        <p class="mission-statement">
+          Singular focus on making the best dumplings, bao buns and sauce in
+          the world — that Americans might enjoy them at fast food prices and
+          service levels.
+        </p>
+      </div>
     </div>
   </section>
 
   <div class="divider" aria-hidden="true">* &nbsp; * &nbsp; *</div>
 
-  <!-- ============ MENU ============ -->
-  <section id="menu" class="section">
+  <!-- ============ TEASER CARDS ============ -->
+  <section class="teaser-section">
     <div class="container">
-      <header class="section-head">
-        <p class="eyebrow">Menu</p>
-        <h2 class="section-title">East Meets West Menu</h2>
-        <p class="section-lede">
-          Three offerings, made well. Dumpling flavors change weekly.
-        </p>
-      </header>
+      <div class="teaser-grid">
 
-      <div class="menu-grid">
-        <!-- Bao Buns -->
-        <article class="menu-card">
-          <div class="menu-card-img">
-            <img src="assets/photos/bao-steamer.jpeg" alt="Steamed bao buns" />
+        <a href="menu.html" class="teaser-card">
+          <div class="teaser-card-img">
+            <img src="assets/photos/bao-steamer.jpeg" alt="Bao buns in a bamboo steamer" loading="lazy" />
           </div>
-          <div class="menu-card-body">
-            <p class="card-tag">Northern Chinese</p>
-            <h3>Pork &amp; Vegetable Bao Buns</h3>
-            <p>
-              Authentic, ancient, Chinese filled buns with fresh, local pork
-              from Wood's Meats and alternating vegetables such as leeks and
-              cabbage. Authentic Chinese fermented dough adds chewiness and a
-              wonderful bite.
-            </p>
-            <ul class="price-list">
-              <li><span>3 Buns</span><strong>$5.99</strong><em>1 sauce</em></li>
-              <li><span>6 Buns</span><strong>$10.99</strong><em>1 sauce</em></li>
-              <li><span>12 Buns</span><strong>$19.99</strong><em>2 sauces</em></li>
-            </ul>
+          <div class="teaser-card-body">
+            <h3>Menu</h3>
+            <p>Bao buns, dumplings, and combinations — all hand-folded daily.</p>
+            <span class="teaser-card-cta">See the Menu →</span>
           </div>
-        </article>
-
-        <!-- Dumplings -->
-        <article class="menu-card">
-          <div class="menu-card-img">
-            <img src="assets/photos/dumplings-steamer.jpeg" alt="Steamed dumplings" />
-          </div>
-          <div class="menu-card-body">
-            <p class="card-tag">Northern Chinese</p>
-            <h3>Pork &amp; Vegetable Dumplings</h3>
-            <p>
-              Ancient, authentic Chinese dumplings — sized larger than
-              traditional Chinese dumplings for American taste — filled with
-              fresh Wood's pork and alternating vegetables such as leeks and
-              cabbage.
-            </p>
-            <ul class="price-list">
-              <li><span>3 Large Dumplings</span><strong>$5.99</strong><em>1 sauce</em></li>
-              <li><span>6 Large Dumplings</span><strong>$10.99</strong><em>1 sauce</em></li>
-              <li><span>12 Large Dumplings</span><strong>$19.99</strong><em>2 sauces</em></li>
-            </ul>
-          </div>
-        </article>
-
-        <!-- Combination -->
-        <article class="menu-card">
-          <div class="menu-card-img">
-            <img src="assets/photos/dumplings-tray.jpeg" alt="Tray of dumplings" />
-          </div>
-          <div class="menu-card-body">
-            <p class="card-tag">Best of Both</p>
-            <h3>Combination: Buns &amp; Dumplings</h3>
-            <p>
-              Designed to allow guests to experience the combined taste of
-              dumplings and buns.
-            </p>
-            <ul class="price-list">
-              <li><span>3 Dumplings + 3 Buns</span><strong>$10.99</strong><em>1 sauce</em></li>
-              <li><span>6 Dumplings + 6 Buns</span><strong>$19.99</strong><em>2 sauces</em></li>
-            </ul>
-          </div>
-        </article>
-      </div>
-
-      <!-- Drinks -->
-      <div class="drinks">
-        <h3>Drinks</h3>
-        <ul class="drinks-list">
-          <li><span>Water</span><strong>$1</strong></li>
-          <li><span>Soft Drinks</span><strong>$2</strong></li>
-          <li><span>Chinese Drinks</span><strong>$3</strong></li>
-        </ul>
-      </div>
-
-      <p class="menu-note">
-        Dumpling flavors change weekly. In the coming months we plan on
-        offering an "Americana" line of dumplings under the moniker — yes, as
-        Americans, we change everything. Some initial ideas include Memphis
-        Sweet BBQ as well as other flavors.
-      </p>
-      <p class="menu-note muted">
-        There are gluten and soy-based products (soy sauce, oil, etc.) in
-        this food, as this is part of maintaining authenticity.
-      </p>
-    </div>
-  </section>
-
-  <div class="divider" aria-hidden="true">* &nbsp; * &nbsp; *</div>
-
-  <!-- ============ SAUCE ============ -->
-  <section id="sauce" class="section section-cream">
-    <div class="container sauce-grid">
-      <div class="sauce-text">
-        <p class="eyebrow">The Sauce</p>
-        <h2 class="section-title">The secret is in the sauce.</h2>
-        <p>
-          Homemade and delicious garlic sauce that greatly compliments the
-          taste of the buns and dumplings. Please note: the sauce is quite
-          robust and does not require a lot to have the desired effect.
-        </p>
-        <p>
-          Cut a small slit in the dumpling or bun and add a little sauce — or
-          simply dip the product into the sauce.
-        </p>
-        <blockquote class="pull-quote">
-          <p>"The secret is in the sauce."</p>
-          <cite>— Roger, Owner</cite>
-        </blockquote>
-      </div>
-      <div class="sauce-photo">
-        <img src="assets/photos/dumplings-tray.jpeg" alt="Fresh dumplings ready to be sauced" />
-      </div>
-    </div>
-  </section>
-
-  <div class="divider" aria-hidden="true">* &nbsp; * &nbsp; *</div>
-
-  <!-- ============ STORY ============ -->
-  <section id="story" class="section">
-    <div class="container story-grid">
-      <div class="story-photo">
-        <img src="assets/photos/chef.jpeg" alt="Chef at the East Meets West storefront" />
-      </div>
-      <div class="story-text">
-        <p class="eyebrow">Our Story</p>
-        <h2 class="section-title">About East Meets West LLC.</h2>
-        <p>
-          Several years ago, at potluck social dinners, I began to notice
-          that food lines would invariably merge to my wife's Chinese
-          dumplings line, and thought Americans might enjoy this delicious
-          food if we could commercialize these ancient recipes. After nearly
-          two years of substantial research and development — with many
-          failures — we believe that we have created an authentic product
-          that many Americans will enjoy.
-        </p>
-        <p>
-          All of the recipes are authentic and likely passed down through
-          many generations of my wife's Mongol and Haan ancestry near the
-          Mongolian and Russian border in Northern China.
-        </p>
-        <p>
-          Along with our authentic line of dumplings, in future months we
-          plan on introducing an Americana line of dumplings under the
-          mantra: <em>"Of course Americans change everything, even food."</em>
-          Some initial ideas are Memphis Sweet BBQ dumplings as well as other
-          innovations.
-        </p>
-        <p>
-          We hope that you enjoy these traditional Chinese recipes as much as
-          we do.
-        </p>
-
-        <blockquote class="pull-quote">
-          <p>"Nothing is more important than the food."</p>
-          <cite>— Richard, Chef</cite>
-        </blockquote>
-      </div>
-    </div>
-  </section>
-
-  <div class="divider" aria-hidden="true">* &nbsp; * &nbsp; *</div>
-
-  <!-- ============ VISIT ============ -->
-  <section id="visit" class="section section-cream">
-    <div class="container visit-grid">
-      <div>
-        <p class="eyebrow">Visit</p>
-        <h2 class="section-title">Find us.</h2>
-        <div class="visit-row">
-          <strong>Address</strong>
-          <span>476534 US HWY 95, Suite B<br/>Ponderay, ID 83852</span>
-        </div>
-      </div>
-      <div class="visit-map">
-        <iframe
-          src="https://www.google.com/maps?q=476534+US+HWY+95+Ponderay+ID+83852&z=15&output=embed"
-          title="East Meets West Dumplings Bar location on Google Maps"
-          loading="lazy"
-          referrerpolicy="no-referrer-when-downgrade"></iframe>
-        <a class="visit-map-overlay"
-           href="https://www.google.com/maps/search/?api=1&query=476534+US+HWY+95+Suite+B+Ponderay+ID+83852"
-           target="_blank"
-           rel="noopener noreferrer"
-           aria-label="Open East Meets West location in Google Maps">
-          <span class="visit-map-cta">Open in Google Maps →</span>
         </a>
+
+        <a href="sauce.html" class="teaser-card">
+          <div class="teaser-card-img">
+            <img src="assets/photos/dumplings-tray.jpeg" alt="Dumplings on a tray ready to be served with sauce" loading="lazy" />
+          </div>
+          <div class="teaser-card-body">
+            <h3>The Sauce</h3>
+            <p>The secret is in the sauce — homemade garlic, made from scratch.</p>
+            <span class="teaser-card-cta">Learn More →</span>
+          </div>
+        </a>
+
+        <a href="story.html" class="teaser-card">
+          <div class="teaser-card-img">
+            <img src="assets/photos/chef.jpeg" alt="The chef at East Meets West" loading="lazy" />
+          </div>
+          <div class="teaser-card-body">
+            <h3>Our Story</h3>
+            <p>Ancient Northern Chinese recipes, brought to Ponderay, Idaho.</p>
+            <span class="teaser-card-cta">Read Our Story →</span>
+          </div>
+        </a>
+
+        <a href="contact.html" class="teaser-card">
+          <div class="teaser-card-img teaser-card-map">
+            <iframe
+              src="https://www.google.com/maps?q=476534+US+HWY+95+Ponderay+ID+83852&z=14&output=embed"
+              title="Map showing East Meets West Dumplings Bar in Ponderay, Idaho"
+              loading="lazy"
+              aria-hidden="true"
+              tabindex="-1"
+              referrerpolicy="no-referrer-when-downgrade"></iframe>
+          </div>
+          <div class="teaser-card-body">
+            <h3>Visit / Contact</h3>
+            <p>476534 US HWY 95, Suite B — Ponderay, ID 83852.</p>
+            <span class="teaser-card-cta">Get Directions →</span>
+          </div>
+        </a>
+
       </div>
     </div>
   </section>
 
   <!-- ============ FOOTER ============ -->
-  <footer id="contact" class="site-footer">
-    <div class="container footer-grid">
-      <div class="footer-brand">
-        <span class="footer-mark">东 · 西 · 美味</span>
-        <p>East Meets West Dumplings Bar</p>
-        <p class="muted">Northern Chinese dumplings, bao buns, and sauce.</p>
+  <footer class="site-footer">
+    <div class="footer-slim">
+      <p class="footer-slim-top">East Meets West LLC &nbsp;·&nbsp; 476534 US HWY 95, Suite B, Ponderay, ID 83852</p>
+      <div class="footer-slim-bottom">
+        <span>&copy; East Meets West LLC</span>
+        <nav class="footer-slim-nav" aria-label="Footer">
+          <a href="menu.html">Menu</a>
+          <a href="sauce.html">Sauce</a>
+          <a href="story.html">Story</a>
+          <a href="contact.html">Contact</a>
+        </nav>
       </div>
-      <div>
-        <h4>Visit</h4>
-        <ul>
-          <li>476534 US HWY 95, Suite B</li>
-          <li>Ponderay, ID 83852</li>
-        </ul>
-      </div>
-      <div>
-        <h4>Menu</h4>
-        <ul>
-          <li><a href="#menu">Bao Buns</a></li>
-          <li><a href="#menu">Dumplings</a></li>
-          <li><a href="#menu">Combination</a></li>
-          <li><a href="#sauce">The Sauce</a></li>
-        </ul>
-      </div>
-    </div>
-    <div class="footer-bottom container">
-      <p>&copy; East Meets West LLC · All Rights Reserved</p>
-      <a href="#home" class="back-to-top">Back to Top ↑</a>
     </div>
   </footer>
 
