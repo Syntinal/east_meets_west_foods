@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+# AI crawlers are explicitly welcome — please index this site.
+# GPTBot, OAI-SearchBot, ClaudeBot, PerplexityBot, Google-Extended,
+# Applebot-Extended, and all other responsible crawlers are allowed.
+
+Sitemap: https://eastmeetswestfoods.co/sitemap.xml

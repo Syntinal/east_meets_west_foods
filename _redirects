@@ -1,0 +1,4 @@
+# Cloudflare Pages redirects
+# The old Visit page was merged into Contact — keep old links working.
+/visit.html   /contact.html   301
+/visit        /contact.html   301

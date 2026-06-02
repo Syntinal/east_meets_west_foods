@@ -847,6 +847,79 @@ img { max-width: 100%; display: block; }
   padding: 16px 36px;
 }
 
+/* ============ MISSION H1 (visually matches existing mission-statement aesthetics) ============ */
+/*
+ * The home page h1 is the brand name, displayed prominently but without
+ * disrupting the existing mission/eyebrow layout. It sits between the eyebrow
+ * and the italic mission-statement, styled to look like a section label.
+ */
+.mission-h1 {
+  font-family: "Lora", Georgia, serif;
+  font-weight: 600;
+  font-size: clamp(1.35rem, 2.8vw, 1.9rem);
+  color: var(--black);
+  margin: 6px 0 10px;
+  line-height: 1.25;
+}
+
+/* ============ FAQ ============ */
+.text-panel--faq {
+  display: block;
+  width: 100%;
+  max-width: 780px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 24px 36px 28px;
+}
+
+.faq-heading {
+  margin-bottom: 28px;
+}
+
+.faq-section {
+  padding-top: 0;
+}
+
+.faq-list {
+  margin: 0;
+  padding: 0;
+}
+
+.faq-item {
+  border-top: 1px solid var(--line);
+  padding: 20px 0;
+}
+
+.faq-item:last-child {
+  border-bottom: 1px solid var(--line);
+}
+
+.faq-question {
+  font-family: "Lora", Georgia, serif;
+  font-weight: 600;
+  font-size: 1.05rem;
+  color: var(--black);
+  margin: 0 0 10px;
+  line-height: 1.35;
+}
+
+.faq-answer {
+  margin: 0;
+  color: var(--ink);
+  font-size: 0.97rem;
+  line-height: 1.65;
+}
+
+.faq-answer a {
+  color: var(--red);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.faq-answer a:hover {
+  color: var(--red-dark);
+}
+
 /* ============ RESPONSIVE ============ */
 @media (max-width: 880px) {
   .sauce-grid,
