@@ -424,6 +424,43 @@ img { max-width: 100%; display: block; }
   font-style: italic;
 }
 
+/* ============ MENU PAGE: main items fill the first screen ============ */
+/* The three main cards (with prices) fill the viewport below the nav;
+   drinks + notes sit just past the fold so you scroll down to them. */
+.menu-main {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: calc(100svh - 58px); /* 58px ≈ sticky nav height */
+  padding-top: 32px;
+  padding-bottom: 32px;
+}
+
+.menu-main .section-head { margin-bottom: 28px; }
+
+/* Compact the cards so all three fit on one screen, prices included */
+.menu-main .menu-card-img {
+  aspect-ratio: auto;
+  height: clamp(130px, 20vh, 200px);
+}
+.menu-main .menu-card-body { padding: 16px 18px 18px; }
+.menu-main .menu-card h2 { font-size: 1.15rem; margin: 0 0 6px; }
+.menu-main .menu-card p { font-size: 0.88rem; margin: 0 0 12px; }
+.menu-main .price-list { padding-top: 12px; }
+.menu-main .price-list li { padding: 6px 0; }
+
+/* Drinks + notes — the part you scroll down to */
+.menu-extras { padding-top: 28px; }
+.menu-extras .drinks { margin-top: 0; }
+
+@media (max-width: 720px) {
+  /* On phones the three stacked cards can't share one screen — let it flow. */
+  .menu-main {
+    display: block;
+    min-height: 0;
+  }
+}
+
 /* ============ SAUCE ============ */
 .sauce-grid {
   display: grid;
