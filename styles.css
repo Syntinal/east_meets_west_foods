@@ -163,6 +163,71 @@ img { max-width: 100%; display: block; }
   left: 20%;
 }
 
+/* ============ NAV "Leave a Review" sparkle link ============ */
+.primary-nav-list li.nav-review {
+  display: flex;
+  align-items: center;
+  margin-left: 8px;
+}
+
+.nav-review-link {
+  position: relative;
+  padding: 9px 18px !important;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #b8860b 0%, #ffd76a 45%, #b8860b 100%);
+  background-size: 200% auto;
+  color: #2a1a00 !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.1em !important;
+  white-space: nowrap;
+  overflow: hidden;
+  box-shadow: 0 0 0 1px rgba(255, 215, 106, 0.5), 0 4px 14px rgba(255, 200, 60, 0.3);
+  animation: review-pulse 2.4s ease-in-out infinite;
+  transition: background-position 0.3s ease, transform 0.15s ease;
+}
+
+.nav-review-link:hover {
+  color: #2a1a00 !important;
+  background-position: right center;
+  transform: translateY(-1px);
+}
+
+/* kill the default red underline indicator on the pill */
+.nav-review-link::after { display: none !important; }
+
+/* sweeping shine */
+.nav-review-link::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -60%;
+  width: 45%;
+  height: 100%;
+  background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.85), transparent);
+  transform: skewX(-20deg);
+  animation: review-shine 3s ease-in-out infinite;
+}
+
+.nav-review-star {
+  display: inline-block;
+  margin-right: 4px;
+}
+
+@keyframes review-shine {
+  0%, 55% { left: -60%; }
+  100% { left: 130%; }
+}
+
+@keyframes review-pulse {
+  0%, 100% { box-shadow: 0 0 0 1px rgba(255, 215, 106, 0.5), 0 4px 14px rgba(255, 200, 60, 0.3); }
+  50% { box-shadow: 0 0 0 1px rgba(255, 215, 106, 0.85), 0 6px 22px rgba(255, 200, 60, 0.65); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-review-link,
+  .nav-review-link::before { animation: none; }
+}
+
 /* ============ MAIN HEADER (storefront sign) ============ */
 .site-header {
   background: var(--white);
@@ -1005,6 +1070,14 @@ img { max-width: 100%; display: block; }
   }
   .primary-nav-list a::after {
     display: none;
+  }
+  /* Review pill: full-width row in the mobile dropdown */
+  .primary-nav-list li.nav-review {
+    margin: 8px 4px 4px;
+  }
+  .nav-review-link {
+    text-align: center;
+    padding: 13px 18px !important;
   }
 }
 
