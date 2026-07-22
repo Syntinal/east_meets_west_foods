@@ -1,0 +1,20 @@
+# Production stack — standalone Debian server (no Traefik gateway).
+#
+# Differs from docker-compose.yml (the local .localhost/Traefik dev variant):
+# publishes a real host port instead of routing through the proxy network.
+# The repo directory is mounted read-only, so updating the live site is just
+# `git pull` — no rebuild or restart needed.
+#
+# Bring up:   docker compose --file docker-compose.prod.yml up --detach
+# Update:     git pull
+# Down:       docker compose --file docker-compose.prod.yml down
+#
+services:
+  web:
+    image: nginx:alpine
+    restart: unless-stopped
+    # Override with SITE_PORT=80 (or any free port) in the environment.
+    ports:
+      - "${SITE_PORT:-8080}:80"
+    volumes:
+      - ./:/usr/share/nginx/html:ro
