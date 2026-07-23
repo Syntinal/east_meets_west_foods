@@ -405,18 +405,24 @@ img { max-width: 100%; display: block; }
   text-transform: uppercase;
 }
 
-/* ============ DRINKS ============ */
-.drinks {
+/* ============ MENU EXTRAS (meal deal, drinks, snacks) ============ */
+.extras-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 20px;
+  max-width: 1000px;
   margin: 48px auto 0;
+}
+
+.extras-card {
   padding: 28px 32px;
   background: var(--white);
   border: 1px solid var(--line);
   border-left: 4px solid var(--red);
   border-radius: 4px;
-  max-width: 520px;
 }
 
-.drinks h3 {
+.extras-card h3 {
   font-family: "Lora", Georgia, serif;
   font-weight: 600;
   font-size: 1.25rem;
@@ -424,25 +430,28 @@ img { max-width: 100%; display: block; }
   color: var(--black);
 }
 
-.drinks-list {
+.extras-list {
   list-style: none;
   margin: 0;
   padding: 0;
 }
 
-.drinks-list li {
+.extras-list li {
   display: flex;
   justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
   padding: 8px 0;
   font-size: 0.98rem;
 }
 
-.drinks-list li + li { border-top: 1px dashed var(--line); }
+.extras-list li + li { border-top: 1px dashed var(--line); }
 
-.drinks-list strong {
+.extras-list strong {
   font-family: "Fredoka", sans-serif;
   font-weight: 700;
   color: var(--red);
+  white-space: nowrap;
 }
 
 /* ============ MENU NOTES ============ */
@@ -485,9 +494,9 @@ img { max-width: 100%; display: block; }
 .menu-main .price-list { padding-top: 12px; }
 .menu-main .price-list li { padding: 6px 0; }
 
-/* Drinks + notes — the part you scroll down to */
+/* Meal deal, drinks, snacks + notes — the part you scroll down to */
 .menu-extras { padding-top: 28px; }
-.menu-extras .drinks { margin-top: 0; }
+.menu-extras .extras-grid { margin-top: 0; }
 
 @media (max-width: 720px) {
   /* On phones the three stacked cards can't share one screen — let it flow. */
