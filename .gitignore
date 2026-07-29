@@ -1,2 +1,11 @@
 .claude/
 CLAUDE.md
+
+# Next.js
+node_modules/
+.next/
+next-env.d.ts
+
+# Env
+.env
+.env*.local
