@@ -11,18 +11,35 @@ export const MenuItems: CollectionConfig = {
   defaultSort: "order",
   fields: [
     { name: "title", type: "text", required: true },
-    { name: "tag", type: "text", admin: { description: 'e.g. "Northern Chinese", "Best of Both"' } },
     {
       name: "group",
       type: "select",
       required: true,
+      admin: { description: '"Main" gets a photo, description, and tag. "Extras" is just a name and pricing.' },
       options: [
         { label: "Main", value: "main" },
         { label: "Extras", value: "extras" },
       ],
     },
-    { name: "description", type: "textarea" },
-    { name: "image", type: "upload", relationTo: "media" },
+    {
+      name: "tag",
+      type: "text",
+      admin: {
+        description: 'e.g. "Northern Chinese", "Best of Both"',
+        condition: (_, siblingData) => siblingData.group === "main",
+      },
+    },
+    {
+      name: "description",
+      type: "textarea",
+      admin: { condition: (_, siblingData) => siblingData.group === "main" },
+    },
+    {
+      name: "image",
+      type: "upload",
+      relationTo: "media",
+      admin: { condition: (_, siblingData) => siblingData.group === "main" },
+    },
     {
       name: "priceOptions",
       type: "array",
