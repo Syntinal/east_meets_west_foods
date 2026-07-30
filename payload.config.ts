@@ -7,6 +7,7 @@ import { buildConfig } from "payload";
 import { Users } from "./collections/Users";
 import { Media } from "./collections/Media";
 import { MenuItems } from "./collections/MenuItems";
+import { News } from "./collections/News";
 import { Navigation } from "./globals/Navigation";
 
 const filename = fileURLToPath(import.meta.url);
@@ -16,7 +17,7 @@ export default buildConfig({
   admin: {
     user: Users.slug,
   },
-  collections: [Users, Media, MenuItems],
+  collections: [Users, Media, MenuItems, News],
   globals: [Navigation],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || "",

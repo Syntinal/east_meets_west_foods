@@ -21,10 +21,19 @@ export const Navigation: GlobalConfig = {
     description:
       "Choose which pages show up in the site's navigation. Unchecking a page hides it from the menu — the page itself still works if someone has the direct link.",
   },
-  fields: NAV_PAGES.map((page) => ({
-    name: page.key,
-    type: "checkbox" as const,
-    label: `Show "${page.label}"`,
-    defaultValue: true,
-  })),
+  fields: [
+    ...NAV_PAGES.map((page) => ({
+      name: page.key,
+      type: "checkbox" as const,
+      label: `Show "${page.label}"`,
+      defaultValue: true,
+    })),
+    {
+      name: "newsTeaser",
+      type: "checkbox" as const,
+      label: 'Show the "News" teaser card on the homepage',
+      defaultValue: true,
+      admin: { description: "Turn this off when there's nothing worth featuring on the homepage." },
+    },
+  ],
 };

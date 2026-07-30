@@ -1,8 +1,10 @@
 import type { Metadata, Viewport } from "next";
+import { draftMode } from "next/headers";
 import config from "@payload-config";
 import { getPayload } from "payload";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
+import DraftModeBanner from "@/components/DraftModeBanner";
 import { NAV_PAGES } from "@/lib/navigation";
 import "./globals.css";
 
@@ -34,6 +36,7 @@ async function getVisiblePages() {
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const visiblePages = await getVisiblePages();
+  const { isEnabled: isDraftMode } = await draftMode();
 
   return (
     <html lang="en">
@@ -46,6 +49,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         />
       </head>
       <body>
+        {isDraftMode && <DraftModeBanner />}
         <Nav pages={visiblePages} />
         {children}
         <Footer pages={visiblePages} />

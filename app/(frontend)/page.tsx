@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import config from "@payload-config";
+import { getPayload } from "payload";
 import JsonLd from "@/components/JsonLd";
 import { restaurantSchema } from "@/lib/structuredData";
 
@@ -35,7 +37,41 @@ export const metadata: Metadata = {
   },
 };
 
-export default function HomePage() {
+type BannerDoc = { slug: string; title: string; excerpt?: string | null };
+
+async function getHomepageAnnouncement(): Promise<BannerDoc | null> {
+  const payload = await getPayload({ config });
+  const result = await payload.find({
+    collection: "news-posts",
+    where: {
+      and: [
+        { type: { equals: "announcement" } },
+        { showAsHomepageBanner: { equals: true } },
+        { _status: { equals: "published" } },
+      ],
+    },
+    sort: "-updatedAt",
+    limit: 1,
+  });
+  return (result.docs[0] as unknown as BannerDoc) ?? null;
+}
+
+async function shouldShowNewsTeaser(): Promise<boolean> {
+  const payload = await getPayload({ config });
+  const nav = (await payload.findGlobal({ slug: "navigation" })) as unknown as Record<string, unknown>;
+  if (nav.newsTeaser === false) return false;
+
+  const result = await payload.find({
+    collection: "news-posts",
+    where: { _status: { equals: "published" } },
+    limit: 1,
+  });
+  return result.docs.length > 0;
+}
+
+export default async function HomePage() {
+  const [banner, showNewsTeaser] = await Promise.all([getHomepageAnnouncement(), shouldShowNewsTeaser()]);
+
   return (
     <>
       <JsonLd data={restaurantSchema} />
@@ -48,6 +84,18 @@ export default function HomePage() {
           <p className="brand-sub">Ponderay, Idaho &nbsp;&middot;&nbsp; Hand-folded daily</p>
         </div>
       </header>
+
+      {banner && (
+        <div className="announcement-banner">
+          <div className="container">
+            <p className="announcement-banner-eyebrow">Announcement</p>
+            <p className="announcement-banner-text">{banner.excerpt || banner.title}</p>
+            <Link href={`/news/${banner.slug}`} className="announcement-banner-link">
+              Read more →
+            </Link>
+          </div>
+        </div>
+      )}
 
       <div className="home-hero">
         <img
@@ -115,6 +163,23 @@ export default function HomePage() {
                 <span className="teaser-card-cta">Read Our Story →</span>
               </div>
             </Link>
+
+            {showNewsTeaser && (
+              <Link href="/news" className="teaser-card">
+                <div className="teaser-card-img">
+                  <img
+                    src="/assets/photos/dumplings-steamer.jpeg"
+                    alt="Dumplings steaming, ready to serve"
+                    loading="lazy"
+                  />
+                </div>
+                <div className="teaser-card-body">
+                  <h3>News</h3>
+                  <p>Announcements, seasonal flavors, and updates from Ponderay.</p>
+                  <span className="teaser-card-cta">See What&apos;s New →</span>
+                </div>
+              </Link>
+            )}
 
             <Link href="/contact" className="teaser-card">
               <div className="teaser-card-img teaser-card-map">

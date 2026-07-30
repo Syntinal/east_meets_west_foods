@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { draftMode } from "next/headers";
 import config from "@payload-config";
 import { getPayload } from "payload";
 import JsonLd from "@/components/JsonLd";
@@ -55,11 +56,16 @@ type MenuItemDoc = {
 
 async function getMenuItems(): Promise<MenuItemDoc[]> {
   const payload = await getPayload({ config });
+  const { isEnabled: isDraftMode } = await draftMode();
   const result = await payload.find({
     collection: "menu-items",
     sort: "order",
     limit: 100,
     depth: 1,
+    draft: isDraftMode,
+    // Local API bypasses access control by default, so `draft` alone won't
+    // hide never-published drafts — filter explicitly.
+    where: isDraftMode ? {} : { _status: { equals: "published" } },
   });
   return result.docs as unknown as MenuItemDoc[];
 }

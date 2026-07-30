@@ -704,6 +704,49 @@ img { max-width: 100%; display: block; }
   display: block;
 }
 
+/* ============ HOMEPAGE ANNOUNCEMENT BANNER ============ */
+.announcement-banner {
+  background: var(--red);
+  color: var(--white);
+}
+
+.announcement-banner .container {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px 16px;
+  padding: 12px 24px;
+  text-align: center;
+}
+
+.announcement-banner-eyebrow {
+  font-family: "Fredoka", sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  margin: 0;
+  opacity: 0.85;
+}
+
+.announcement-banner-text {
+  margin: 0;
+  font-weight: 500;
+}
+
+.announcement-banner-link {
+  color: var(--white);
+  text-decoration: underline;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.announcement-banner-link:hover {
+  color: var(--white);
+  opacity: 0.85;
+}
+
 /* ============ TEASER CARDS ============ */
 .teaser-section {
   padding: 64px 0 80px;
