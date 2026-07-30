@@ -37,6 +37,11 @@ export const metadata: Metadata = {
   },
 };
 
+// Statically rendered, so this is the only thing that makes a banner's
+// `bannerEndDate` take effect without an editor re-saving the post —
+// see the `bannerEndDate` field comment in collections/News.ts.
+export const revalidate = 3600;
+
 type BannerDoc = { slug: string; title: string; excerpt?: string | null };
 
 async function getHomepageAnnouncement(): Promise<BannerDoc | null> {
@@ -48,6 +53,9 @@ async function getHomepageAnnouncement(): Promise<BannerDoc | null> {
         { type: { equals: "announcement" } },
         { showAsHomepageBanner: { equals: true } },
         { _status: { equals: "published" } },
+        {
+          or: [{ bannerEndDate: { exists: false } }, { bannerEndDate: { greater_than: new Date().toISOString() } }],
+        },
       ],
     },
     sort: "-updatedAt",
@@ -88,8 +96,13 @@ export default async function HomePage() {
       {banner && (
         <div className="announcement-banner">
           <div className="container">
-            <p className="announcement-banner-eyebrow">Announcement</p>
-            <p className="announcement-banner-text">{banner.excerpt || banner.title}</p>
+            <span className="announcement-banner-badge">
+              <span aria-hidden="true">📣</span> Announcement
+            </span>
+            <p className="announcement-banner-text">
+              <strong>{banner.title}</strong>
+              {banner.excerpt ? ` — ${banner.excerpt}` : ""}
+            </p>
             <Link href={`/news/${banner.slug}`} className="announcement-banner-link">
               Read more →
             </Link>

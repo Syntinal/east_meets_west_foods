@@ -27,17 +27,23 @@ export default function Nav({ pages }: { pages: NavPage[] }) {
           </span>
         </button>
         <ul id="nav-menu" className={`primary-nav-list${isOpen ? " is-open" : ""}`}>
-          {pages.map((page) => (
-            <li key={page.href}>
-              <Link
-                href={page.href}
-                aria-current={pathname === page.href ? "page" : undefined}
-                onClick={() => setIsOpen(false)}
-              >
-                {page.label}
-              </Link>
-            </li>
-          ))}
+          {pages.map((page) => {
+            const isActive =
+              page.href === "/"
+                ? pathname === "/"
+                : pathname === page.href || pathname.startsWith(`${page.href}/`);
+            return (
+              <li key={page.href}>
+                <Link
+                  href={page.href}
+                  aria-current={isActive ? "page" : undefined}
+                  onClick={() => setIsOpen(false)}
+                >
+                  {page.label}
+                </Link>
+              </li>
+            );
+          })}
           <li className="nav-review">
             <a
               className="nav-review-link"

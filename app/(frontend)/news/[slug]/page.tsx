@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { draftMode } from "next/headers";
 import config from "@payload-config";
@@ -88,6 +89,10 @@ export default async function NewsPostPage({ params }: Params) {
       />
       <section className="section">
         <div className="container">
+          <Link href="/news" className="news-back-link">
+            ← Back to News
+          </Link>
+
           <header className="section-head">
             <div className="text-panel text-panel--inline">
               {post.type === "announcement" && <p className="card-tag">Announcement</p>}
@@ -101,7 +106,7 @@ export default async function NewsPostPage({ params }: Params) {
             </div>
           )}
 
-          <div className="text-panel">
+          <div className="text-panel news-body">
             <RichText data={post.body as never} />
           </div>
         </div>

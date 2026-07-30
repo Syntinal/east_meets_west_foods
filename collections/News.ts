@@ -86,6 +86,17 @@ export const News: CollectionConfig = {
       },
     },
     {
+      name: "bannerEndDate",
+      type: "date",
+      admin: {
+        position: "sidebar",
+        description:
+          "Optional. The homepage banner stops showing itself on this date (e.g. when a sale ends) — no need to come back and uncheck it manually. The site rechecks roughly hourly, so removal isn't second-precise.",
+        condition: (_, siblingData) => siblingData.type === "announcement" && siblingData.showAsHomepageBanner,
+        date: { pickerAppearance: "dayOnly" },
+      },
+    },
+    {
       name: "publishedDate",
       type: "date",
       defaultValue: () => new Date().toISOString(),

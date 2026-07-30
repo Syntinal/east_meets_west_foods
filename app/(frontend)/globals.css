@@ -704,47 +704,111 @@ img { max-width: 100%; display: block; }
   display: block;
 }
 
+/* ============ NEWS POST BODY ============ */
+/* Explicit sans-serif for the rendered rich text — Story/Sauce intentionally
+   use the serif (Lora) body font, but News reads more like a blog/updates
+   feed and should stay in the site's sans-serif (Inter). */
+.news-body,
+.news-body p,
+.news-body li,
+.news-body blockquote,
+.news-body h1,
+.news-body h2,
+.news-body h3,
+.news-body h4,
+.news-body h5,
+.news-body h6 {
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+.news-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: "Fredoka", sans-serif;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--red);
+  margin-bottom: 20px;
+}
+
+.news-back-link:hover {
+  text-decoration: underline;
+}
+
 /* ============ HOMEPAGE ANNOUNCEMENT BANNER ============ */
 .announcement-banner {
-  background: var(--red);
-  color: var(--white);
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, var(--red) 0%, var(--red-dark) 100%);
+  box-shadow: 0 6px 20px -6px rgba(0, 0, 0, 0.3);
+}
+
+/* Subtle diagonal sheen for a bit of polish without being loud. */
+.announcement-banner::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, rgba(255, 255, 255, 0.14) 0%, transparent 45%);
+  pointer-events: none;
 }
 
 .announcement-banner .container {
+  position: relative;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: center;
-  gap: 6px 16px;
-  padding: 12px 24px;
+  gap: 10px 18px;
+  padding: 14px 24px;
   text-align: center;
 }
 
-.announcement-banner-eyebrow {
+.announcement-banner-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.38);
+  color: var(--white);
   font-family: "Fredoka", sans-serif;
   font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.18em;
+  font-weight: 600;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  margin: 0;
-  opacity: 0.85;
+  padding: 5px 12px;
+  border-radius: 999px;
+  white-space: nowrap;
 }
 
 .announcement-banner-text {
   margin: 0;
+  color: var(--white);
   font-weight: 500;
+  font-size: 0.98rem;
 }
 
 .announcement-banner-link {
-  color: var(--white);
-  text-decoration: underline;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  background: var(--white);
+  color: var(--red-dark);
+  font-family: "Fredoka", sans-serif;
   font-weight: 600;
+  font-size: 0.82rem;
+  padding: 7px 16px;
+  border-radius: 999px;
   white-space: nowrap;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 .announcement-banner-link:hover {
-  color: var(--white);
-  opacity: 0.85;
+  color: var(--red-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px -6px rgba(0, 0, 0, 0.45);
 }
 
 /* ============ TEASER CARDS ============ */
