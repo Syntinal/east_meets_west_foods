@@ -1,9 +1,16 @@
 import type { CollectionConfig } from "payload";
+import { authenticated } from "@/access/authenticated";
 
 // Matches the current /menu page structure: 3 "main" cards (photo + description
 // + tiered pricing) and 3 "extras" cards (flat pricing, no photo/description).
 export const MenuItems: CollectionConfig = {
   slug: "menu-items",
+  access: {
+    read: () => true,
+    create: authenticated,
+    update: authenticated,
+    delete: authenticated,
+  },
   admin: {
     useAsTitle: "title",
     defaultColumns: ["title", "group", "order"],

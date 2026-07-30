@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import config from "@payload-config";
+import { getPayload } from "payload";
 import JsonLd from "@/components/JsonLd";
 import { restaurantSchema } from "@/lib/structuredData";
 
@@ -35,147 +37,68 @@ export const metadata: Metadata = {
   },
 };
 
-// Static for now — becomes Payload/Neon-backed in a later step.
-const menuSchema = {
-  "@context": "https://schema.org",
-  "@type": "Menu",
-  name: "East Meets West Menu",
-  url: "https://eastmeetswestfoods.co/menu",
-  hasMenuSection: [
-    {
-      "@type": "MenuSection",
-      name: "Bao Buns",
-      hasMenuItem: [
-        {
-          "@type": "MenuItem",
-          name: "Pork & Vegetable Bao Buns — 3 Buns",
-          description:
-            "Hand-folded bao buns with fresh local pork from Wood's Meats and alternating vegetables. Authentic Chinese fermented dough. Includes 1 garlic sauce.",
-          offers: { "@type": "Offer", price: "7.99", priceCurrency: "USD" },
-        },
-        {
-          "@type": "MenuItem",
-          name: "Pork & Vegetable Bao Buns — 6 Buns",
-          description:
-            "Hand-folded bao buns with fresh local pork from Wood's Meats and alternating vegetables. Includes 1 garlic sauce.",
-          offers: { "@type": "Offer", price: "13.99", priceCurrency: "USD" },
-        },
-        {
-          "@type": "MenuItem",
-          name: "Pork & Vegetable Bao Buns — 12 Buns",
-          description:
-            "Hand-folded bao buns with fresh local pork from Wood's Meats and alternating vegetables. Includes 2 garlic sauces.",
-          offers: { "@type": "Offer", price: "24.99", priceCurrency: "USD" },
-        },
-      ],
-    },
-    {
-      "@type": "MenuSection",
-      name: "Dumplings",
-      hasMenuItem: [
-        {
-          "@type": "MenuItem",
-          name: "Pork & Vegetable Dumplings — 3 Large Dumplings",
-          description:
-            "Authentic Northern Chinese dumplings, 30% larger than traditional Chinese dumplings, filled with fresh Wood's pork and alternating vegetables. Flavors change weekly. Includes 1 garlic sauce.",
-          offers: { "@type": "Offer", price: "7.99", priceCurrency: "USD" },
-        },
-        {
-          "@type": "MenuItem",
-          name: "Pork & Vegetable Dumplings — 6 Large Dumplings",
-          description:
-            "Authentic Northern Chinese dumplings, 30% larger than traditional Chinese dumplings, filled with fresh Wood's pork and alternating vegetables. Flavors change weekly. Includes 1 garlic sauce.",
-          offers: { "@type": "Offer", price: "13.99", priceCurrency: "USD" },
-        },
-        {
-          "@type": "MenuItem",
-          name: "Pork & Vegetable Dumplings — 12 Large Dumplings",
-          description:
-            "Authentic Northern Chinese dumplings, 30% larger than traditional Chinese dumplings, filled with fresh Wood's pork and alternating vegetables. Flavors change weekly. Includes 2 garlic sauces.",
-          offers: { "@type": "Offer", price: "24.99", priceCurrency: "USD" },
-        },
-      ],
-    },
-    {
-      "@type": "MenuSection",
-      name: "Combination Platters",
-      hasMenuItem: [
-        {
-          "@type": "MenuItem",
-          name: "Combination — 3 Dumplings + 3 Bao Buns",
-          description:
-            "Experience both hand-folded Northern Chinese dumplings and bao buns in one platter. Includes 1 garlic sauce.",
-          offers: { "@type": "Offer", price: "13.99", priceCurrency: "USD" },
-        },
-        {
-          "@type": "MenuItem",
-          name: "Combination — 6 Dumplings + 6 Bao Buns",
-          description:
-            "Experience both hand-folded Northern Chinese dumplings and bao buns in one platter. Includes 2 garlic sauces.",
-          offers: { "@type": "Offer", price: "24.99", priceCurrency: "USD" },
-        },
-      ],
-    },
-    {
-      "@type": "MenuSection",
-      name: "Sides & Extras",
-      hasMenuItem: [
-        {
-          "@type": "MenuItem",
-          name: "Side of Fried Rice (or other side)",
-          description: "Add to any meal for $3, or $3.99 purchased alone.",
-          offers: { "@type": "Offer", price: "3.99", priceCurrency: "USD" },
-        },
-        {
-          "@type": "MenuItem",
-          name: "Extra Garlic Sauce",
-          description: "An extra serving of our homemade garlic sauce.",
-          offers: { "@type": "Offer", price: "1.50", priceCurrency: "USD" },
-        },
-      ],
-    },
-    {
-      "@type": "MenuSection",
-      name: "Drinks",
-      hasMenuItem: [
-        { "@type": "MenuItem", name: "Water", offers: { "@type": "Offer", price: "0.99", priceCurrency: "USD" } },
-        {
-          "@type": "MenuItem",
-          name: "Soft Drinks",
-          offers: { "@type": "Offer", price: "1.99", priceCurrency: "USD" },
-        },
-        {
-          "@type": "MenuItem",
-          name: "Chinese Imported Drinks",
-          offers: { "@type": "Offer", price: "4.99", priceCurrency: "USD" },
-        },
-      ],
-    },
-    {
-      "@type": "MenuSection",
-      name: "Imported Asian Snacks",
-      hasMenuItem: [
-        {
-          "@type": "MenuItem",
-          name: "Asian Lay's & Pringles",
-          offers: { "@type": "Offer", price: "6.00", priceCurrency: "USD" },
-        },
-        {
-          "@type": "MenuItem",
-          name: "Large Bagged Snacks",
-          offers: { "@type": "Offer", price: "5.00", priceCurrency: "USD" },
-        },
-        {
-          "@type": "MenuItem",
-          name: "Small Bagged Snacks",
-          offers: { "@type": "Offer", price: "3.00", priceCurrency: "USD" },
-        },
-      ],
-    },
-  ],
+// Always fetch fresh from Postgres — an admin price/description edit should
+// show up on refresh, not wait for a rebuild.
+export const dynamic = "force-dynamic";
+
+type PriceOption = { label: string; price: string; note?: string | null };
+type MenuItemDoc = {
+  id: string;
+  title: string;
+  tag?: string | null;
+  group: "main" | "extras";
+  description?: string | null;
+  image?: { url?: string | null; alt?: string | null } | string | null;
+  priceOptions: PriceOption[];
+  order?: number | null;
 };
 
-export default function MenuPage() {
+async function getMenuItems(): Promise<MenuItemDoc[]> {
+  const payload = await getPayload({ config });
+  const result = await payload.find({
+    collection: "menu-items",
+    sort: "order",
+    limit: 100,
+    depth: 1,
+  });
+  return result.docs as unknown as MenuItemDoc[];
+}
+
+function toOfferPrice(price: string): string {
+  const match = price.match(/[\d.]+/);
+  return match ? match[0] : price;
+}
+
+function buildMenuSchema(items: MenuItemDoc[]) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Menu",
+    name: "East Meets West Menu",
+    url: "https://eastmeetswestfoods.co/menu",
+    hasMenuSection: items.map((item) => ({
+      "@type": "MenuSection",
+      name: item.title,
+      hasMenuItem: item.priceOptions.map((option) => {
+        const description = [item.description, option.note ? `Includes ${option.note}.` : null]
+          .filter(Boolean)
+          .join(" ");
+        return {
+          "@type": "MenuItem",
+          name: `${item.title} — ${option.label}`,
+          ...(description ? { description } : {}),
+          offers: { "@type": "Offer", price: toOfferPrice(option.price), priceCurrency: "USD" },
+        };
+      }),
+    })),
+  };
+}
+
+export default async function MenuPage() {
+  const items = await getMenuItems();
+  const mainItems = items.filter((item) => item.group === "main");
+  const extraItems = items.filter((item) => item.group === "extras");
+  const menuSchema = buildMenuSchema(items);
+
   return (
     <>
       <JsonLd data={{ ...restaurantSchema, hasMenu: "https://eastmeetswestfoods.co/menu" }} />
@@ -197,73 +120,32 @@ export default function MenuPage() {
             </header>
 
             <div className="menu-grid">
-              <article className="menu-card">
-                <div className="menu-card-img">
-                  <img
-                    src="/assets/photos/bao-steamer.jpeg"
-                    alt="Hand-folded pork and vegetable bao buns resting in a bamboo steamer"
-                  />
-                </div>
-                <div className="menu-card-body">
-                  <p className="card-tag">Northern Chinese</p>
-                  <h2>Pork &amp; Vegetable Bao Buns</h2>
-                  <p>
-                    Authentic, ancient, Chinese filled buns with fresh, local pork
-                    from Wood&apos;s Meats and alternating vegetables such as leeks and
-                    cabbage. Authentic Chinese fermented dough adds chewiness and a
-                    wonderful bite.
-                  </p>
-                  <ul className="price-list">
-                    <li><span>3 Buns</span><strong>$7.99</strong><em>1 sauce</em></li>
-                    <li><span>6 Buns</span><strong>$13.99</strong><em>1 sauce</em></li>
-                    <li><span>12 Buns</span><strong>$24.99</strong><em>2 sauces</em></li>
-                  </ul>
-                </div>
-              </article>
-
-              <article className="menu-card">
-                <div className="menu-card-img">
-                  <img
-                    src="/assets/photos/dumplings-steamer.jpeg"
-                    alt="Hand-folded Northern Chinese pork dumplings arranged in a bamboo steamer"
-                  />
-                </div>
-                <div className="menu-card-body">
-                  <p className="card-tag">Northern Chinese</p>
-                  <h2>Pork &amp; Vegetable Dumplings</h2>
-                  <p>
-                    Ancient, authentic Chinese dumplings — 30% larger than
-                    traditional Chinese dumplings — filled with fresh Wood&apos;s pork
-                    and alternating vegetables such as leeks and cabbage.
-                  </p>
-                  <ul className="price-list">
-                    <li><span>3 Large Dumplings</span><strong>$7.99</strong><em>1 sauce</em></li>
-                    <li><span>6 Large Dumplings</span><strong>$13.99</strong><em>1 sauce</em></li>
-                    <li><span>12 Large Dumplings</span><strong>$24.99</strong><em>2 sauces</em></li>
-                  </ul>
-                </div>
-              </article>
-
-              <article className="menu-card">
-                <div className="menu-card-img">
-                  <img
-                    src="/assets/photos/dumplings-tray.jpeg"
-                    alt="A combination platter of hand-folded dumplings and bao buns on a serving tray"
-                  />
-                </div>
-                <div className="menu-card-body">
-                  <p className="card-tag">Best of Both</p>
-                  <h2>Combination: Buns &amp; Dumplings</h2>
-                  <p>
-                    Designed to allow guests to experience the combined taste of
-                    dumplings and buns.
-                  </p>
-                  <ul className="price-list">
-                    <li><span>3 Dumplings + 3 Buns</span><strong>$13.99</strong><em>1 sauce</em></li>
-                    <li><span>6 Dumplings + 6 Buns</span><strong>$24.99</strong><em>2 sauces</em></li>
-                  </ul>
-                </div>
-              </article>
+              {mainItems.map((item) => {
+                const image = item.image && typeof item.image === "object" ? item.image : null;
+                return (
+                  <article className="menu-card" key={item.id}>
+                    {image?.url && (
+                      <div className="menu-card-img">
+                        <img src={image.url} alt={image.alt ?? item.title} />
+                      </div>
+                    )}
+                    <div className="menu-card-body">
+                      {item.tag && <p className="card-tag">{item.tag}</p>}
+                      <h2>{item.title}</h2>
+                      {item.description && <p>{item.description}</p>}
+                      <ul className="price-list">
+                        {item.priceOptions.map((option, i) => (
+                          <li key={i}>
+                            <span>{option.label}</span>
+                            <strong>{option.price}</strong>
+                            {option.note && <em>{option.note}</em>}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </article>
+                );
+              })}
             </div>
           </div>
         </section>
@@ -271,32 +153,19 @@ export default function MenuPage() {
         <section className="section menu-extras">
           <div className="container">
             <div className="extras-grid">
-              <div className="extras-card">
-                <h3>Meal Deal &amp; Extras</h3>
-                <ul className="extras-list">
-                  <li><span>Side of fried rice (or other side) with any meal</span><strong>+$3</strong></li>
-                  <li><span>Side purchased alone</span><strong>$3.99</strong></li>
-                  <li><span>Extra garlic sauce</span><strong>$1.50</strong></li>
-                </ul>
-              </div>
-
-              <div className="extras-card">
-                <h3>Drinks</h3>
-                <ul className="extras-list">
-                  <li><span>Water</span><strong>$0.99</strong></li>
-                  <li><span>Soft Drinks</span><strong>$1.99</strong></li>
-                  <li><span>Chinese Imported Drinks</span><strong>$4.99</strong></li>
-                </ul>
-              </div>
-
-              <div className="extras-card">
-                <h3>Imported Asian Snacks</h3>
-                <ul className="extras-list">
-                  <li><span>Asian Lay&apos;s &amp; Pringles</span><strong>$6</strong></li>
-                  <li><span>Large Bagged Snacks</span><strong>$5</strong></li>
-                  <li><span>Small Bagged Snacks</span><strong>$3</strong></li>
-                </ul>
-              </div>
+              {extraItems.map((item) => (
+                <div className="extras-card" key={item.id}>
+                  <h3>{item.title}</h3>
+                  <ul className="extras-list">
+                    {item.priceOptions.map((option, i) => (
+                      <li key={i}>
+                        <span>{option.label}</span>
+                        <strong>{option.price}</strong>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
             </div>
 
             <p className="menu-note text-panel">
