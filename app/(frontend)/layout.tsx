@@ -1,7 +1,14 @@
 import type { Metadata, Viewport } from "next";
+import config from "@payload-config";
+import { getPayload } from "payload";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
+import { NAV_PAGES } from "@/lib/navigation";
 import "./globals.css";
+
+// Statically rendered — the Navigation global's afterChange hook calls
+// revalidatePath("/", "layout") to bust this on save, so pages stay fast
+// and cacheable without needing to re-check on every single request.
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://eastmeetswestfoods.co"),
@@ -19,7 +26,15 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+async function getVisiblePages() {
+  const payload = await getPayload({ config });
+  const nav = (await payload.findGlobal({ slug: "navigation" })) as unknown as Record<string, unknown>;
+  return NAV_PAGES.filter((page) => nav[page.key] !== false);
+}
+
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const visiblePages = await getVisiblePages();
+
   return (
     <html lang="en">
       <head>
@@ -31,9 +46,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body>
-        <Nav />
+        <Nav pages={visiblePages} />
         {children}
-        <Footer />
+        <Footer pages={visiblePages} />
       </body>
     </html>
   );

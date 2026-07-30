@@ -37,9 +37,9 @@ export const metadata: Metadata = {
   },
 };
 
-// Always fetch fresh from Postgres — an admin price/description edit should
-// show up on refresh, not wait for a rebuild.
-export const dynamic = "force-dynamic";
+// Statically rendered — the MenuItems collection's afterChange/afterDelete
+// hooks call revalidatePath("/menu") to bust this on save, so real visitors
+// get a cached response instead of a fresh DB query on every request.
 
 type PriceOption = { label: string; price: string; note?: string | null };
 type MenuItemDoc = {

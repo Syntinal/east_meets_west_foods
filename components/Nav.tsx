@@ -3,17 +3,9 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import type { NavPage } from "@/lib/navigation";
 
-const NAV_LINKS = [
-  { href: "/", label: "Home" },
-  { href: "/menu", label: "Menu" },
-  { href: "/sauce", label: "The Sauce" },
-  { href: "/story", label: "Our Story" },
-  { href: "/faq", label: "FAQ" },
-  { href: "/contact", label: "Contact" },
-];
-
-export default function Nav() {
+export default function Nav({ pages }: { pages: NavPage[] }) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
 
@@ -35,14 +27,14 @@ export default function Nav() {
           </span>
         </button>
         <ul id="nav-menu" className={`primary-nav-list${isOpen ? " is-open" : ""}`}>
-          {NAV_LINKS.map((link) => (
-            <li key={link.href}>
+          {pages.map((page) => (
+            <li key={page.href}>
               <Link
-                href={link.href}
-                aria-current={pathname === link.href ? "page" : undefined}
+                href={page.href}
+                aria-current={pathname === page.href ? "page" : undefined}
                 onClick={() => setIsOpen(false)}
               >
-                {link.label}
+                {page.label}
               </Link>
             </li>
           ))}

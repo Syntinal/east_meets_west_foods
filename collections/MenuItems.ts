@@ -1,4 +1,5 @@
 import type { CollectionConfig } from "payload";
+import { revalidatePath } from "next/cache";
 import { authenticated } from "@/access/authenticated";
 
 // Matches the current /menu page structure: 3 "main" cards (photo + description
@@ -10,6 +11,12 @@ export const MenuItems: CollectionConfig = {
     create: authenticated,
     update: authenticated,
     delete: authenticated,
+  },
+  hooks: {
+    // /menu is statically cached — bust it the moment an edit is saved,
+    // instead of rendering fresh on every visitor request.
+    afterChange: [() => revalidatePath("/menu")],
+    afterDelete: [() => revalidatePath("/menu")],
   },
   admin: {
     useAsTitle: "title",
