@@ -1,4 +1,4 @@
-import type { CollectionConfig } from "payload";
+import type { CollectionConfig, TextFieldSingleValidation } from "payload";
 import { revalidatePath } from "next/cache";
 import { authenticated } from "@/access/authenticated";
 import { readPublished } from "@/access/readPublished";
@@ -76,7 +76,7 @@ export const Testimonials: CollectionConfig = {
       admin: { description: "Optional link back to the original Google review." },
       // Same idea as the quote check, but only when a URL is actually set —
       // this field is optional.
-      validate: async (value, { req, id }) => {
+      validate: (async (value, { req, id }) => {
         if (!value) return true;
         const trimmed = value.trim();
         const existing = await req.payload.find({
@@ -90,7 +90,7 @@ export const Testimonials: CollectionConfig = {
           (doc) => typeof doc.sourceUrl === "string" && doc.sourceUrl.trim() === trimmed
         );
         return isDuplicate ? "This source URL is already used by another testimonial." : true;
-      },
+      }) as TextFieldSingleValidation,
     },
     { name: "order", type: "number", defaultValue: 0, admin: { description: "Lower numbers show first." } },
   ],
