@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { draftMode } from "next/headers";
 import config from "@payload-config";
 import { getPayload } from "payload";
 import JsonLd from "@/components/JsonLd";
+import TestimonialCarousel from "@/components/TestimonialCarousel";
 import { restaurantSchema } from "@/lib/structuredData";
 
 const title = "East Meets West Dumplings Bar — Dumplings near Sandpoint, ID";
@@ -43,16 +45,19 @@ export const metadata: Metadata = {
 export const revalidate = 3600;
 
 type BannerDoc = { slug: string; title: string; excerpt?: string | null };
+type TestimonialDoc = { quote: string; authorName: string; rating: string; sourceUrl?: string | null };
 
 async function getHomepageAnnouncement(): Promise<BannerDoc | null> {
   const payload = await getPayload({ config });
+  const { isEnabled: isDraftMode } = await draftMode();
   const result = await payload.find({
     collection: "news-posts",
+    draft: isDraftMode,
     where: {
       and: [
         { type: { equals: "announcement" } },
         { showAsHomepageBanner: { equals: true } },
-        { _status: { equals: "published" } },
+        ...(isDraftMode ? [] : [{ _status: { equals: "published" as const } }]),
         {
           or: [{ bannerEndDate: { exists: false } }, { bannerEndDate: { greater_than: new Date().toISOString() } }],
         },
@@ -77,8 +82,28 @@ async function shouldShowNewsTeaser(): Promise<boolean> {
   return result.docs.length > 0;
 }
 
+async function getTestimonials(): Promise<TestimonialDoc[]> {
+  const payload = await getPayload({ config });
+  const nav = (await payload.findGlobal({ slug: "navigation" })) as unknown as Record<string, unknown>;
+  if (nav.testimonialsSection === false) return [];
+
+  const { isEnabled: isDraftMode } = await draftMode();
+  const result = await payload.find({
+    collection: "testimonials",
+    draft: isDraftMode,
+    where: isDraftMode ? {} : { _status: { equals: "published" } },
+    sort: "order",
+    limit: 40,
+  });
+  return result.docs as unknown as TestimonialDoc[];
+}
+
 export default async function HomePage() {
-  const [banner, showNewsTeaser] = await Promise.all([getHomepageAnnouncement(), shouldShowNewsTeaser()]);
+  const [banner, showNewsTeaser, testimonials] = await Promise.all([
+    getHomepageAnnouncement(),
+    shouldShowNewsTeaser(),
+    getTestimonials(),
+  ]);
 
   return (
     <>
@@ -214,6 +239,18 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      {testimonials.length > 0 && (
+        <section className="section section-cream">
+          <div className="container">
+            <div className="section-head">
+              <p className="eyebrow">What People Are Saying</p>
+              <h2 className="section-title">Testimonials</h2>
+            </div>
+            <TestimonialCarousel testimonials={testimonials} />
+          </div>
+        </section>
+      )}
 
       <section className="section">
         <div className="container">
