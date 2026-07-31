@@ -40,7 +40,10 @@ export const Navigation: GlobalConfig = {
       type: "checkbox" as const,
       label: "Show the Testimonials section on the homepage",
       defaultValue: true,
-      admin: { description: "Turn this off when there aren't any testimonials worth featuring yet." },
+      admin: {
+        description:
+          'Turn this off when there aren\'t any testimonials worth featuring yet. This is separate from the "Show \'Testimonials\'" checkbox above, which controls the nav tab and the full /testimonials page.',
+      },
     },
   ],
 };

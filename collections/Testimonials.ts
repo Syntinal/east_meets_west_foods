@@ -20,14 +20,14 @@ export const Testimonials: CollectionConfig = {
     drafts: true,
   },
   hooks: {
-    // Only ever shown on the homepage — no per-item page exists.
-    afterChange: [() => revalidatePath("/")],
-    afterDelete: [() => revalidatePath("/")],
+    // Shown on both the homepage carousel and the dedicated /testimonials page.
+    afterChange: [() => revalidatePath("/"), () => revalidatePath("/testimonials")],
+    afterDelete: [() => revalidatePath("/"), () => revalidatePath("/testimonials")],
   },
   admin: {
     useAsTitle: "authorName",
     defaultColumns: ["authorName", "rating", "order", "_status"],
-    preview: () => getPreviewURL("/"),
+    preview: () => getPreviewURL("/testimonials"),
     components: {
       beforeListTable: ["@/components/admin/GoogleReviewsLink#GoogleReviewsLink"],
     },
