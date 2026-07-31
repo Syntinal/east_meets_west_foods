@@ -20,6 +20,11 @@ export default function Footer({ pages }: { pages: NavPage[] }) {
                 {page.shortLabel ?? page.label}
               </Link>
             ))}
+            {/* Plain <a>, not next/link: /admin lives under its own root
+                layout (app/(payload)), a separate app from the frontend's
+                React tree, so it should be a full page load rather than a
+                client-side transition. */}
+            <a href="/admin">Admin</a>
           </nav>
         </div>
       </div>
