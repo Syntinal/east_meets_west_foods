@@ -1,9 +1,9 @@
 import type { CollectionConfig } from "payload";
 import { authenticated } from "@/access/authenticated";
 
-// Local disk storage for dev. Vercel's filesystem is ephemeral/read-only in
-// production, so this will need a cloud storage adapter (e.g. Vercel Blob)
-// before deploying — a separate step, not needed for local work yet.
+// staticDir is only actually used locally — the Vercel Blob storage plugin
+// (payload.config.ts) takes over uploads entirely once BLOB_READ_WRITE_TOKEN
+// is set, since Vercel's filesystem is ephemeral/read-only in production.
 export const Media: CollectionConfig = {
   slug: "media",
   access: {

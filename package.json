@@ -13,6 +13,7 @@
     "@payloadcms/db-postgres": "^3.86.0",
     "@payloadcms/next": "^3.86.0",
     "@payloadcms/richtext-lexical": "^3.86.0",
+    "@payloadcms/storage-vercel-blob": "^3.86.0",
     "graphql": "^16.14.2",
     "next": "^16.2.12",
     "payload": "^3.86.0",
