@@ -37,6 +37,11 @@ export const MenuItems: CollectionConfig = {
       url: ({ data }) => getPreviewURL(`/menu?livePreviewId=${encodeURIComponent(data?.id ?? "")}`),
       openByDefault: true,
     },
+    components: {
+      edit: {
+        beforeDocumentControls: ["@/components/admin/ControlTooltips#ControlTooltips"],
+      },
+    },
   },
   defaultSort: "order",
   fields: [

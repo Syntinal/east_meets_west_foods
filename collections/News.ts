@@ -31,6 +31,11 @@ export const News: CollectionConfig = {
       url: ({ data }) => getPreviewURL(`/news/${data?.slug ?? ""}`),
       openByDefault: true,
     },
+    components: {
+      edit: {
+        beforeDocumentControls: ["@/components/admin/ControlTooltips#ControlTooltips"],
+      },
+    },
   },
   hooks: {
     beforeValidate: [

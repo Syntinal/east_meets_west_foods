@@ -38,6 +38,9 @@ export const Testimonials: CollectionConfig = {
     },
     components: {
       beforeListTable: ["@/components/admin/GoogleReviewsLink#GoogleReviewsLink"],
+      edit: {
+        beforeDocumentControls: ["@/components/admin/ControlTooltips#ControlTooltips"],
+      },
     },
   },
   defaultSort: "order",
