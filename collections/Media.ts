@@ -6,6 +6,10 @@ import { authenticated } from "@/access/authenticated";
 // is set, since Vercel's filesystem is ephemeral/read-only in production.
 export const Media: CollectionConfig = {
   slug: "media",
+  labels: {
+    singular: "Photo",
+    plural: "Photos",
+  },
   access: {
     read: () => true,
     create: authenticated,

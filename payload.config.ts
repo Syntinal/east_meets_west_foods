@@ -18,6 +18,9 @@ const dirname = path.dirname(filename);
 export default buildConfig({
   admin: {
     user: Users.slug,
+    components: {
+      beforeDashboard: ["@/components/admin/GettingStarted#GettingStarted"],
+    },
   },
   collections: [Users, Media, MenuItems, News, Testimonials],
   globals: [Navigation],

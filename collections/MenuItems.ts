@@ -40,7 +40,12 @@ export const MenuItems: CollectionConfig = {
   },
   defaultSort: "order",
   fields: [
-    { name: "title", type: "text", required: true },
+    {
+      name: "title",
+      type: "text",
+      required: true,
+      admin: { description: "Name of the dish as it appears on the menu." },
+    },
     {
       name: "group",
       type: "select",
@@ -62,25 +67,40 @@ export const MenuItems: CollectionConfig = {
     {
       name: "description",
       type: "textarea",
-      admin: { condition: (_, siblingData) => siblingData.group === "main" },
+      admin: {
+        description: "Short description shown under the dish name on the menu page.",
+        condition: (_, siblingData) => siblingData.group === "main",
+      },
     },
     {
       name: "image",
       type: "upload",
       relationTo: "media",
-      admin: { condition: (_, siblingData) => siblingData.group === "main" },
+      admin: {
+        description: "Photo shown next to this dish on the menu page.",
+        condition: (_, siblingData) => siblingData.group === "main",
+      },
     },
     {
       name: "priceOptions",
       type: "array",
+      label: "Prices",
       required: true,
       minRows: 1,
+      admin: {
+        description: 'One row per size/price (e.g. "Small – $8.99"). At least one is required — click "Add Prices" below to add another.',
+      },
       fields: [
-        { name: "label", type: "text", required: true },
-        { name: "price", type: "text", required: true },
-        { name: "note", type: "text" },
+        { name: "label", type: "text", required: true, admin: { description: 'e.g. "Small", "Large", "Whole"' } },
+        { name: "price", type: "text", required: true, admin: { description: 'e.g. "$8.99"' } },
+        { name: "note", type: "text", admin: { description: 'Optional. e.g. "per lb"' } },
       ],
     },
-    { name: "order", type: "number", defaultValue: 0 },
+    {
+      name: "order",
+      type: "number",
+      defaultValue: 0,
+      admin: { description: "Controls the order dishes appear in on the menu page. Lower numbers show first." },
+    },
   ],
 };

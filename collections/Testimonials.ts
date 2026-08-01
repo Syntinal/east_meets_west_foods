@@ -46,6 +46,7 @@ export const Testimonials: CollectionConfig = {
       name: "quote",
       type: "textarea",
       required: true,
+      admin: { description: "The review text, copied in from Google Reviews." },
       // Catches accidentally pasting the same review in twice — compares
       // case/whitespace-insensitively since a re-copy from Google rarely
       // matches byte-for-byte.
@@ -65,7 +66,12 @@ export const Testimonials: CollectionConfig = {
         return isDuplicate ? "This exact testimonial already exists — check the list before adding it again." : true;
       },
     },
-    { name: "authorName", type: "text", required: true },
+    {
+      name: "authorName",
+      type: "text",
+      required: true,
+      admin: { description: 'Name shown under the quote (e.g. "Jane D.").' },
+    },
     {
       name: "rating",
       type: "select",
@@ -81,7 +87,8 @@ export const Testimonials: CollectionConfig = {
     {
       name: "sourceUrl",
       type: "text",
-      admin: { description: "Optional link back to the original Google review." },
+      label: "Source URL",
+      admin: { description: "Optional. A link back to the original Google review." },
       // Same idea as the quote check, but only when a URL is actually set —
       // this field is optional.
       validate: (async (value, { req, id }) => {

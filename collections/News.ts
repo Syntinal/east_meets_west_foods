@@ -57,7 +57,12 @@ export const News: CollectionConfig = {
     ],
   },
   fields: [
-    { name: "title", type: "text", required: true },
+    {
+      name: "title",
+      type: "text",
+      required: true,
+      admin: { description: "The headline shown on the News page and at the top of the post." },
+    },
     {
       name: "slug",
       type: "text",
@@ -73,7 +78,10 @@ export const News: CollectionConfig = {
       type: "select",
       required: true,
       defaultValue: "post",
-      admin: { position: "sidebar" },
+      admin: {
+        position: "sidebar",
+        description: '"Post" is a regular news article. "Announcement" is a short notice that can optionally show as a banner on the homepage.',
+      },
       options: [
         { label: "Post", value: "post" },
         { label: "Announcement", value: "announcement" },
@@ -104,10 +112,23 @@ export const News: CollectionConfig = {
       name: "publishedDate",
       type: "date",
       defaultValue: () => new Date().toISOString(),
-      admin: { position: "sidebar" },
+      admin: {
+        position: "sidebar",
+        description: "The date shown on the post. Defaults to today.",
+      },
     },
     { name: "excerpt", type: "textarea", admin: { description: "Short summary shown on the News list and used as the page description for search engines." } },
-    { name: "featuredImage", type: "upload", relationTo: "media" },
-    { name: "body", type: "richText", required: true },
+    {
+      name: "featuredImage",
+      type: "upload",
+      relationTo: "media",
+      admin: { description: "Optional. Image shown at the top of the post and in the News list." },
+    },
+    {
+      name: "body",
+      type: "richText",
+      required: true,
+      admin: { description: "The full content of the post." },
+    },
   ],
 };
