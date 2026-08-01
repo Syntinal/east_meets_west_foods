@@ -105,7 +105,13 @@ export default async function MenuPage({ searchParams }: PageProps) {
       <JsonLd data={{ ...restaurantSchema, hasMenu: "https://eastmeetswestfoods.co/menu" }} />
       <JsonLd data={menuSchema} />
 
-      <main>
+      <main
+        data-debug-live-preview={JSON.stringify({
+          isDraftMode,
+          livePreviewId: livePreviewId ?? null,
+          seedItemFound: Boolean(seedItem),
+        })}
+      >
         {isDraftMode && seedItem ? (
           <LiveMenuGrid initialItems={items} seedItem={seedItem} />
         ) : (
