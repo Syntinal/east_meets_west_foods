@@ -4,6 +4,8 @@ import config from "@payload-config";
 import { getPayload } from "payload";
 import JsonLd from "@/components/JsonLd";
 import { restaurantSchema } from "@/lib/structuredData";
+import { MenuGridView, type MenuItemDoc } from "@/components/menu/MenuGridView";
+import { LiveMenuGrid } from "@/components/menu/LiveMenuGrid";
 
 const title = "Menu — Chinese Dumplings & Bao near Sandpoint, ID | East Meets West";
 const description =
@@ -41,18 +43,6 @@ export const metadata: Metadata = {
 // Statically rendered — the MenuItems collection's afterChange/afterDelete
 // hooks call revalidatePath("/menu") to bust this on save, so real visitors
 // get a cached response instead of a fresh DB query on every request.
-
-type PriceOption = { label: string; price: string; note?: string | null };
-type MenuItemDoc = {
-  id: string;
-  title: string;
-  tag?: string | null;
-  group: "main" | "extras";
-  description?: string | null;
-  image?: { url?: string | null; alt?: string | null } | string | null;
-  priceOptions: PriceOption[];
-  order?: number | null;
-};
 
 async function getMenuItems(): Promise<MenuItemDoc[]> {
   const payload = await getPayload({ config });
@@ -99,11 +89,16 @@ function buildMenuSchema(items: MenuItemDoc[]) {
   };
 }
 
-export default async function MenuPage() {
+type PageProps = { searchParams: Promise<{ livePreviewId?: string }> };
+
+export default async function MenuPage({ searchParams }: PageProps) {
   const items = await getMenuItems();
-  const mainItems = items.filter((item) => item.group === "main");
-  const extraItems = items.filter((item) => item.group === "extras");
   const menuSchema = buildMenuSchema(items);
+  const { isEnabled: isDraftMode } = await draftMode();
+  const livePreviewId = isDraftMode ? (await searchParams).livePreviewId : undefined;
+  // Postgres ids come back as numbers, but URL query params are always
+  // strings — compare as strings on both sides rather than relying on ===.
+  const seedItem = livePreviewId ? items.find((item) => String(item.id) === livePreviewId) : undefined;
 
   return (
     <>
@@ -111,81 +106,11 @@ export default async function MenuPage() {
       <JsonLd data={menuSchema} />
 
       <main>
-        <section className="section menu-main">
-          <div className="container">
-            <header className="section-head">
-              <div className="text-panel text-panel--inline">
-                <p className="eyebrow">Menu</p>
-                <h1 className="section-title">East Meets West Menu</h1>
-                <p className="section-lede">
-                  Three offerings, made well — dumpling flavors change weekly. One of
-                  the Sandpoint area&apos;s only spots for authentic hand-folded Northern
-                  Chinese dumplings, in Ponderay.
-                </p>
-              </div>
-            </header>
-
-            <div className="menu-grid">
-              {mainItems.map((item) => {
-                const image = item.image && typeof item.image === "object" ? item.image : null;
-                return (
-                  <article className="menu-card" key={item.id}>
-                    {image?.url && (
-                      <div className="menu-card-img">
-                        <img src={image.url} alt={image.alt ?? item.title} />
-                      </div>
-                    )}
-                    <div className="menu-card-body">
-                      {item.tag && <p className="card-tag">{item.tag}</p>}
-                      <h2>{item.title}</h2>
-                      {item.description && <p>{item.description}</p>}
-                      <ul className="price-list">
-                        {item.priceOptions.map((option, i) => (
-                          <li key={i}>
-                            <span>{option.label}</span>
-                            <strong>{option.price}</strong>
-                            {option.note && <em>{option.note}</em>}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
-          </div>
-        </section>
-
-        <section className="section menu-extras">
-          <div className="container">
-            <div className="extras-grid">
-              {extraItems.map((item) => (
-                <div className="extras-card" key={item.id}>
-                  <h3>{item.title}</h3>
-                  <ul className="extras-list">
-                    {item.priceOptions.map((option, i) => (
-                      <li key={i}>
-                        <span>{option.label}</span>
-                        <strong>{option.price}</strong>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
-
-            <p className="menu-note text-panel">
-              Dumpling flavors change weekly. In the coming months we plan on
-              offering an &quot;Americana&quot; line of dumplings under the moniker — yes, as
-              Americans, we change everything. Some initial ideas include Memphis
-              Sweet BBQ as well as other flavors.
-            </p>
-            <p className="menu-note muted text-panel">
-              There are gluten and soy-based products (soy sauce, oil, etc.) in
-              this food, as this is part of maintaining authenticity.
-            </p>
-          </div>
-        </section>
+        {isDraftMode && seedItem ? (
+          <LiveMenuGrid initialItems={items} seedItem={seedItem} />
+        ) : (
+          <MenuGridView items={items} />
+        )}
       </main>
     </>
   );

@@ -29,6 +29,14 @@ export const MenuItems: CollectionConfig = {
     // No per-item page exists — preview always shows the whole menu page
     // with this item's draft change applied.
     preview: () => getPreviewURL("/menu"),
+    livePreview: {
+      // Payload's live-preview merge does a real API round-trip scoped to
+      // `initialData.id` on every keystroke (to resolve the `image` relation) —
+      // the frontend needs to know which item is actually being edited to seed
+      // that correctly, so it rides along as a query param on the preview URL.
+      url: ({ data }) => getPreviewURL(`/menu?livePreviewId=${encodeURIComponent(data?.id ?? "")}`),
+      openByDefault: true,
+    },
   },
   defaultSort: "order",
   fields: [

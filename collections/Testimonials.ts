@@ -28,6 +28,14 @@ export const Testimonials: CollectionConfig = {
     useAsTitle: "authorName",
     defaultColumns: ["authorName", "rating", "order", "_status"],
     preview: () => getPreviewURL("/testimonials"),
+    livePreview: {
+      // Payload's live-preview merge does a real API round-trip scoped to
+      // `initialData.id` on every keystroke — the frontend needs to know
+      // which testimonial is actually being edited to seed that correctly,
+      // so it rides along as a query param on the preview URL.
+      url: ({ data }) => getPreviewURL(`/testimonials?livePreviewId=${encodeURIComponent(data?.id ?? "")}`),
+      openByDefault: true,
+    },
     components: {
       beforeListTable: ["@/components/admin/GoogleReviewsLink#GoogleReviewsLink"],
     },

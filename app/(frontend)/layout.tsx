@@ -5,6 +5,7 @@ import { getPayload } from "payload";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import DraftModeBanner from "@/components/DraftModeBanner";
+import { RefreshOnSave } from "@/components/live-preview/RefreshOnSave";
 import { NAV_PAGES } from "@/lib/navigation";
 import "./globals.css";
 
@@ -50,6 +51,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       </head>
       <body>
         {isDraftMode && <DraftModeBanner />}
+        {isDraftMode && <RefreshOnSave />}
         <Nav pages={visiblePages} />
         {children}
         <Footer pages={visiblePages} />

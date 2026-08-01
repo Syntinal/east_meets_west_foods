@@ -4,6 +4,8 @@ import config from "@payload-config";
 import { getPayload } from "payload";
 import JsonLd from "@/components/JsonLd";
 import { restaurantSchema } from "@/lib/structuredData";
+import { TestimonialsView, type TestimonialDoc } from "@/components/testimonials/TestimonialsView";
+import { LiveTestimonialsGrid } from "@/components/testimonials/LiveTestimonialsGrid";
 
 const title = "Testimonials — East Meets West Dumplings Bar";
 const description =
@@ -29,8 +31,6 @@ export const metadata: Metadata = {
   },
 };
 
-type TestimonialDoc = { quote: string; authorName: string; rating: string; sourceUrl?: string | null };
-
 async function getTestimonials(): Promise<TestimonialDoc[]> {
   const payload = await getPayload({ config });
   const { isEnabled: isDraftMode } = await draftMode();
@@ -46,8 +46,15 @@ async function getTestimonials(): Promise<TestimonialDoc[]> {
   return result.docs as unknown as TestimonialDoc[];
 }
 
-export default async function TestimonialsPage() {
+type PageProps = { searchParams: Promise<{ livePreviewId?: string }> };
+
+export default async function TestimonialsPage({ searchParams }: PageProps) {
   const testimonials = await getTestimonials();
+  const { isEnabled: isDraftMode } = await draftMode();
+  const livePreviewId = isDraftMode ? (await searchParams).livePreviewId : undefined;
+  // Postgres ids come back as numbers, but URL query params are always
+  // strings — compare as strings on both sides rather than relying on ===.
+  const seedItem = livePreviewId ? testimonials.find((item) => String(item.id) === livePreviewId) : undefined;
 
   return (
     <>
@@ -63,29 +70,10 @@ export default async function TestimonialsPage() {
               </div>
             </header>
 
-            {testimonials.length === 0 ? (
-              <p className="muted-text">No testimonials posted yet — check back soon.</p>
+            {isDraftMode && seedItem ? (
+              <LiveTestimonialsGrid initialItems={testimonials} seedItem={seedItem} />
             ) : (
-              <div className="testimonial-grid">
-                {testimonials.map((testimonial, index) => (
-                  <figure className="testimonial-card" key={index}>
-                    <div className="testimonial-stars" aria-label={`${testimonial.rating} out of 5 stars`}>
-                      {"★".repeat(Number(testimonial.rating))}
-                      {"☆".repeat(5 - Number(testimonial.rating))}
-                    </div>
-                    <blockquote className="testimonial-quote">&ldquo;{testimonial.quote}&rdquo;</blockquote>
-                    <figcaption className="testimonial-author">
-                      {testimonial.sourceUrl ? (
-                        <a href={testimonial.sourceUrl} target="_blank" rel="noopener noreferrer">
-                          {testimonial.authorName}
-                        </a>
-                      ) : (
-                        testimonial.authorName
-                      )}
-                    </figcaption>
-                  </figure>
-                ))}
-              </div>
+              <TestimonialsView testimonials={testimonials} />
             )}
           </div>
         </section>

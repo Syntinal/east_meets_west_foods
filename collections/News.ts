@@ -27,6 +27,10 @@ export const News: CollectionConfig = {
     useAsTitle: "title",
     defaultColumns: ["title", "type", "publishedDate", "_status"],
     preview: (doc) => getPreviewURL(`/news/${doc?.slug ?? ""}`),
+    livePreview: {
+      url: ({ data }) => getPreviewURL(`/news/${data?.slug ?? ""}`),
+      openByDefault: true,
+    },
   },
   hooks: {
     beforeValidate: [
