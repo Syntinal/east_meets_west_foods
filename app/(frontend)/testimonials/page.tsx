@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { draftMode } from "next/headers";
+import { cookies, draftMode } from "next/headers";
 import config from "@payload-config";
 import { getPayload } from "payload";
 import JsonLd from "@/components/JsonLd";
@@ -46,14 +46,15 @@ async function getTestimonials(): Promise<TestimonialDoc[]> {
   return result.docs as unknown as TestimonialDoc[];
 }
 
-type PageProps = { searchParams: Promise<{ livePreviewId?: string }> };
-
-export default async function TestimonialsPage({ searchParams }: PageProps) {
+export default async function TestimonialsPage() {
   const testimonials = await getTestimonials();
   const { isEnabled: isDraftMode } = await draftMode();
-  const livePreviewId = isDraftMode ? (await searchParams).livePreviewId : undefined;
-  // Postgres ids come back as numbers, but URL query params are always
-  // strings — compare as strings on both sides rather than relying on ===.
+  // Set as a cookie by /next/preview rather than read from a query string —
+  // Vercel strips searchParams during ISR bypass even in Draft Mode, but
+  // cookies survive (see lib/preview.ts).
+  const livePreviewId = isDraftMode ? (await cookies()).get("live-preview-id")?.value : undefined;
+  // Postgres ids come back as numbers, but the cookie value is always a
+  // string — compare as strings on both sides rather than relying on ===.
   const seedItem = livePreviewId ? testimonials.find((item) => String(item.id) === livePreviewId) : undefined;
 
   return (

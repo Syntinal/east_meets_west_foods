@@ -31,9 +31,10 @@ export const Testimonials: CollectionConfig = {
     livePreview: {
       // Payload's live-preview merge does a real API round-trip scoped to
       // `initialData.id` on every keystroke — the frontend needs to know
-      // which testimonial is actually being edited to seed that correctly,
-      // so it rides along as a query param on the preview URL.
-      url: ({ data }) => getPreviewURL(`/testimonials?livePreviewId=${encodeURIComponent(data?.id ?? "")}`),
+      // which testimonial is actually being edited to seed that correctly.
+      // This travels as a cookie (set by /next/preview), not a query string —
+      // see getPreviewURL for why.
+      url: ({ data }) => getPreviewURL("/testimonials", data?.id ? String(data.id) : undefined),
       openByDefault: true,
     },
     components: {
