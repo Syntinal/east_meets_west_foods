@@ -1,0 +1,15 @@
+/* Payload's built-in file/thumbnail column (used in every collection's list
+   view AND the "Choose from existing" upload picker) renders images at a
+   fixed ~50px (`.file__thumbnail`, from @payloadcms/ui's FileCell — there's
+   no config option to size it, it's hardcoded). That's too small to tell
+   similar photos apart when picking one to reuse. Scoped to just this class
+   so it doesn't affect Thumbnail usage elsewhere in the admin (e.g. the
+   small/medium/large sizes used in field previews).
+   No `!important` needed: Payload's own rule lives inside `@layer
+   payload-default`, and any plain (unlayered) CSS — like this file — always
+   wins over layered CSS regardless of selector order or specificity. */
+.file__thumbnail {
+  width: 220px;
+  height: 220px;
+  max-width: 220px;
+}

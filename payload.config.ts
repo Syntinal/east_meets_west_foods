@@ -25,6 +25,13 @@ export default buildConfig({
   },
   collections: [Users, Media, MenuItems, News, Testimonials],
   globals: [Navigation, Home],
+  // Adds "Browse by Folder" + the grid/list view toggle for collections
+  // that opt in via their own `folders: true` (just Media, for now — see
+  // collections/Media.ts). Creates its own `payload-folders` collection
+  // under the hood, so this needs a `next dev` boot to push schema. Root
+  // config's type is stricter than a collection's — `{}` (all defaults),
+  // not `true`, is what satisfies it.
+  folders: {},
   editor: lexicalEditor(),
   // Only kicks in once a Blob store is connected on Vercel and injects this
   // token — local dev keeps writing to public/media on disk, untouched.

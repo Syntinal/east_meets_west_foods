@@ -19,5 +19,9 @@ export const Media: CollectionConfig = {
   upload: {
     staticDir: "public/media",
   },
+  // Lets the owner organize photos into folders (e.g. "Homepage", "Menu")
+  // and switch the list view to a grid of larger thumbnails — off by
+  // default, existing photos just start out unfiled at the root.
+  folders: true,
   fields: [{ name: "alt", type: "text" }],
 };
