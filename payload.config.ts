@@ -11,6 +11,7 @@ import { MenuItems } from "./collections/MenuItems";
 import { News } from "./collections/News";
 import { Testimonials } from "./collections/Testimonials";
 import { Navigation } from "./globals/Navigation";
+import { Home } from "./globals/Home";
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -23,7 +24,7 @@ export default buildConfig({
     },
   },
   collections: [Users, Media, MenuItems, News, Testimonials],
-  globals: [Navigation],
+  globals: [Navigation, Home],
   editor: lexicalEditor(),
   // Only kicks in once a Blob store is connected on Vercel and injects this
   // token — local dev keeps writing to public/media on disk, untouched.
