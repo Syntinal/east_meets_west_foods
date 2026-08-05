@@ -1,8 +1,8 @@
 import type { CollectionConfig } from "payload";
-import { revalidatePath } from "next/cache";
 import { authenticated } from "@/access/authenticated";
 import { readPublished } from "@/access/readPublished";
 import { getPreviewURL } from "@/lib/preview";
+import { safeRevalidatePath } from "@/lib/safeRevalidate";
 import { slugify } from "@/lib/slugify";
 
 export const News: CollectionConfig = {
@@ -14,7 +14,15 @@ export const News: CollectionConfig = {
     delete: authenticated,
   },
   versions: {
-    drafts: true,
+    // See collections/Pages.ts for why: autosave gets a new post/announcement
+    // a real DB row (and auto-generated slug) shortly after a title is
+    // typed, so Live Preview's /news/<slug> iframe doesn't 404 while the
+    // doc only exists as unsaved form state.
+    drafts: {
+      autosave: {
+        showSaveDraftButton: true,
+      },
+    },
   },
   admin: {
     useAsTitle: "title",
@@ -41,16 +49,16 @@ export const News: CollectionConfig = {
     ],
     afterChange: [
       ({ doc }) => {
-        revalidatePath("/news");
-        if (doc?.slug) revalidatePath(`/news/${doc.slug}`);
-        revalidatePath("/");
+        safeRevalidatePath("/news");
+        if (doc?.slug) safeRevalidatePath(`/news/${doc.slug}`);
+        safeRevalidatePath("/");
       },
     ],
     afterDelete: [
       ({ doc }) => {
-        revalidatePath("/news");
-        if (doc?.slug) revalidatePath(`/news/${doc.slug}`);
-        revalidatePath("/");
+        safeRevalidatePath("/news");
+        if (doc?.slug) safeRevalidatePath(`/news/${doc.slug}`);
+        safeRevalidatePath("/");
       },
     ],
   },

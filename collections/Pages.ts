@@ -1,8 +1,8 @@
 import type { CollectionConfig, TextFieldSingleValidation } from "payload";
-import { revalidatePath } from "next/cache";
 import { authenticated } from "@/access/authenticated";
 import { readPublished } from "@/access/readPublished";
 import { getPreviewURL } from "@/lib/preview";
+import { safeRevalidatePath } from "@/lib/safeRevalidate";
 import { slugify } from "@/lib/slugify";
 import { NAV_PAGES } from "@/lib/navigation";
 import { RichTextBlock, ImageBlock, GalleryBlock, CallToActionBlock, TwoColumnBlock } from "@/blocks";
@@ -45,7 +45,28 @@ export const Pages: CollectionConfig = {
     delete: authenticated,
   },
   versions: {
-    drafts: true,
+    // Autosave (not just manual "Save Draft") so a brand-new page gets a
+    // real DB row — and therefore an auto-generated slug — a couple
+    // seconds (Payload's default autosave debounce, versionDefaults.
+    // autosaveInterval = 2000ms — the "@default 800" in payload's own
+    // Autosave type JSDoc is stale, don't trust it) after the owner types
+    // a title. Without this, Live Preview's iframe points at /<slug> for a
+    // doc that doesn't exist in Postgres yet and 404s until the first
+    // manual save. showSaveDraftButton keeps the existing "Save draft"
+    // button (and its tooltip, see ControlTooltips.tsx) visible instead of
+    // Payload's default of hiding it once autosave is on.
+    //
+    // Repeated keystrokes don't bloat version history: Payload debounces
+    // client-side and, server-side, updates the same "latest" version row
+    // in place as long as it's already an autosave (saveVersion.js /
+    // updateLatestVersion.js) — a new row is only created on the first
+    // autosave after a real save/publish. versions.maxPerDoc also defaults
+    // to 100 with automatic pruning as a backstop, unchanged here.
+    drafts: {
+      autosave: {
+        showSaveDraftButton: true,
+      },
+    },
   },
   admin: {
     useAsTitle: "title",
@@ -80,14 +101,14 @@ export const Pages: CollectionConfig = {
     // "layout" cache, not just this page's own path.
     afterChange: [
       ({ doc }) => {
-        if (doc?.slug) revalidatePath(`/${doc.slug}`);
-        revalidatePath("/", "layout");
+        if (doc?.slug) safeRevalidatePath(`/${doc.slug}`);
+        safeRevalidatePath("/", "layout");
       },
     ],
     afterDelete: [
       ({ doc }) => {
-        if (doc?.slug) revalidatePath(`/${doc.slug}`);
-        revalidatePath("/", "layout");
+        if (doc?.slug) safeRevalidatePath(`/${doc.slug}`);
+        safeRevalidatePath("/", "layout");
       },
     ],
   },
