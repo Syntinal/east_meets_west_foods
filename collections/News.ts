@@ -53,6 +53,25 @@ export const News: CollectionConfig = {
         if (doc?.slug) safeRevalidatePath(`/news/${doc.slug}`);
         safeRevalidatePath("/");
       },
+      // Placeholder for real social media publishing (see the `socialMedia`
+      // field below). For now this just logs the request server-side so
+      // it's visible somewhere other than the admin UI. Guarded on the
+      // false->true transition, not just "is it checked", because News has
+      // autosave on: without the previousDoc comparison this would log
+      // again on every autosave tick while a flagged draft is being edited
+      // (see lib/safeRevalidate.ts's comment for the related gotcha about
+      // hooks firing more often than a human "save" click). This is also
+      // the natural hook point for the real integration later — swap the
+      // logger call for enqueuing a SocialMediaPost per platform.
+      ({ doc, previousDoc, req }) => {
+        const isNowFlagged = Boolean(doc?.socialMedia?.postToSocialMedia);
+        const wasFlagged = Boolean(previousDoc?.socialMedia?.postToSocialMedia);
+        if (isNowFlagged && !wasFlagged) {
+          req.payload.logger.info(
+            `[social-media] "${doc.title}" (news-posts/${doc.id}) was marked "Post to Social Media". No integration exists yet — nothing was published.`
+          );
+        }
+      },
     ],
     afterDelete: [
       ({ doc }) => {
@@ -113,6 +132,43 @@ export const News: CollectionConfig = {
         condition: (_, siblingData) => siblingData.type === "announcement" && siblingData.showAsHomepageBanner,
         date: { pickerAppearance: "dayOnly" },
       },
+    },
+    // Placeholder for social media publishing — there's no real integration
+    // yet (see CLAUDE.md's "Social media" section for the long-term design:
+    // a separate SocialMediaPost queue collection, one row per platform per
+    // post, created from this flag once that collection exists). Grouping
+    // under `socialMedia` now — rather than a bare top-level checkbox — means
+    // future sibling fields (per-platform status, a link to the queued
+    // posts, etc.) can be added inside this group later without renaming or
+    // migrating `postToSocialMedia` itself.
+    {
+      name: "socialMedia",
+      type: "group",
+      admin: { position: "sidebar" },
+      fields: [
+        {
+          name: "postToSocialMedia",
+          type: "checkbox",
+          label: "Post to Social Media",
+          defaultValue: false,
+          admin: {
+            description:
+              "Flags this post to go out on social media. Publishing isn't automated yet — checking this doesn't post anywhere yet, see the note below once checked.",
+          },
+        },
+        {
+          // `type: "ui"` fields store nothing — this just renders the
+          // placeholder notice inline when the checkbox above is on.
+          name: "socialMediaNotice",
+          type: "ui",
+          admin: {
+            condition: (_, siblingData) => Boolean(siblingData?.postToSocialMedia),
+            components: {
+              Field: "@/components/admin/SocialMediaPlaceholderNotice#SocialMediaPlaceholderNotice",
+            },
+          },
+        },
+      ],
     },
     {
       name: "publishedDate",
