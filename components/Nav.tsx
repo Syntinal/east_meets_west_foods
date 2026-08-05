@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import type { NavPage } from "@/lib/navigation";
+import type { NavEntry } from "@/lib/navigation";
 
-export default function Nav({ pages }: { pages: NavPage[] }) {
+export default function Nav({ pages }: { pages: NavEntry[] }) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
 

@@ -1,7 +1,7 @@
 import Link from "next/link";
-import type { NavPage } from "@/lib/navigation";
+import type { NavEntry } from "@/lib/navigation";
 
-export default function Footer({ pages }: { pages: NavPage[] }) {
+export default function Footer({ pages }: { pages: NavEntry[] }) {
   // The footer never listed Home separately — logo/nav already cover it.
   const footerPages = pages.filter((page) => page.key !== "home");
 

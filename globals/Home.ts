@@ -16,6 +16,11 @@ import { getPreviewURL } from "@/lib/preview";
 // instead of cluttering /admin.
 export const Home: GlobalConfig = {
   slug: "home",
+  // Shows as "Home Page" in the /admin sidebar (default would just be
+  // "Home," easy to misread as a link back to the live site rather than
+  // the edit screen for it). Doesn't touch the public nav — that's the
+  // separate NAV_PAGES list in lib/navigation.ts, still just "Home" there.
+  label: "Home Page",
   access: {
     read: readPublished,
     update: authenticated,

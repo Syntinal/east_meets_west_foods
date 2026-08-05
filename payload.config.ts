@@ -10,6 +10,7 @@ import { Media } from "./collections/Media";
 import { MenuItems } from "./collections/MenuItems";
 import { News } from "./collections/News";
 import { Testimonials } from "./collections/Testimonials";
+import { Pages } from "./collections/Pages";
 import { Navigation } from "./globals/Navigation";
 import { Home } from "./globals/Home";
 
@@ -23,7 +24,7 @@ export default buildConfig({
       beforeDashboard: ["@/components/admin/GettingStarted#GettingStarted"],
     },
   },
-  collections: [Users, Media, MenuItems, News, Testimonials],
+  collections: [Users, Media, MenuItems, News, Testimonials, Pages],
   globals: [Navigation, Home],
   // Adds "Browse by Folder" + the grid/list view toggle for collections
   // that opt in via their own `folders: true` (just Media, for now — see

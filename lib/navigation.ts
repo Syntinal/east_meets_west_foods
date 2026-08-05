@@ -19,3 +19,14 @@ export const NAV_PAGES: NavPage[] = [
   { key: "faq", href: "/faq", label: "FAQ" },
   { key: "contact", href: "/contact", label: "Contact" },
 ];
+
+// Broader shape for anything Nav/Footer can render — the fixed NAV_PAGES
+// entries above (which satisfy this structurally), plus admin-created
+// Pages docs merged in at render time. See getVisiblePages in
+// app/(frontend)/layout.tsx.
+export type NavEntry = {
+  key: string;
+  href: string;
+  label: string;
+  shortLabel?: string;
+};
