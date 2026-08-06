@@ -1,6 +1,11 @@
 import type { Metadata } from "next";
+import { draftMode } from "next/headers";
+import config from "@payload-config";
+import { getPayload } from "payload";
 import JsonLd from "@/components/JsonLd";
 import { restaurantSchema } from "@/lib/structuredData";
+import { SauceView, type SauceDoc } from "@/components/sauce/SauceView";
+import { LiveSauce } from "@/components/sauce/LiveSauce";
 
 const title = "The Homemade Garlic Sauce — East Meets West near Sandpoint, ID";
 const description =
@@ -35,47 +40,23 @@ export const metadata: Metadata = {
   },
 };
 
-export default function SaucePage() {
+// See getHome() in app/(frontend)/page.tsx for why overrideAccess must be
+// true (not false) for a Global's draft lookup to actually work.
+async function getSauce(): Promise<SauceDoc> {
+  const payload = await getPayload({ config });
+  const { isEnabled: isDraftMode } = await draftMode();
+  const sauce = await payload.findGlobal({ slug: "sauce", draft: isDraftMode, overrideAccess: true, depth: 1 });
+  return sauce as unknown as SauceDoc;
+}
+
+export default async function SaucePage() {
+  const sauce = await getSauce();
+  const { isEnabled: isDraftMode } = await draftMode();
+
   return (
     <>
       <JsonLd data={restaurantSchema} />
-
-      <main>
-        <section className="section">
-          <div className="container sauce-grid">
-            <div className="sauce-text text-panel">
-              <p className="eyebrow">The Sauce</p>
-              <h1 className="section-title">The secret is in the sauce.</h1>
-              <p>
-                Homemade and delicious garlic sauce that greatly complements the
-                taste of the buns and dumplings. Please note: the sauce is quite
-                robust and does not require a lot to have the desired effect.
-              </p>
-              <p>
-                Cut a small slit in the dumpling or bun and add a little sauce — or
-                simply dip the product into the sauce. A little goes a long way.
-              </p>
-              <p>
-                Every meal comes with garlic sauce included — want more? Extra
-                sauce is $1.50.
-              </p>
-              <p>
-                Made fresh in Ponderay, Idaho — part of what makes us a one-of-a-kind stop for authentic Chinese food near Sandpoint.
-              </p>
-              <blockquote className="pull-quote">
-                <p>&quot;The secret is in the sauce.&quot;</p>
-                <cite>— Roger, Owner</cite>
-              </blockquote>
-            </div>
-            <div className="sauce-photo">
-              <img
-                src="/assets/photos/dumplings-tray.jpeg"
-                alt="Fresh hand-folded Northern Chinese dumplings on a tray, served with homemade garlic sauce"
-              />
-            </div>
-          </div>
-        </section>
-      </main>
+      {isDraftMode ? <LiveSauce sauce={sauce} /> : <SauceView sauce={sauce} />}
     </>
   );
 }

@@ -29,6 +29,13 @@ export const Home: GlobalConfig = {
     drafts: true,
   },
   admin: {
+    // false (not a string label) skips this entirely from the sidebar's
+    // Collections/Globals grouping, not just leaves it ungrouped — see
+    // node_modules/@payloadcms/ui/dist/utilities/groupNavItems.js. Already
+    // listed, in the correct site-page order, by SitePagesNav
+    // (admin.components.beforeNavLinks in payload.config.ts) — a second
+    // "Site Content" copy here was redundant and confusingly out of order.
+    group: false,
     preview: () => getPreviewURL("/"),
     livePreview: {
       url: () => getPreviewURL("/"),

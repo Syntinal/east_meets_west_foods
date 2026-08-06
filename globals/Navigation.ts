@@ -18,6 +18,7 @@ export const Navigation: GlobalConfig = {
     afterChange: [() => revalidatePath("/", "layout")],
   },
   admin: {
+    group: "Site Settings",
     description:
       "Choose which pages show up in the site's navigation. Unchecking a page hides it from the menu — the page itself still works if someone has the direct link.",
   },

@@ -1,6 +1,7 @@
 import { FolderTableCell as FolderTableCell_f9c02e79a4aed9a3924487c0cd4cafb1 } from '@payloadcms/next/rsc'
 import { FolderField as FolderField_f9c02e79a4aed9a3924487c0cd4cafb1 } from '@payloadcms/next/rsc'
 import { ControlTooltips as ControlTooltips_3e5d042b9b28e1583f476167de730652 } from '@/components/admin/ControlTooltips'
+import { ListPreviewView as ListPreviewView_b1008220587472f221c9c823a01815a9 } from '@/components/admin/ListPreviewView'
 import { SocialMediaPlaceholderNotice as SocialMediaPlaceholderNotice_0f2a364f4da8bb748705d3cbe108dfd8 } from '@/components/admin/SocialMediaPlaceholderNotice'
 import { RscEntryLexicalCell as RscEntryLexicalCell_44fe37237e0ebf4470c9990d8cb7b07e } from '@payloadcms/richtext-lexical/rsc'
 import { RscEntryLexicalField as RscEntryLexicalField_44fe37237e0ebf4470c9990d8cb7b07e } from '@payloadcms/richtext-lexical/rsc'
@@ -25,9 +26,10 @@ import { StrikethroughFeatureClient as StrikethroughFeatureClient_e70f5e05f09f93
 import { UnderlineFeatureClient as UnderlineFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
 import { BoldFeatureClient as BoldFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
 import { ItalicFeatureClient as ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
-import { GoogleReviewsLink as GoogleReviewsLink_cc20a41aeb88d01dad5221e3314e9793 } from '@/components/admin/GoogleReviewsLink'
+import { EmptyDraftsNotice as EmptyDraftsNotice_8c788eb9f55a479edd9d4e63cf67136e } from '@/components/admin/EmptyDraftsNotice'
 import { FolderTypeField as FolderTypeField_2b8867833a34864a02ddf429b0728a40 } from '@payloadcms/next/client'
 import { GettingStarted as GettingStarted_b85a0a1b27110055335ae11124b2eb0f } from '@/components/admin/GettingStarted'
+import { SitePagesNav as SitePagesNav_0b2f2dd5487abb893916026098cf1400 } from '@/components/admin/SitePagesNav'
 import { VercelBlobClientUploadHandler as VercelBlobClientUploadHandler_16c82c5e25f430251a3e3ba57219ff4e } from '@payloadcms/storage-vercel-blob/client'
 import { CollectionCards as CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1 } from '@payloadcms/next/rsc'
 
@@ -36,6 +38,7 @@ export const importMap = {
   "@payloadcms/next/rsc#FolderTableCell": FolderTableCell_f9c02e79a4aed9a3924487c0cd4cafb1,
   "@payloadcms/next/rsc#FolderField": FolderField_f9c02e79a4aed9a3924487c0cd4cafb1,
   "@/components/admin/ControlTooltips#ControlTooltips": ControlTooltips_3e5d042b9b28e1583f476167de730652,
+  "@/components/admin/ListPreviewView#ListPreviewView": ListPreviewView_b1008220587472f221c9c823a01815a9,
   "@/components/admin/SocialMediaPlaceholderNotice#SocialMediaPlaceholderNotice": SocialMediaPlaceholderNotice_0f2a364f4da8bb748705d3cbe108dfd8,
   "@payloadcms/richtext-lexical/rsc#RscEntryLexicalCell": RscEntryLexicalCell_44fe37237e0ebf4470c9990d8cb7b07e,
   "@payloadcms/richtext-lexical/rsc#RscEntryLexicalField": RscEntryLexicalField_44fe37237e0ebf4470c9990d8cb7b07e,
@@ -60,9 +63,10 @@ export const importMap = {
   "@payloadcms/richtext-lexical/client#UnderlineFeatureClient": UnderlineFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "@payloadcms/richtext-lexical/client#BoldFeatureClient": BoldFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "@payloadcms/richtext-lexical/client#ItalicFeatureClient": ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
-  "@/components/admin/GoogleReviewsLink#GoogleReviewsLink": GoogleReviewsLink_cc20a41aeb88d01dad5221e3314e9793,
+  "@/components/admin/EmptyDraftsNotice#EmptyDraftsNotice": EmptyDraftsNotice_8c788eb9f55a479edd9d4e63cf67136e,
   "@payloadcms/next/client#FolderTypeField": FolderTypeField_2b8867833a34864a02ddf429b0728a40,
   "@/components/admin/GettingStarted#GettingStarted": GettingStarted_b85a0a1b27110055335ae11124b2eb0f,
+  "@/components/admin/SitePagesNav#SitePagesNav": SitePagesNav_0b2f2dd5487abb893916026098cf1400,
   "@payloadcms/storage-vercel-blob/client#VercelBlobClientUploadHandler": VercelBlobClientUploadHandler_16c82c5e25f430251a3e3ba57219ff4e,
   "@payloadcms/next/rsc#CollectionCards": CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1
 }

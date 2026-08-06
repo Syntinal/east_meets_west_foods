@@ -10,6 +10,9 @@ export const Media: CollectionConfig = {
     singular: "Photo",
     plural: "Photos",
   },
+  admin: {
+    group: "Site Settings",
+  },
   access: {
     read: () => true,
     create: authenticated,

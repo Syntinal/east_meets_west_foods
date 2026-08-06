@@ -1,6 +1,11 @@
 import type { Metadata } from "next";
+import { draftMode } from "next/headers";
+import config from "@payload-config";
+import { getPayload } from "payload";
 import JsonLd from "@/components/JsonLd";
 import { restaurantSchema } from "@/lib/structuredData";
+import { ContactView, type ContactDoc } from "@/components/contact/ContactView";
+import { LiveContact } from "@/components/contact/LiveContact";
 
 const title = "Find Us near Sandpoint — Ponderay, ID | East Meets West Dumplings Bar";
 const description =
@@ -35,7 +40,19 @@ export const metadata: Metadata = {
   },
 };
 
-export default function ContactPage() {
+// See getHome() in app/(frontend)/page.tsx for why overrideAccess must be
+// true (not false) for a Global's draft lookup to actually work.
+async function getContact(): Promise<ContactDoc> {
+  const payload = await getPayload({ config });
+  const { isEnabled: isDraftMode } = await draftMode();
+  const contact = await payload.findGlobal({ slug: "contact", draft: isDraftMode, overrideAccess: true, depth: 1 });
+  return contact as unknown as ContactDoc;
+}
+
+export default async function ContactPage() {
+  const contact = await getContact();
+  const { isEnabled: isDraftMode } = await draftMode();
+
   return (
     <>
       <JsonLd
@@ -44,54 +61,7 @@ export default function ContactPage() {
           hasMap: "https://www.google.com/maps/search/?api=1&query=476534+US+HWY+95+Suite+B+Ponderay+ID+83852",
         }}
       />
-
-      <main>
-        <section className="section">
-          <div className="container">
-            <header className="section-head">
-              <div className="text-panel text-panel--inline">
-                <p className="eyebrow">Contact</p>
-                <h1 className="section-title">Find us &amp; get in touch.</h1>
-              </div>
-            </header>
-
-            <div className="visit-grid">
-              <div className="text-panel">
-                <p className="eyebrow">East Meets West Dumplings Bar</p>
-                <p className="muted-text">Northern Chinese dumplings, bao buns, and sauce.</p>
-                <div className="visit-row">
-                  <strong>Address</strong>
-                  <span>476534 US HWY 95, Suite B<br />Ponderay, ID 83852</span>
-                </div>
-                <div className="visit-row">
-                  <strong>Phone</strong>
-                  <span><a href="tel:+12086276283">(208) 627-6283</a></span>
-                </div>
-                <p className="muted-text">
-                  We&apos;re in Ponderay, just a few minutes&apos; drive north of Sandpoint — easy to reach from anywhere in Bonner County.
-                </p>
-              </div>
-              <div className="visit-map">
-                <iframe
-                  src="https://www.google.com/maps?q=476534+US+HWY+95+Ponderay+ID+83852&z=15&output=embed"
-                  title="East Meets West Dumplings Bar location on Google Maps"
-                  loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
-                ></iframe>
-                <a
-                  className="visit-map-overlay"
-                  href="https://www.google.com/maps/search/?api=1&query=476534+US+HWY+95+Suite+B+Ponderay+ID+83852"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label="Open East Meets West location in Google Maps"
-                >
-                  <span className="visit-map-cta">Open in Google Maps →</span>
-                </a>
-              </div>
-            </div>
-          </div>
-        </section>
-      </main>
+      {isDraftMode ? <LiveContact contact={contact} /> : <ContactView contact={contact} />}
     </>
   );
 }

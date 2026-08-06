@@ -25,6 +25,13 @@ export const Testimonials: CollectionConfig = {
     afterDelete: [() => revalidatePath("/"), () => revalidatePath("/testimonials")],
   },
   admin: {
+    // false (not a string label) skips this entirely from the sidebar's
+    // Collections/Globals grouping, not just leaves it ungrouped — see
+    // node_modules/@payloadcms/ui/dist/utilities/groupNavItems.js. Already
+    // listed, in the correct site-page order, by SitePagesNav
+    // (admin.components.beforeNavLinks in payload.config.ts) — a second
+    // "Site Content" copy here was redundant and confusingly out of order.
+    group: false,
     useAsTitle: "authorName",
     defaultColumns: ["authorName", "rating", "order", "_status"],
     preview: () => getPreviewURL("/testimonials"),
@@ -38,7 +45,15 @@ export const Testimonials: CollectionConfig = {
       openByDefault: true,
     },
     components: {
-      beforeListTable: ["@/components/admin/GoogleReviewsLink#GoogleReviewsLink"],
+      // Replaces the whole List view with a split list+live-preview screen
+      // — see components/admin/ListPreviewView.tsx, which also renders
+      // GoogleReviewsLink above the list (previously a beforeListTable
+      // entry here) so that feature isn't lost in the replacement.
+      views: {
+        list: {
+          Component: "@/components/admin/ListPreviewView#ListPreviewView",
+        },
+      },
       edit: {
         beforeDocumentControls: ["@/components/admin/ControlTooltips#ControlTooltips"],
       },

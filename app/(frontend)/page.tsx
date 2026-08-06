@@ -42,7 +42,7 @@ export const metadata: Metadata = {
 // Statically rendered, so this is the only thing that makes a banner's
 // `bannerEndDate` take effect without an editor re-saving the post —
 // see the `bannerEndDate` field comment in collections/News.ts.
-export const revalidate = 3600;
+export const revalidate = 86400;
 
 async function getHome(): Promise<HomeDoc> {
   const payload = await getPayload({ config });

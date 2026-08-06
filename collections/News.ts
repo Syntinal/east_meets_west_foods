@@ -7,6 +7,12 @@ import { slugify } from "@/lib/slugify";
 
 export const News: CollectionConfig = {
   slug: "news-posts",
+  // Plural shows as "News" in the /admin sidebar, matching the site's own
+  // nav label (lib/navigation.ts) instead of the default "News Posts".
+  labels: {
+    singular: "News Post",
+    plural: "News",
+  },
   access: {
     read: readPublished,
     create: authenticated,
@@ -25,6 +31,13 @@ export const News: CollectionConfig = {
     },
   },
   admin: {
+    // false (not a string label) skips this entirely from the sidebar's
+    // Collections/Globals grouping, not just leaves it ungrouped — see
+    // node_modules/@payloadcms/ui/dist/utilities/groupNavItems.js. Already
+    // listed, in the correct site-page order, by SitePagesNav
+    // (admin.components.beforeNavLinks in payload.config.ts) — a second
+    // "Site Content" copy here was redundant and confusingly out of order.
+    group: false,
     useAsTitle: "title",
     defaultColumns: ["title", "type", "publishedDate", "_status"],
     preview: (doc) => getPreviewURL(`/news/${doc?.slug ?? ""}`),
@@ -33,6 +46,14 @@ export const News: CollectionConfig = {
       openByDefault: true,
     },
     components: {
+      // Replaces the whole List view with a split list+live-preview screen
+      // — see components/admin/ListPreviewView.tsx for why (each post has
+      // its own page, but there's no overview preview before opening one).
+      views: {
+        list: {
+          Component: "@/components/admin/ListPreviewView#ListPreviewView",
+        },
+      },
       edit: {
         beforeDocumentControls: ["@/components/admin/ControlTooltips#ControlTooltips"],
       },
@@ -128,7 +149,7 @@ export const News: CollectionConfig = {
       admin: {
         position: "sidebar",
         description:
-          "Optional. The homepage banner stops showing itself on this date (e.g. when a sale ends) — no need to come back and uncheck it manually. The site rechecks roughly hourly, so removal isn't second-precise.",
+          "Optional. The homepage banner stops showing itself on this date (e.g. when a sale ends) — no need to come back and uncheck it manually. The site rechecks roughly once a day, so removal isn't second-precise.",
         condition: (_, siblingData) => siblingData.type === "announcement" && siblingData.showAsHomepageBanner,
         date: { pickerAppearance: "dayOnly" },
       },

@@ -8,6 +8,12 @@ import { getPreviewURL } from "@/lib/preview";
 // + tiered pricing) and 3 "extras" cards (flat pricing, no photo/description).
 export const MenuItems: CollectionConfig = {
   slug: "menu-items",
+  // Plural shows as "Menu" in the /admin sidebar, matching the site's own
+  // nav label (lib/navigation.ts) instead of the default "Menu Items".
+  labels: {
+    singular: "Menu Item",
+    plural: "Menu",
+  },
   access: {
     read: readPublished,
     create: authenticated,
@@ -24,6 +30,13 @@ export const MenuItems: CollectionConfig = {
     afterDelete: [() => revalidatePath("/menu")],
   },
   admin: {
+    // false (not a string label) skips this entirely from the sidebar's
+    // Collections/Globals grouping, not just leaves it ungrouped — see
+    // node_modules/@payloadcms/ui/dist/utilities/groupNavItems.js. Already
+    // listed, in the correct site-page order, by SitePagesNav
+    // (admin.components.beforeNavLinks in payload.config.ts) — a second
+    // "Site Content" copy here was redundant and confusingly out of order.
+    group: false,
     useAsTitle: "title",
     defaultColumns: ["title", "group", "order", "_status"],
     // No per-item page exists — preview always shows the whole menu page
@@ -39,6 +52,14 @@ export const MenuItems: CollectionConfig = {
       openByDefault: true,
     },
     components: {
+      // Replaces the whole List view with a split list+live-preview screen
+      // — see components/admin/ListPreviewView.tsx for why (no single doc
+      // to attach Payload's own Edit-view preview split to).
+      views: {
+        list: {
+          Component: "@/components/admin/ListPreviewView#ListPreviewView",
+        },
+      },
       edit: {
         beforeDocumentControls: ["@/components/admin/ControlTooltips#ControlTooltips"],
       },

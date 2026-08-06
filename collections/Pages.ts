@@ -69,6 +69,7 @@ export const Pages: CollectionConfig = {
     },
   },
   admin: {
+    group: "Site Settings",
     useAsTitle: "title",
     defaultColumns: ["title", "slug", "showInNav", "_status"],
     description:
@@ -79,6 +80,10 @@ export const Pages: CollectionConfig = {
       openByDefault: true,
     },
     components: {
+      // Flags abandoned autosave stubs (empty, never-published drafts) so
+      // they don't sit invisibly in the list — see
+      // components/admin/EmptyDraftsNotice.tsx for why these happen.
+      beforeListTable: ["@/components/admin/EmptyDraftsNotice#EmptyDraftsNotice"],
       edit: {
         beforeDocumentControls: ["@/components/admin/ControlTooltips#ControlTooltips"],
       },

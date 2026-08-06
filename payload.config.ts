@@ -13,6 +13,10 @@ import { Testimonials } from "./collections/Testimonials";
 import { Pages } from "./collections/Pages";
 import { Navigation } from "./globals/Navigation";
 import { Home } from "./globals/Home";
+import { Sauce } from "./globals/Sauce";
+import { Story } from "./globals/Story";
+import { Faq } from "./globals/Faq";
+import { Contact } from "./globals/Contact";
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -22,10 +26,14 @@ export default buildConfig({
     user: Users.slug,
     components: {
       beforeDashboard: ["@/components/admin/GettingStarted#GettingStarted"],
+      // A flat, site-page-ordered quick list rendered above Payload's own
+      // Collections/Globals nav — see components/admin/SitePagesNav.tsx for
+      // why that couldn't be done with `admin.group` alone.
+      beforeNavLinks: ["@/components/admin/SitePagesNav#SitePagesNav"],
     },
   },
   collections: [Users, Media, MenuItems, News, Testimonials, Pages],
-  globals: [Navigation, Home],
+  globals: [Navigation, Home, Sauce, Story, Faq, Contact],
   // Adds "Browse by Folder" + the grid/list view toggle for collections
   // that opt in via their own `folders: true` (just Media, for now — see
   // collections/Media.ts). Creates its own `payload-folders` collection
