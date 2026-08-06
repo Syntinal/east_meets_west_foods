@@ -49,7 +49,23 @@ export default buildConfig({
       enabled: Boolean(process.env.BLOB_READ_WRITE_TOKEN),
       collections: { media: true },
       token: process.env.BLOB_READ_WRITE_TOKEN,
-      clientUploads: true,
+      // false, not true: with clientUploads on, the browser uploads the file
+      // straight to Blob, then submits a bytes-free "create this doc" request.
+      // Because Media has focal point enabled (the default), Payload treats
+      // every new upload as needing a re-fetch of the original file to compute
+      // crop data — and does that by calling its own /api/media/file/:filename
+      // endpoint, which only resolves via an *existing* DB row. On a brand-new
+      // upload that row doesn't exist yet (this request is what creates it),
+      // so the self-fetch 404s and the whole create fails with a generic
+      // "There was a problem while uploading the file." Confirmed via Vercel's
+      // function logs (the 404'd self-fetch shows up under "External APIs")
+      // while chasing down why every /admin upload was failing in production
+      // despite working fine in local dev — local dev never hits this branch
+      // because non-client uploads send the file bytes directly, so Payload
+      // never needs to re-fetch anything. Our images are all well under
+      // Vercel's request-body limit, so buffered (non-client) uploads are a
+      // safe way to route around this rather than disabling focal point.
+      clientUploads: false,
     }),
   ],
   secret: process.env.PAYLOAD_SECRET || "",
