@@ -13,6 +13,7 @@ import { Testimonials } from "./collections/Testimonials";
 import { Pages } from "./collections/Pages";
 import { Navigation } from "./globals/Navigation";
 import { Home } from "./globals/Home";
+import { MenuIntro } from "./globals/MenuIntro";
 import { Sauce } from "./globals/Sauce";
 import { Story } from "./globals/Story";
 import { Faq } from "./globals/Faq";
@@ -33,7 +34,7 @@ export default buildConfig({
     },
   },
   collections: [Users, Media, MenuItems, News, Testimonials, Pages],
-  globals: [Navigation, Home, Sauce, Story, Faq, Contact],
+  globals: [Navigation, Home, MenuIntro, Sauce, Story, Faq, Contact],
   // Adds "Browse by Folder" + the grid/list view toggle for collections
   // that opt in via their own `folders: true` (just Media, for now — see
   // collections/Media.ts). Creates its own `payload-folders` collection

@@ -10,9 +10,14 @@ export type MenuItemDoc = {
   order?: number | null;
 };
 
+// The editable box above the menu grid — backed by globals/MenuIntro.ts.
+// The "Menu" eyebrow itself stays hardcoded below (matches lib/navigation.ts's
+// nav label, same as Sauce/Story keep their own eyebrow hardcoded).
+export type MenuIntroDoc = { heading?: string | null; lede?: string | null };
+
 // Shared between the plain server-rendered /menu page and its live-preview
 // counterpart — same markup either way, just fed different data.
-export function MenuGridView({ items }: { items: MenuItemDoc[] }) {
+export function MenuGridView({ items, intro }: { items: MenuItemDoc[]; intro: MenuIntroDoc }) {
   const mainItems = items.filter((item) => item.group === "main");
   const extraItems = items.filter((item) => item.group === "extras");
 
@@ -23,12 +28,8 @@ export function MenuGridView({ items }: { items: MenuItemDoc[] }) {
           <header className="section-head">
             <div className="text-panel text-panel--inline">
               <p className="eyebrow">Menu</p>
-              <h1 className="section-title">East Meets West Menu</h1>
-              <p className="section-lede">
-                Three offerings, made well — dumpling flavors change weekly. One of
-                the Sandpoint area&apos;s only spots for authentic hand-folded Northern
-                Chinese dumplings, in Ponderay.
-              </p>
+              <h1 className="section-title">{intro.heading}</h1>
+              <p className="section-lede">{intro.lede}</p>
             </div>
           </header>
 
