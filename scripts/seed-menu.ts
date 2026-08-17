@@ -26,7 +26,7 @@ const items: SeedItem[] = [
     description:
       "Authentic, ancient, Chinese filled buns with fresh, local pork from Wood's Meats and alternating vegetables such as leeks and cabbage. Authentic Chinese fermented dough adds chewiness and a wonderful bite.",
     imageFilename: "bao-steamer.jpeg",
-    imageAlt: "Hand-folded pork and vegetable bao buns resting in a bamboo steamer",
+    imageAlt: "Pork and vegetable bao buns resting in a bamboo steamer",
     priceOptions: [
       { label: "3 Buns", price: "$7.99", note: "1 sauce" },
       { label: "6 Buns", price: "$13.99", note: "1 sauce" },
@@ -41,7 +41,7 @@ const items: SeedItem[] = [
     description:
       "Ancient, authentic Chinese dumplings — 30% larger than traditional Chinese dumplings — filled with fresh Wood's pork and alternating vegetables such as leeks and cabbage.",
     imageFilename: "dumplings-steamer.jpeg",
-    imageAlt: "Hand-folded Northern Chinese pork dumplings arranged in a bamboo steamer",
+    imageAlt: "Northern Chinese pork dumplings arranged in a bamboo steamer",
     priceOptions: [
       { label: "3 Large Dumplings", price: "$7.99", note: "1 sauce" },
       { label: "6 Large Dumplings", price: "$13.99", note: "1 sauce" },
@@ -55,7 +55,7 @@ const items: SeedItem[] = [
     group: "main",
     description: "Designed to allow guests to experience the combined taste of dumplings and buns.",
     imageFilename: "dumplings-tray.jpeg",
-    imageAlt: "A combination platter of hand-folded dumplings and bao buns on a serving tray",
+    imageAlt: "A combination platter of dumplings and bao buns on a serving tray",
     priceOptions: [
       { label: "3 Dumplings + 3 Buns", price: "$13.99", note: "1 sauce" },
       { label: "6 Dumplings + 6 Buns", price: "$24.99", note: "2 sauces" },
