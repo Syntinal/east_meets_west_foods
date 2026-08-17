@@ -65,7 +65,7 @@ export function FacebookPostStatusNotice() {
         <strong>⚠ Failed to post to Facebook after repeated attempts</strong>
         <p style={{ margin: "4px 0 0" }}>
           {error || "No error detail available."} This won&rsquo;t retry automatically — check the
-          Upload-Post account/API key, or the Facebook Page connection, then uncheck and recheck
+          Buffer account/API key, or the Facebook Page connection in Buffer, then uncheck and recheck
           this box to try again.
         </p>
       </div>

@@ -9,7 +9,7 @@ import {
   REST_PUT,
 } from "@payloadcms/next/routes";
 
-// News' afterChange hook (collections/News.ts) can call out to Upload-Post
+// News' afterChange hook (collections/News.ts) can call out to Buffer
 // (lib/facebookPost.ts) inline/awaited when publishing a flagged post —
 // cheap insurance against Vercel's function timeout, even though the
 // realistic worst case (image download + one API call) is nowhere near

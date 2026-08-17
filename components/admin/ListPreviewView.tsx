@@ -3,7 +3,6 @@ import { GoogleReviewsLink } from "./GoogleReviewsLink";
 import { EditMenuIntroLink } from "./EditMenuIntroLink";
 import { EditNewsIntroLink } from "./EditNewsIntroLink";
 import { EditTestimonialsIntroLink } from "./EditTestimonialsIntroLink";
-import { UploadPostUsageNotice } from "./UploadPostUsageNotice";
 import { ListPreviewSplit, type PreviewItem } from "./ListPreviewSplit";
 
 type Doc = {
@@ -130,7 +129,6 @@ export function ListPreviewView(props: {
       {collectionSlug === "testimonials" && <GoogleReviewsLink />}
       {collectionSlug === "testimonials" && <EditTestimonialsIntroLink />}
       {collectionSlug === "menu-items" && <EditMenuIntroLink />}
-      {collectionSlug === "news-posts" && <UploadPostUsageNotice />}
       {collectionSlug === "news-posts" && <EditNewsIntroLink />}
       <ListPreviewSplit
         items={items}

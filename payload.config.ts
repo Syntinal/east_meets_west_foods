@@ -20,7 +20,6 @@ import { Sauce } from "./globals/Sauce";
 import { Story } from "./globals/Story";
 import { Faq } from "./globals/Faq";
 import { Contact } from "./globals/Contact";
-import { UploadPostUsage } from "./globals/UploadPostUsage";
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -37,7 +36,7 @@ export default buildConfig({
     },
   },
   collections: [Users, Media, MenuItems, News, Testimonials, Pages],
-  globals: [Navigation, Home, MenuIntro, NewsIntro, TestimonialsIntro, Sauce, Story, Faq, Contact, UploadPostUsage],
+  globals: [Navigation, Home, MenuIntro, NewsIntro, TestimonialsIntro, Sauce, Story, Faq, Contact],
   editor: lexicalEditor(),
   // Only kicks in once a Blob store is connected on Vercel and injects this
   // token — local dev keeps writing to public/media on disk, untouched.

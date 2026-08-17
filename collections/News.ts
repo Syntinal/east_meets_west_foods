@@ -75,7 +75,7 @@ export const News: CollectionConfig = {
         if (doc?.slug) safeRevalidatePath(`/news/${doc.slug}`);
         safeRevalidatePath("/");
       },
-      // Real Facebook publishing, via lib/facebookPost.ts (Upload-Post).
+      // Real Facebook publishing, via lib/facebookPost.ts (Buffer).
       // Runs inline/awaited — no queue or cron, see lib/facebookPost.ts's
       // header comment for why that's a deliberate choice at this site's
       // volume. A Facebook-side failure is always caught and written to
@@ -140,19 +140,6 @@ export const News: CollectionConfig = {
           req.payload.logger.error(
             `[facebook-post] Failed to post "${doc.title}" (news-posts/${doc.id}): ${relayResult.error}`
           );
-        }
-
-        // Upload-Post's own quota snapshot, when the response included one
-        // (real success/429 responses do; mock mode and 401s don't) — kept
-        // for components/admin/UploadPostUsageNotice.tsx to show "X of Y
-        // used this month" without needing a separate usage-check call.
-        if (relayResult.usage) {
-          await req.payload.updateGlobal({
-            slug: "upload-post-usage",
-            req,
-            overrideAccess: true,
-            data: relayResult.usage,
-          });
         }
 
         const failureCount = relayResult.success
@@ -245,7 +232,7 @@ export const News: CollectionConfig = {
         date: { pickerAppearance: "dayOnly" },
       },
     },
-    // Real Facebook publishing, via Upload-Post (see lib/facebookPost.ts and
+    // Real Facebook publishing, via Buffer (see lib/facebookPost.ts and
     // the afterChange hook below). Facebook only, deliberately — Facebook's
     // own Page settings can cross-post to the connected Instagram account,
     // so that needs no code here. `facebookPostStatus`/`Url`/`Error`/
@@ -280,12 +267,11 @@ export const News: CollectionConfig = {
         },
         { name: "facebookPostUrl", type: "text", admin: { readOnly: true, hidden: true } },
         { name: "facebookPostError", type: "text", admin: { readOnly: true, hidden: true } },
-        // Counts consecutive non-401 failures so a Facebook-side problem
-        // Upload-Post doesn't surface with its own status code (e.g. a
-        // revoked Page connection — see the hook's comment) still stops
-        // auto-retrying after a few tries, instead of silently burning
-        // through the 10/month free quota. Resets to 0 on any success or
-        // explicit uncheck/recheck.
+        // Counts consecutive non-permanent failures so a Facebook-side
+        // problem Buffer doesn't surface with a clearly-permanent error
+        // (e.g. a revoked Page connection inside Buffer — see the hook's
+        // comment) still stops auto-retrying after a few tries. Resets to
+        // 0 on any success or explicit uncheck/recheck.
         { name: "facebookPostFailureCount", type: "number", defaultValue: 0, admin: { readOnly: true, hidden: true } },
         {
           // `type: "ui"` fields store nothing — this renders the live
