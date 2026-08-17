@@ -1,6 +1,7 @@
 import type { CollectionConfig } from "payload";
 import { authenticated } from "@/access/authenticated";
 import { readPublished } from "@/access/readPublished";
+import { postToFacebook } from "@/lib/facebookPost";
 import { getPreviewURL } from "@/lib/preview";
 import { safeRevalidatePath } from "@/lib/safeRevalidate";
 import { slugify } from "@/lib/slugify";
@@ -74,24 +75,114 @@ export const News: CollectionConfig = {
         if (doc?.slug) safeRevalidatePath(`/news/${doc.slug}`);
         safeRevalidatePath("/");
       },
-      // Placeholder for real social media publishing (see the `socialMedia`
-      // field below). For now this just logs the request server-side so
-      // it's visible somewhere other than the admin UI. Guarded on the
-      // false->true transition, not just "is it checked", because News has
-      // autosave on: without the previousDoc comparison this would log
-      // again on every autosave tick while a flagged draft is being edited
-      // (see lib/safeRevalidate.ts's comment for the related gotcha about
-      // hooks firing more often than a human "save" click). This is also
-      // the natural hook point for the real integration later — swap the
-      // logger call for enqueuing a SocialMediaPost per platform.
-      ({ doc, previousDoc, req }) => {
-        const isNowFlagged = Boolean(doc?.socialMedia?.postToSocialMedia);
-        const wasFlagged = Boolean(previousDoc?.socialMedia?.postToSocialMedia);
-        if (isNowFlagged && !wasFlagged) {
-          req.payload.logger.info(
-            `[social-media] "${doc.title}" (news-posts/${doc.id}) was marked "Post to Social Media". No integration exists yet — nothing was published.`
+      // Real Facebook publishing, via lib/facebookPost.ts (Upload-Post).
+      // Runs inline/awaited — no queue or cron, see lib/facebookPost.ts's
+      // header comment for why that's a deliberate choice at this site's
+      // volume. A Facebook-side failure is always caught and written to
+      // `facebookPostStatus`/`facebookPostError`, never thrown — this must
+      // never block or fail the News save itself.
+      //
+      // Eligibility is gated on durable status, not a previousDoc flip
+      // comparison: News has autosave on, so unchecking/rechecking the box
+      // while a draft is being fiddled with only ever touches the draft
+      // version, not the last *published* value — a flip-based check would
+      // miss the owner's natural "uncheck, recheck, publish once" retry.
+      // Instead: `posted`/`failed_permanent` are "settled" states that
+      // don't retry on routine resaves; a plain `failed` retries
+      // automatically next published save (no special action needed); and
+      // an explicit uncheck-then-recheck (`justReChecked`) always forces a
+      // fresh attempt out of either settled state, resetting the failure
+      // counter too.
+      //
+      // `context.skipFacebookHook` guards against infinite recursion: the
+      // write-back below calls payload.update() on this same document,
+      // which would otherwise re-trigger this same afterChange hook.
+      //
+      // Returns the freshly-updated doc at the end (rather than nothing) —
+      // Payload's afterChange chain does `result = (await hook(...)) ||
+      // result` (see node_modules/payload/dist/collections/operations/
+      // utilities/update.js), so whatever a hook returns becomes the doc
+      // used for every hook after it AND the final API response the admin
+      // UI renders from. Without this, the nested payload.update() below
+      // still persists correctly, but the Publish button's own response —
+      // and therefore the on-screen status notice — kept showing the
+      // pre-write-back state until the document was reloaded. Confirmed via
+      // a real test: the DB had `facebookPostStatus: "posted"` immediately,
+      // but the admin screen kept showing "not_posted" until refreshed.
+      async ({ doc, previousDoc, req, context }) => {
+        if (context?.skipFacebookHook) return;
+
+        const checked = Boolean(doc?.socialMedia?.postToFacebook);
+        const wasChecked = Boolean(previousDoc?.socialMedia?.postToFacebook);
+        const justReChecked = checked && !wasChecked;
+        const status = doc?.socialMedia?.facebookPostStatus;
+        const settled = status === "posted" || status === "failed_permanent";
+
+        const eligible = doc?._status === "published" && checked && (!settled || justReChecked);
+        if (!eligible) return;
+
+        let relayResult;
+        try {
+          relayResult = await postToFacebook({
+            title: doc.title,
+            excerpt: doc.excerpt,
+            link: `${process.env.SITE_URL || ""}/news/${doc.slug ?? ""}`,
+            featuredImage:
+              doc.featuredImage && typeof doc.featuredImage === "object"
+                ? { url: doc.featuredImage.url }
+                : null,
+          });
+        } catch (err) {
+          relayResult = { success: false, error: err instanceof Error ? err.message : String(err) };
+        }
+
+        if (!relayResult.success) {
+          req.payload.logger.error(
+            `[facebook-post] Failed to post "${doc.title}" (news-posts/${doc.id}): ${relayResult.error}`
           );
         }
+
+        // Upload-Post's own quota snapshot, when the response included one
+        // (real success/429 responses do; mock mode and 401s don't) — kept
+        // for components/admin/UploadPostUsageNotice.tsx to show "X of Y
+        // used this month" without needing a separate usage-check call.
+        if (relayResult.usage) {
+          await req.payload.updateGlobal({
+            slug: "upload-post-usage",
+            req,
+            overrideAccess: true,
+            data: relayResult.usage,
+          });
+        }
+
+        const failureCount = relayResult.success
+          ? 0
+          : (doc.socialMedia?.facebookPostFailureCount ?? 0) + 1;
+        const nextStatus = relayResult.success
+          ? "posted"
+          : relayResult.permanent || failureCount >= 3
+            ? "failed_permanent"
+            : "failed";
+
+        const updatedDoc = await req.payload.update({
+          collection: "news-posts",
+          id: doc.id,
+          req,
+          context: { ...context, skipFacebookHook: true },
+          draft: false, // top-level option, not part of `data` — see CLAUDE.md's "publishing" gotcha
+          data: {
+            _status: "published",
+            socialMedia: {
+              ...doc.socialMedia,
+              facebookPostStatus: nextStatus,
+              facebookPostUrl: relayResult.success ? relayResult.url : doc.socialMedia?.facebookPostUrl,
+              facebookPostError: relayResult.success ? (relayResult.note ?? null) : relayResult.error,
+              facebookPostFailureCount: failureCount,
+            },
+          },
+        });
+
+        return updatedDoc;
       },
     ],
     afterDelete: [
@@ -154,38 +245,58 @@ export const News: CollectionConfig = {
         date: { pickerAppearance: "dayOnly" },
       },
     },
-    // Placeholder for social media publishing — there's no real integration
-    // yet (see CLAUDE.md's "Social media" section for the long-term design:
-    // a separate SocialMediaPost queue collection, one row per platform per
-    // post, created from this flag once that collection exists). Grouping
-    // under `socialMedia` now — rather than a bare top-level checkbox — means
-    // future sibling fields (per-platform status, a link to the queued
-    // posts, etc.) can be added inside this group later without renaming or
-    // migrating `postToSocialMedia` itself.
+    // Real Facebook publishing, via Upload-Post (see lib/facebookPost.ts and
+    // the afterChange hook below). Facebook only, deliberately — Facebook's
+    // own Page settings can cross-post to the connected Instagram account,
+    // so that needs no code here. `facebookPostStatus`/`Url`/`Error`/
+    // `FailureCount` are set automatically by the hook, never hand-edited —
+    // see the hook's comment for the full eligibility/retry design.
     {
       name: "socialMedia",
       type: "group",
       admin: { position: "sidebar" },
       fields: [
         {
-          name: "postToSocialMedia",
+          name: "postToFacebook",
           type: "checkbox",
-          label: "Post to Social Media",
+          label: "Post to Facebook",
           defaultValue: false,
           admin: {
             description:
-              "Flags this post to go out on social media. Publishing isn't automated yet — checking this doesn't post anywhere yet, see the note below once checked.",
+              "Posts this to the Facebook Page when published. To force a repost of an already-posted item, uncheck this, save, then recheck it and save/publish again.",
           },
         },
         {
-          // `type: "ui"` fields store nothing — this just renders the
-          // placeholder notice inline when the checkbox above is on.
-          name: "socialMediaNotice",
+          name: "facebookPostStatus",
+          type: "select",
+          defaultValue: "not_posted",
+          options: [
+            { label: "Not posted", value: "not_posted" },
+            { label: "Posted", value: "posted" },
+            { label: "Failed (will retry)", value: "failed" },
+            { label: "Failed (needs attention)", value: "failed_permanent" },
+          ],
+          admin: { readOnly: true, hidden: true },
+        },
+        { name: "facebookPostUrl", type: "text", admin: { readOnly: true, hidden: true } },
+        { name: "facebookPostError", type: "text", admin: { readOnly: true, hidden: true } },
+        // Counts consecutive non-401 failures so a Facebook-side problem
+        // Upload-Post doesn't surface with its own status code (e.g. a
+        // revoked Page connection — see the hook's comment) still stops
+        // auto-retrying after a few tries, instead of silently burning
+        // through the 10/month free quota. Resets to 0 on any success or
+        // explicit uncheck/recheck.
+        { name: "facebookPostFailureCount", type: "number", defaultValue: 0, admin: { readOnly: true, hidden: true } },
+        {
+          // `type: "ui"` fields store nothing — this renders the live
+          // status (queued/posted/failed) inline when the checkbox above
+          // is on, reading the fields above via useFormFields.
+          name: "facebookStatusNotice",
           type: "ui",
           admin: {
-            condition: (_, siblingData) => Boolean(siblingData?.postToSocialMedia),
+            condition: (_, siblingData) => Boolean(siblingData?.postToFacebook),
             components: {
-              Field: "@/components/admin/SocialMediaPlaceholderNotice#SocialMediaPlaceholderNotice",
+              Field: "@/components/admin/FacebookPostStatusNotice#FacebookPostStatusNotice",
             },
           },
         },

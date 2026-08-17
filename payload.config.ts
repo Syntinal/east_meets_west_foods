@@ -18,6 +18,7 @@ import { Sauce } from "./globals/Sauce";
 import { Story } from "./globals/Story";
 import { Faq } from "./globals/Faq";
 import { Contact } from "./globals/Contact";
+import { UploadPostUsage } from "./globals/UploadPostUsage";
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -34,7 +35,7 @@ export default buildConfig({
     },
   },
   collections: [Users, Media, MenuItems, News, Testimonials, Pages],
-  globals: [Navigation, Home, MenuIntro, Sauce, Story, Faq, Contact],
+  globals: [Navigation, Home, MenuIntro, Sauce, Story, Faq, Contact, UploadPostUsage],
   // Adds "Browse by Folder" + the grid/list view toggle for collections
   // that opt in via their own `folders: true` (just Media, for now — see
   // collections/Media.ts). Creates its own `payload-folders` collection
