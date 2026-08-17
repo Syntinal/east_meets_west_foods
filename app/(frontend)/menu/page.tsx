@@ -10,7 +10,7 @@ import { LiveMenuIntro } from "@/components/menu/LiveMenuIntro";
 
 const title = "Menu — Chinese Dumplings & Bao near Sandpoint, ID | East Meets West";
 const description =
-  "Hand-folded Northern Chinese dumplings, bao buns, and combo platters from $7.99 — one of the Sandpoint area's only spots for authentic Chinese dumplings. Ponderay, ID. Flavors change weekly.";
+  "Northern Chinese dumplings, bao buns, and combo platters from $7.99 — one of the Sandpoint area's only spots for authentic Chinese dumplings. Ponderay, ID. Flavors change weekly.";
 
 export const metadata: Metadata = {
   title,
@@ -23,12 +23,12 @@ export const metadata: Metadata = {
     locale: "en_US",
     title,
     description:
-      "Hand-folded Northern Chinese dumplings and bao buns from $7.99 — one of the Sandpoint area's only spots for authentic Chinese dumplings. Ponderay, ID. Flavors change weekly.",
+      "Northern Chinese dumplings and bao buns from $7.99 — one of the Sandpoint area's only spots for authentic Chinese dumplings. Ponderay, ID. Flavors change weekly.",
     url: "https://eastmeetswestfoods.co/menu",
     images: [
       {
         url: "https://eastmeetswestfoods.co/assets/photos/dumplings-tray.jpeg",
-        alt: "A tray of hand-folded Northern Chinese dumplings ready to serve with garlic sauce",
+        alt: "A tray of Northern Chinese dumplings ready to serve with garlic sauce",
       },
     ],
   },
@@ -36,7 +36,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title,
     description:
-      "Hand-folded Northern Chinese dumplings and bao buns from $7.99, in Ponderay near Sandpoint, ID. Three offerings, made well. Flavors change weekly.",
+      "Northern Chinese dumplings and bao buns from $7.99, in Ponderay near Sandpoint, ID. Three offerings, made well. Flavors change weekly.",
     images: ["https://eastmeetswestfoods.co/assets/photos/dumplings-tray.jpeg"],
   },
 };

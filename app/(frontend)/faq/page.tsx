@@ -10,7 +10,7 @@ import { LiveFaq } from "@/components/faq/LiveFaq";
 
 const title = "FAQ — East Meets West Dumplings Bar near Sandpoint, ID";
 const description =
-  "Common questions about East Meets West Dumplings Bar in Ponderay, ID — near Sandpoint. Hand-folded Northern Chinese dumplings, bao buns, allergens, location, and menu pricing answered.";
+  "Common questions about East Meets West Dumplings Bar in Ponderay, ID — near Sandpoint. Northern Chinese dumplings, bao buns, allergens, location, and menu pricing answered.";
 
 export const metadata: Metadata = {
   title,

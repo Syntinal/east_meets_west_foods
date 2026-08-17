@@ -6,10 +6,12 @@ import JsonLd from "@/components/JsonLd";
 import { restaurantSchema } from "@/lib/structuredData";
 import { HomeView, type HomeDoc, type BannerDoc, type TestimonialDoc } from "@/components/home/HomeView";
 import { LiveHome } from "@/components/home/LiveHome";
+import type { LatestNewsPost } from "@/components/home/TeaserCards";
+import { NAV_PAGES, resolveNavLabel } from "@/lib/navigation";
 
 const title = "East Meets West Dumplings Bar — Dumplings near Sandpoint, ID";
 const description =
-  "Authentic hand-folded Northern Chinese dumplings and bao buns in Ponderay, Idaho — just minutes from downtown Sandpoint. Fast-food prices, made-from-scratch flavor.";
+  "Authentic Northern Chinese dumplings and bao buns in Ponderay, Idaho — just minutes from downtown Sandpoint. Fast-food prices, made-from-scratch flavor.";
 
 export const metadata: Metadata = {
   title,
@@ -34,7 +36,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title,
     description:
-      "Authentic hand-folded Northern Chinese dumplings and bao buns in Ponderay, Idaho — minutes from Sandpoint. Fast-food prices, made-from-scratch flavor.",
+      "Authentic Northern Chinese dumplings and bao buns in Ponderay, Idaho — minutes from Sandpoint. Fast-food prices, made-from-scratch flavor.",
     images: ["https://eastmeetswestfoods.co/assets/photos/bao-tray.jpeg"],
   },
 };
@@ -88,24 +90,43 @@ async function getHomepageAnnouncement(): Promise<BannerDoc | null> {
   return (result.docs[0] as unknown as BannerDoc) ?? null;
 }
 
-async function shouldShowNewsTeaser(): Promise<boolean> {
+// Feeds the "News" page card (see blocks/PageCardBlock.ts), which doesn't
+// have its own image/body fields — it always shows the most recent News
+// post's own photo and excerpt instead, so it stays current without the
+// owner needing to separately update the teaser card every time they
+// publish (see components/home/TeaserCards.tsx). `null` when there's
+// nothing to show, which also hides the card entirely — this is the one
+// remaining auto-hide behavior for News, now purely "is there a post,"
+// not a separate on/off toggle (there used to be a "Show News teaser"
+// checkbox on the Navigation page too — removed once card removal, just
+// deleting the block, became the one way to hide it; see globals/Home.ts).
+//
+// Draft-mode-aware, matching getMenuItems() and every other fetch on this
+// site — this used to hardcode `_status: "published"` unconditionally, so
+// a draft-only News post never showed the teaser even while actively
+// previewing the homepage in Draft Mode. Real visitors still only ever see
+// it once a post is actually published.
+async function getLatestNewsPost(isDraftMode: boolean): Promise<LatestNewsPost> {
   const payload = await getPayload({ config });
-  const nav = (await payload.findGlobal({ slug: "navigation" })) as unknown as Record<string, unknown>;
-  if (nav.newsTeaser === false) return false;
-
   const result = await payload.find({
     collection: "news-posts",
-    where: { _status: { equals: "published" } },
+    draft: isDraftMode,
+    where: isDraftMode ? {} : { _status: { equals: "published" } },
+    sort: "-publishedDate",
     limit: 1,
+    depth: 1,
   });
-  return result.docs.length > 0;
+  const post = result.docs[0] as
+    | { featuredImage?: { url?: string | null; alt?: string | null } | string | null; excerpt?: string | null }
+    | undefined;
+  if (!post) return null;
+  return { image: post.featuredImage ?? null, excerpt: post.excerpt ?? null };
 }
 
-async function getTestimonials(): Promise<TestimonialDoc[]> {
-  const payload = await getPayload({ config });
-  const nav = (await payload.findGlobal({ slug: "navigation" })) as unknown as Record<string, unknown>;
+async function getTestimonials(nav: Record<string, unknown>): Promise<TestimonialDoc[]> {
   if (nav.testimonialsSection === false) return [];
 
+  const payload = await getPayload({ config });
   const { isEnabled: isDraftMode } = await draftMode();
   const result = await payload.find({
     collection: "testimonials",
@@ -117,23 +138,51 @@ async function getTestimonials(): Promise<TestimonialDoc[]> {
   return result.docs as unknown as TestimonialDoc[];
 }
 
+// Teaser card headings (Menu/Sauce/Story/News) are sourced from the
+// Navigation global's per-page labels instead of a separate Home field —
+// see globals/Home.ts's top comment for why.
+function getTeaserNavLabels(nav: Record<string, unknown>): Record<"menu" | "sauce" | "story" | "news", string> {
+  const labels = {} as Record<"menu" | "sauce" | "story" | "news", string>;
+  for (const key of ["menu", "sauce", "story", "news"] as const) {
+    const page = NAV_PAGES.find((p) => p.key === key)!;
+    labels[key] = resolveNavLabel(page, nav).label;
+  }
+  return labels;
+}
+
 export default async function HomePage() {
-  const [home, banner, showNewsTeaser, testimonials] = await Promise.all([
+  const { isEnabled: isDraftMode } = await draftMode();
+  const payload = await getPayload({ config });
+  const nav = (await payload.findGlobal({ slug: "navigation" })) as unknown as Record<string, unknown>;
+
+  const [home, banner, latestNewsPost, testimonials] = await Promise.all([
     getHome(),
     getHomepageAnnouncement(),
-    shouldShowNewsTeaser(),
-    getTestimonials(),
+    getLatestNewsPost(isDraftMode),
+    getTestimonials(nav),
   ]);
-  const { isEnabled: isDraftMode } = await draftMode();
+  const navLabels = getTeaserNavLabels(nav);
 
   return (
     <>
       <JsonLd data={restaurantSchema} />
 
       {isDraftMode ? (
-        <LiveHome home={home} banner={banner} showNewsTeaser={showNewsTeaser} testimonials={testimonials} />
+        <LiveHome
+          home={home}
+          banner={banner}
+          latestNewsPost={latestNewsPost}
+          testimonials={testimonials}
+          navLabels={navLabels}
+        />
       ) : (
-        <HomeView home={home} banner={banner} showNewsTeaser={showNewsTeaser} testimonials={testimonials} />
+        <HomeView
+          home={home}
+          banner={banner}
+          latestNewsPost={latestNewsPost}
+          testimonials={testimonials}
+          navLabels={navLabels}
+        />
       )}
     </>
   );

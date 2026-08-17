@@ -11,6 +11,12 @@ import { getPreviewURL } from "@/lib/preview";
 // text, and the business physically relocating is rare enough to accept as
 // a documented limit (see the `address` field description below) rather
 // than build address→geocoding.
+//
+// `address` and `phone` are also the site-wide footer's source of truth
+// (app/(frontend)/layout.tsx fetches this global and passes them to
+// Footer.tsx) — previously the footer had its own independently hardcoded
+// copy that silently didn't follow edits made here. Editing them updates
+// both the Contact page and the footer on every page.
 export const Contact: GlobalConfig = {
   slug: "contact",
   label: "Contact",
@@ -62,5 +68,11 @@ export const Contact: GlobalConfig = {
       },
     },
     { name: "blurb", type: "textarea", admin: { description: "Short line about the location, shown under the phone number." } },
+    {
+      name: "mapLinkText",
+      type: "text",
+      defaultValue: "Open in Google Maps →",
+      admin: { description: "Text on the link that opens the map in a new tab." },
+    },
   ],
 };

@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     locale: "en_US",
     title,
     description:
-      "Made from scratch and deeply flavored, our homemade garlic sauce complements hand-folded Northern Chinese dumplings and bao buns. A Sandpoint–Ponderay original.",
+      "Made from scratch and deeply flavored, our homemade garlic sauce complements authentic Northern Chinese dumplings and bao buns. A Sandpoint–Ponderay original.",
     url: "https://eastmeetswestfoods.co/sauce",
     images: [
       {
@@ -35,7 +35,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title,
     description:
-      "Made from scratch — our robust homemade garlic sauce is the perfect companion to hand-folded Northern Chinese dumplings and bao buns in Ponderay near Sandpoint.",
+      "Made from scratch — our robust homemade garlic sauce is the perfect companion to authentic Northern Chinese dumplings and bao buns in Ponderay near Sandpoint.",
     images: ["https://eastmeetswestfoods.co/assets/photos/dumplings-tray.jpeg"],
   },
 };

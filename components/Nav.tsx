@@ -5,7 +5,9 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import type { NavEntry } from "@/lib/navigation";
 
-export default function Nav({ pages }: { pages: NavEntry[] }) {
+type ReviewLink = { text: string; url: string };
+
+export default function Nav({ pages, reviewLink }: { pages: NavEntry[]; reviewLink: ReviewLink }) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
 
@@ -45,14 +47,9 @@ export default function Nav({ pages }: { pages: NavEntry[] }) {
             );
           })}
           <li className="nav-review">
-            <a
-              className="nav-review-link"
-              href="https://www.google.com/maps/place//data=!4m3!3m2!1s0x5363d1966a6b04e9:0x6d04125dba42b761!12e1"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
+            <a className="nav-review-link" href={reviewLink.url} target="_blank" rel="noopener noreferrer">
               <span className="nav-review-star" aria-hidden="true">✨</span>
-              Leave a Review
+              {reviewLink.text}
             </a>
           </li>
         </ul>

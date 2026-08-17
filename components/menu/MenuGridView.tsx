@@ -10,10 +10,15 @@ export type MenuItemDoc = {
   order?: number | null;
 };
 
-// The editable box above the menu grid — backed by globals/MenuIntro.ts.
-// The "Menu" eyebrow itself stays hardcoded below (matches lib/navigation.ts's
-// nav label, same as Sauce/Story keep their own eyebrow hardcoded).
-export type MenuIntroDoc = { heading?: string | null; lede?: string | null };
+// The editable box above the menu grid, and the two footer notes below the
+// Extras grid — both backed by globals/MenuIntro.ts. The "Menu" eyebrow
+// itself stays hardcoded below (matches lib/navigation.ts's nav label, same
+// as Sauce/Story keep their own eyebrow hardcoded).
+export type MenuIntroDoc = {
+  heading?: string | null;
+  lede?: string | null;
+  footer?: { weeklyFlavorsNote?: string | null; allergenNote?: string | null } | null;
+};
 
 // Shared between the plain server-rendered /menu page and its live-preview
 // counterpart — same markup either way, just fed different data.
@@ -82,16 +87,8 @@ export function MenuGridView({ items, intro }: { items: MenuItemDoc[]; intro: Me
             ))}
           </div>
 
-          <p className="menu-note text-panel">
-            Dumpling flavors change weekly. In the coming months we plan on
-            offering an &quot;Americana&quot; line of dumplings under the moniker — yes, as
-            Americans, we change everything. Some initial ideas include Memphis
-            Sweet BBQ as well as other flavors.
-          </p>
-          <p className="menu-note muted text-panel">
-            There are gluten and soy-based products (soy sauce, oil, etc.) in
-            this food, as this is part of maintaining authenticity.
-          </p>
+          {intro.footer?.weeklyFlavorsNote && <p className="menu-note text-panel">{intro.footer.weeklyFlavorsNote}</p>}
+          {intro.footer?.allergenNote && <p className="menu-note muted text-panel">{intro.footer.allergenNote}</p>}
         </div>
       </section>
     </>

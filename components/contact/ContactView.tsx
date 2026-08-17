@@ -4,6 +4,7 @@ export type ContactDoc = {
   address?: string | null;
   phone?: string | null;
   blurb?: string | null;
+  mapLinkText?: string | null;
 };
 
 // Derives a tel: href from a phone number string — assumes a 10-digit US
@@ -72,7 +73,7 @@ export function ContactView({ contact }: { contact: ContactDoc }) {
                 rel="noopener noreferrer"
                 aria-label="Open East Meets West location in Google Maps"
               >
-                <span className="visit-map-cta">Open in Google Maps →</span>
+                <span className="visit-map-cta">{contact.mapLinkText || "Open in Google Maps →"}</span>
               </a>
             </div>
           </div>

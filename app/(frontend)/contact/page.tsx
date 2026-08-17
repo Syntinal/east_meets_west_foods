@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     locale: "en_US",
     title,
     description:
-      "East Meets West Dumplings Bar is at 476534 US HWY 95, Suite B, Ponderay, ID 83852 — just minutes from downtown Sandpoint. Hand-folded Northern Chinese dumplings and bao buns.",
+      "East Meets West Dumplings Bar is at 476534 US HWY 95, Suite B, Ponderay, ID 83852 — just minutes from downtown Sandpoint. Authentic Northern Chinese dumplings and bao buns.",
     url: "https://eastmeetswestfoods.co/contact",
     images: [
       {
@@ -35,7 +35,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title,
     description:
-      "476534 US HWY 95, Suite B, Ponderay, ID 83852 — just minutes from downtown Sandpoint. Hand-folded Northern Chinese dumplings and bao buns.",
+      "476534 US HWY 95, Suite B, Ponderay, ID 83852 — just minutes from downtown Sandpoint. Authentic Northern Chinese dumplings and bao buns.",
     images: ["https://eastmeetswestfoods.co/assets/photos/sign.jpeg"],
   },
 };

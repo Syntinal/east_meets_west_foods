@@ -1,36 +1,35 @@
 import Link from "next/link";
 import { RichText } from "@payloadcms/richtext-lexical/react";
-import { NAV_PAGES } from "@/lib/navigation";
 import TestimonialCarousel from "@/components/TestimonialCarousel";
 import { GalleryGrid, type GalleryPhoto } from "./GalleryGrid";
+import { TeaserCards, type TeaserBlock, type LatestNewsPost } from "./TeaserCards";
 
 type MediaRef = { url?: string | null; alt?: string | null } | string | null;
 
 export type HomeDoc = {
-  header?: { logoImage?: MediaRef } | null;
+  header?: { logoImage?: MediaRef; tagline?: string | null } | null;
   hero?: { image?: MediaRef } | null;
-  mission?: { statement?: string | null; location?: string | null } | null;
-  teaserCards?: {
-    menu?: { image?: MediaRef; body?: string | null } | null;
-    sauce?: { image?: MediaRef; body?: string | null } | null;
-    story?: { image?: MediaRef; body?: string | null } | null;
-    news?: { image?: MediaRef; body?: string | null } | null;
+  announcementBanner?: { badgeLabel?: string | null; linkText?: string | null } | null;
+  mission?: {
+    eyebrow?: string | null;
+    heading?: string | null;
+    statement?: string | null;
+    location?: string | null;
   } | null;
-  gallery?: { photos?: GalleryPhoto[] | null } | null;
+  teaserCards?: TeaserBlock[] | null;
+  gallery?: { eyebrow?: string | null; heading?: string | null; photos?: GalleryPhoto[] | null } | null;
+  testimonialsSection?: { eyebrow?: string | null; heading?: string | null } | null;
   // Lexical's serialized editor state — rendered via Payload's <RichText>.
   seo?: { eyebrow?: string | null; heading?: string | null; body?: unknown } | null;
 };
 
 export type BannerDoc = { slug: string; title: string; excerpt?: string | null };
 export type TestimonialDoc = { quote: string; authorName: string; rating: string; sourceUrl?: string | null };
+export type TeaserNavLabels = { menu: string; sauce: string; story: string; news: string };
 
 function resolveMedia(ref: MediaRef): { url: string; alt: string | null } | null {
   if (!ref || typeof ref !== "object" || !ref.url) return null;
   return { url: ref.url, alt: ref.alt ?? null };
-}
-
-function navLabel(key: "menu" | "sauce" | "story" | "news"): string {
-  return NAV_PAGES.find((page) => page.key === key)?.label ?? key;
 }
 
 // Shared between the plain server-rendered `/` page and its live-preview
@@ -38,27 +37,28 @@ function navLabel(key: "menu" | "sauce" | "story" | "news"): string {
 export function HomeView({
   home,
   banner,
-  showNewsTeaser,
+  latestNewsPost,
   testimonials,
+  navLabels,
 }: {
   home: HomeDoc;
   banner: BannerDoc | null;
-  showNewsTeaser: boolean;
+  latestNewsPost: LatestNewsPost;
   testimonials: TestimonialDoc[];
+  navLabels: TeaserNavLabels;
 }) {
   const logo = resolveMedia(home.header?.logoImage ?? null);
   const hero = resolveMedia(home.hero?.image ?? null);
-  const menuCard = { image: resolveMedia(home.teaserCards?.menu?.image ?? null), body: home.teaserCards?.menu?.body };
-  const sauceCard = {
-    image: resolveMedia(home.teaserCards?.sauce?.image ?? null),
-    body: home.teaserCards?.sauce?.body,
-  };
-  const storyCard = {
-    image: resolveMedia(home.teaserCards?.story?.image ?? null),
-    body: home.teaserCards?.story?.body,
-  };
-  const newsCard = { image: resolveMedia(home.teaserCards?.news?.image ?? null), body: home.teaserCards?.news?.body };
   const galleryPhotos = home.gallery?.photos ?? [];
+  const tagline = home.header?.tagline || "Ponderay, Idaho · Made fresh daily";
+  const missionEyebrow = home.mission?.eyebrow || "Our Mission";
+  const missionHeading = home.mission?.heading || "East Meets West Dumplings Bar";
+  const bannerBadgeLabel = home.announcementBanner?.badgeLabel || "Announcement";
+  const bannerLinkText = home.announcementBanner?.linkText || "Read more →";
+  const galleryEyebrow = home.gallery?.eyebrow || "Gallery";
+  const galleryHeading = home.gallery?.heading || "A Closer Look";
+  const testimonialsEyebrow = home.testimonialsSection?.eyebrow || "What People Are Saying";
+  const testimonialsHeading = home.testimonialsSection?.heading || "Testimonials";
 
   return (
     <>
@@ -69,7 +69,7 @@ export function HomeView({
               <img src={logo.url} alt={logo.alt ?? "East Meets West 美味 Dumplings Bar"} className="brand-sign" />
             )}
           </Link>
-          <p className="brand-sub">Ponderay, Idaho &nbsp;&middot;&nbsp; Hand-folded daily</p>
+          <p className="brand-sub">{tagline}</p>
         </div>
       </header>
 
@@ -77,14 +77,14 @@ export function HomeView({
         <div className="announcement-banner">
           <div className="container">
             <span className="announcement-banner-badge">
-              <span aria-hidden="true">📣</span> Announcement
+              <span aria-hidden="true">📣</span> {bannerBadgeLabel}
             </span>
             <p className="announcement-banner-text">
               <strong>{banner.title}</strong>
               {banner.excerpt ? ` — ${banner.excerpt}` : ""}
             </p>
             <Link href={`/news/${banner.slug}`} className="announcement-banner-link">
-              Read more →
+              {bannerLinkText}
             </Link>
           </div>
         </div>
@@ -99,8 +99,8 @@ export function HomeView({
       <section className="mission">
         <div className="container">
           <div className="text-panel text-panel--inline">
-            <p className="eyebrow">Our Mission</p>
-            <h1 className="mission-h1">East Meets West Dumplings Bar</h1>
+            <p className="eyebrow">{missionEyebrow}</p>
+            <h1 className="mission-h1">{missionHeading}</h1>
             {home.mission?.statement && <p className="mission-statement">{home.mission.statement}</p>}
             {home.mission?.location && <p className="mission-location">{home.mission.location}</p>}
           </div>
@@ -109,88 +109,14 @@ export function HomeView({
 
       <div className="divider" aria-hidden="true">* &nbsp; * &nbsp; *</div>
 
-      <section className="teaser-section">
-        <div className="container">
-          <div className="teaser-grid">
-            <Link href="/menu" className="teaser-card">
-              <div className="teaser-card-img">
-                {menuCard.image?.url && <img src={menuCard.image.url} alt={menuCard.image.alt ?? "Menu"} loading="lazy" />}
-              </div>
-              <div className="teaser-card-body">
-                <h3>{navLabel("menu")}</h3>
-                {menuCard.body && <p>{menuCard.body}</p>}
-                <span className="teaser-card-cta">See the Menu →</span>
-              </div>
-            </Link>
-
-            <Link href="/sauce" className="teaser-card">
-              <div className="teaser-card-img">
-                {sauceCard.image?.url && (
-                  <img src={sauceCard.image.url} alt={sauceCard.image.alt ?? "The Sauce"} loading="lazy" />
-                )}
-              </div>
-              <div className="teaser-card-body">
-                <h3>{navLabel("sauce")}</h3>
-                {sauceCard.body && <p>{sauceCard.body}</p>}
-                <span className="teaser-card-cta">Learn More →</span>
-              </div>
-            </Link>
-
-            <Link href="/story" className="teaser-card">
-              <div className="teaser-card-img">
-                {storyCard.image?.url && (
-                  <img src={storyCard.image.url} alt={storyCard.image.alt ?? "Our Story"} loading="lazy" />
-                )}
-              </div>
-              <div className="teaser-card-body">
-                <h3>{navLabel("story")}</h3>
-                {storyCard.body && <p>{storyCard.body}</p>}
-                <span className="teaser-card-cta">Read Our Story →</span>
-              </div>
-            </Link>
-
-            {showNewsTeaser && (
-              <Link href="/news" className="teaser-card">
-                <div className="teaser-card-img">
-                  {newsCard.image?.url && (
-                    <img src={newsCard.image.url} alt={newsCard.image.alt ?? "News"} loading="lazy" />
-                  )}
-                </div>
-                <div className="teaser-card-body">
-                  <h3>{navLabel("news")}</h3>
-                  {newsCard.body && <p>{newsCard.body}</p>}
-                  <span className="teaser-card-cta">See What&apos;s New →</span>
-                </div>
-              </Link>
-            )}
-
-            <Link href="/contact" className="teaser-card">
-              <div className="teaser-card-img teaser-card-map">
-                <iframe
-                  src="https://www.google.com/maps?q=476534+US+HWY+95+Ponderay+ID+83852&z=14&output=embed"
-                  title="Map showing East Meets West Dumplings Bar in Ponderay, Idaho"
-                  loading="lazy"
-                  aria-hidden="true"
-                  tabIndex={-1}
-                  referrerPolicy="no-referrer-when-downgrade"
-                ></iframe>
-              </div>
-              <div className="teaser-card-body">
-                <h3>Visit / Contact</h3>
-                <p>476534 US HWY 95, Suite B — Ponderay, ID 83852.</p>
-                <span className="teaser-card-cta">Get Directions →</span>
-              </div>
-            </Link>
-          </div>
-        </div>
-      </section>
+      <TeaserCards blocks={home.teaserCards ?? []} navLabels={navLabels} latestNewsPost={latestNewsPost} />
 
       {galleryPhotos.length > 0 && (
         <section className="section section-cream">
           <div className="container">
             <div className="section-head">
-              <p className="eyebrow">Gallery</p>
-              <h2 className="section-title">A Closer Look</h2>
+              <p className="eyebrow">{galleryEyebrow}</p>
+              <h2 className="section-title">{galleryHeading}</h2>
             </div>
             <GalleryGrid photos={galleryPhotos} />
           </div>
@@ -201,8 +127,8 @@ export function HomeView({
         <section className="section section-cream">
           <div className="container">
             <div className="section-head">
-              <p className="eyebrow">What People Are Saying</p>
-              <h2 className="section-title">Testimonials</h2>
+              <p className="eyebrow">{testimonialsEyebrow}</p>
+              <h2 className="section-title">{testimonialsHeading}</h2>
             </div>
             <TestimonialCarousel testimonials={testimonials} />
           </div>
@@ -220,7 +146,7 @@ export function HomeView({
               <>
                 <p>
                   Looking for authentic Chinese food near Sandpoint? East Meets West Dumplings Bar
-                  serves hand-folded Northern Chinese dumplings and bao buns from our spot in
+                  serves Northern Chinese dumplings and bao buns from our spot in
                   Ponderay, Idaho — just a couple of minutes north of downtown Sandpoint, right on
                   US HWY 95. We&apos;re one of the only places in the Sandpoint and Bonner County area
                   making authentic, made-from-scratch dumplings fresh every day.

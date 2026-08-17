@@ -44,6 +44,7 @@ export const Faq: GlobalConfig = {
     afterChange: [() => revalidatePath("/faq")],
   },
   fields: [
+    { name: "eyebrow", type: "text", defaultValue: "FAQ", admin: { description: "Small label above the page heading." } },
     { name: "heading", type: "text", admin: { description: "The page heading, above the question list." } },
     {
       name: "questions",

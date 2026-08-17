@@ -9,7 +9,7 @@ import { LiveStory } from "@/components/story/LiveStory";
 
 const title = "Our Story — Northern Chinese Recipes near Sandpoint, ID | East Meets West";
 const description =
-  "Ancient Northern Chinese recipes from Mongol and Haan ancestry, brought to Ponderay, Idaho — serving the Sandpoint area with authentic hand-folded dumplings and bao buns.";
+  "Ancient Northern Chinese recipes from Mongol and Haan ancestry, brought to Ponderay, Idaho — serving the Sandpoint area with authentic dumplings and bao buns.";
 
 export const metadata: Metadata = {
   title,
@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     locale: "en_US",
     title,
     description:
-      "Ancient Northern Chinese dumpling and bao recipes, passed down through generations of Mongol and Haan ancestry — now hand-folded daily in Ponderay, serving the Sandpoint area.",
+      "Ancient Northern Chinese dumpling and bao recipes, passed down through generations of Mongol and Haan ancestry — now made fresh daily in Ponderay, serving the Sandpoint area.",
     url: "https://eastmeetswestfoods.co/story",
     images: [
       {
@@ -35,7 +35,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title,
     description:
-      "Ancient Northern Chinese dumpling recipes, passed down through Mongol and Haan ancestry — now hand-folded daily in Ponderay, Idaho, serving the greater Sandpoint area.",
+      "Ancient Northern Chinese dumpling recipes, passed down through Mongol and Haan ancestry — now made fresh daily in Ponderay, Idaho, serving the greater Sandpoint area.",
     images: ["https://eastmeetswestfoods.co/assets/photos/chef.jpeg"],
   },
 };

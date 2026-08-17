@@ -3,6 +3,9 @@ import { revalidatePath } from "next/cache";
 import { authenticated } from "@/access/authenticated";
 import { readPublished } from "@/access/readPublished";
 import { getPreviewURL } from "@/lib/preview";
+import { PageCardBlock } from "@/blocks/PageCardBlock";
+import { MapCardBlock } from "@/blocks/MapCardBlock";
+import { CustomCardBlock } from "@/blocks/CustomCardBlock";
 
 // The homepage is a singleton, so it's a Global (like Navigation) rather than
 // a Collection — but unlike Navigation, this one uses drafts + Live Preview,
@@ -10,10 +13,25 @@ import { getPreviewURL } from "@/lib/preview";
 // to key a live-preview merge off of, so `initialData` can just be the whole
 // fetched doc (closer to News' single-doc pattern than Menu Items').
 //
-// Only fields with a realistic reason for a non-technical owner to change
-// them are exposed here — permanent structural labels ("Our Mission", the
-// teaser card headings, etc.) stay hardcoded in components/home/HomeView.tsx
-// instead of cluttering /admin.
+// Every piece of visible on-page text is exposed here, including labels
+// previously treated as "permanent structural" and left hardcoded (the
+// "Our Mission" eyebrow, teaser card CTA strings, etc.) — the owner asked
+// for every aspect of the site to be editable, not just content with an
+// obvious realistic reason to change. The teaser card *headings*
+// (Menu/The Sauce/Our Story/News) are the one exception that's still not a
+// field here: those are sourced from the Navigation global's per-page
+// label fields instead (see lib/navigation.ts's resolveNavLabel and
+// app/(frontend)/page.tsx), so editing a nav label updates both places at
+// once rather than needing the same word typed in two different globals.
+//
+// `teaserCards` is a Blocks field (not a fixed group per card) so the owner
+// can add, remove, and reorder cards freely — same pattern as the Pages
+// collection's `layout` field (collections/Pages.ts → blocks/*.ts →
+// components/pages/BlockRenderer.tsx). The 3 block types
+// (blocks/{PageCard,MapCard,CustomCard}Block.ts) are homepage-specific —
+// deliberately not added to the shared blocks/index.ts barrel Pages uses,
+// since e.g. a "pageCard" tied to one of this site's own fixed pages
+// wouldn't make sense as a general-purpose Page block.
 export const Home: GlobalConfig = {
   slug: "home",
   // Shows as "Home Page" in the /admin sidebar (default would just be
@@ -63,6 +81,12 @@ export const Home: GlobalConfig = {
           relationTo: "media",
           admin: { description: "Transparent PNG recommended. Appears next to the site name in the header." },
         },
+        {
+          name: "tagline",
+          type: "text",
+          defaultValue: "Ponderay, Idaho · Made fresh daily",
+          admin: { description: "Small line under the logo in the site header." },
+        },
       ],
     },
     {
@@ -82,8 +106,32 @@ export const Home: GlobalConfig = {
     },
     {
       type: "group",
+      name: "announcementBanner",
+      admin: {
+        description:
+          "Only shown when there's an active homepage announcement (see News). Labels the banner itself.",
+      },
+      fields: [
+        { name: "badgeLabel", type: "text", defaultValue: "Announcement" },
+        { name: "linkText", type: "text", defaultValue: "Read more →" },
+      ],
+    },
+    {
+      type: "group",
       name: "mission",
       fields: [
+        {
+          name: "eyebrow",
+          type: "text",
+          defaultValue: "Our Mission",
+          admin: { description: "Small label above the main heading." },
+        },
+        {
+          name: "heading",
+          type: "text",
+          defaultValue: "East Meets West Dumplings Bar",
+          admin: { description: "The large heading near the top of the homepage." },
+        },
         {
           name: "statement",
           type: "textarea",
@@ -97,79 +145,23 @@ export const Home: GlobalConfig = {
       ],
     },
     {
-      type: "group",
+      type: "blocks",
       name: "teaserCards",
       admin: {
         description:
-          'Photos and blurbs for the four preview cards on the homepage (Menu, Sauce, Story, News). Headings match the site nav and aren\'t editable here.',
+          "The row of preview cards on the homepage. Add, remove, or reorder as many as you like. " +
+          '"Page Card" links to one of this site\'s own pages (its heading matches that page\'s nav label — edit ' +
+          'that on the Navigation page instead). "Map Card" is the Visit/Contact card with the embedded map. ' +
+          '"Custom Card" can link anywhere — another page you\'ve created, a phone number, or any URL.',
       },
-      fields: [
-        {
-          type: "group",
-          name: "menu",
-          fields: [
-            {
-              name: "image",
-              type: "upload",
-              relationTo: "media",
-              admin: { description: "Landscape or square, at least 800×600px." },
-            },
-            { name: "body", type: "textarea", admin: { description: 'Short blurb under "Menu" on the homepage.' } },
-          ],
-        },
-        {
-          type: "group",
-          name: "sauce",
-          fields: [
-            {
-              name: "image",
-              type: "upload",
-              relationTo: "media",
-              admin: { description: "Landscape or square, at least 800×600px." },
-            },
-            {
-              name: "body",
-              type: "textarea",
-              admin: { description: 'Short blurb under "The Sauce" on the homepage.' },
-            },
-          ],
-        },
-        {
-          type: "group",
-          name: "story",
-          fields: [
-            {
-              name: "image",
-              type: "upload",
-              relationTo: "media",
-              admin: { description: "Landscape or square, at least 800×600px." },
-            },
-            {
-              name: "body",
-              type: "textarea",
-              admin: { description: 'Short blurb under "Our Story" on the homepage.' },
-            },
-          ],
-        },
-        {
-          type: "group",
-          name: "news",
-          fields: [
-            {
-              name: "image",
-              type: "upload",
-              relationTo: "media",
-              admin: { description: "Landscape or square, at least 800×600px." },
-            },
-            { name: "body", type: "textarea", admin: { description: 'Short blurb under "News" on the homepage.' } },
-          ],
-        },
-      ],
+      blocks: [PageCardBlock, MapCardBlock, CustomCardBlock],
     },
     {
       type: "group",
       name: "gallery",
       fields: [
+        { name: "eyebrow", type: "text", defaultValue: "Gallery" },
+        { name: "heading", type: "text", defaultValue: "A Closer Look" },
         {
           name: "photos",
           type: "array",
@@ -191,6 +183,17 @@ export const Home: GlobalConfig = {
             },
           ],
         },
+      ],
+    },
+    {
+      type: "group",
+      name: "testimonialsSection",
+      admin: {
+        description: 'Headings above the homepage Testimonials carousel. Only shown when there are testimonials to display.',
+      },
+      fields: [
+        { name: "eyebrow", type: "text", defaultValue: "What People Are Saying" },
+        { name: "heading", type: "text", defaultValue: "Testimonials" },
       ],
     },
     {

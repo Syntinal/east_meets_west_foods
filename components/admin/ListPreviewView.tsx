@@ -1,6 +1,8 @@
 import { getPreviewURL } from "@/lib/preview";
 import { GoogleReviewsLink } from "./GoogleReviewsLink";
 import { EditMenuIntroLink } from "./EditMenuIntroLink";
+import { EditNewsIntroLink } from "./EditNewsIntroLink";
+import { EditTestimonialsIntroLink } from "./EditTestimonialsIntroLink";
 import { UploadPostUsageNotice } from "./UploadPostUsageNotice";
 import { ListPreviewSplit, type PreviewItem } from "./ListPreviewSplit";
 
@@ -126,8 +128,10 @@ export function ListPreviewView(props: {
     <div style={{ padding: "0 var(--gutter-h, 24px)" }}>
       <h1 style={{ marginBottom: 16 }}>{config.label}</h1>
       {collectionSlug === "testimonials" && <GoogleReviewsLink />}
+      {collectionSlug === "testimonials" && <EditTestimonialsIntroLink />}
       {collectionSlug === "menu-items" && <EditMenuIntroLink />}
       {collectionSlug === "news-posts" && <UploadPostUsageNotice />}
+      {collectionSlug === "news-posts" && <EditNewsIntroLink />}
       <ListPreviewSplit
         items={items}
         defaultPreviewUrl={getPreviewURL(config.defaultPath)}

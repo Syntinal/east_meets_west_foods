@@ -2,6 +2,7 @@ import { RichText } from "@payloadcms/richtext-lexical/react";
 
 export type FaqQuestion = { question?: string | null; answer?: unknown };
 export type FaqDoc = {
+  eyebrow?: string | null;
   heading?: string | null;
   questions?: FaqQuestion[] | null;
 };
@@ -20,7 +21,7 @@ export function FaqView({ faq }: { faq: FaqDoc }) {
       <section className="section faq-section" aria-labelledby="faq-heading">
         <div className="container">
           <header className="section-head">
-            <p className="eyebrow">FAQ</p>
+            <p className="eyebrow">{faq.eyebrow || "FAQ"}</p>
             <h1 id="faq-heading" className="section-title">
               {faq.heading}
             </h1>

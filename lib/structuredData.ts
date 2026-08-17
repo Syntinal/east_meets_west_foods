@@ -5,7 +5,7 @@ export const restaurantSchema = {
   "@type": ["Restaurant", "LocalBusiness"],
   name: "East Meets West Dumplings Bar",
   description:
-    "Authentic hand-folded Northern Chinese dumplings, bao buns, and homemade garlic sauce at fast-food prices, served in Ponderay, Idaho.",
+    "Authentic Northern Chinese dumplings, bao buns, and homemade garlic sauce at fast-food prices, served in Ponderay, Idaho.",
   url: "https://eastmeetswestfoods.co/",
   image: "https://eastmeetswestfoods.co/assets/photos/bao-tray.jpeg",
   address: {

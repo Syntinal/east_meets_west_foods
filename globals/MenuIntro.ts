@@ -4,12 +4,14 @@ import { authenticated } from "@/access/authenticated";
 import { readPublished } from "@/access/readPublished";
 import { getPreviewURL } from "@/lib/preview";
 
-// The text box above the menu grid on /menu (heading + intro paragraph) —
-// previously hardcoded in components/menu/MenuGridView.tsx. Same singleton-
-// Global + drafts + Live Preview shape as globals/Sauce.ts. The "Menu"
-// eyebrow label stays hardcoded in MenuGridView (matches lib/navigation.ts's
-// nav label, same as Sauce/Story keep their own eyebrow hardcoded) — only
-// the headline and intro copy become admin-editable.
+// The text box above the menu grid on /menu (heading + intro paragraph), and
+// the two note paragraphs at the bottom of the page (after the Extras grid)
+// — both previously hardcoded in components/menu/MenuGridView.tsx. Same
+// singleton-Global + drafts + Live Preview shape as globals/Sauce.ts. The
+// "Menu" eyebrow label stays hardcoded in MenuGridView (matches
+// lib/navigation.ts's nav label, same as Sauce/Story keep their own eyebrow
+// hardcoded) — only the headline, intro copy, and footer notes become
+// admin-editable.
 //
 // Menu Items themselves stay a Collection (collections/MenuItems.ts) with
 // its own Live Preview session (components/menu/LiveMenuGrid.tsx) — this is
@@ -63,8 +65,29 @@ export const MenuIntro: GlobalConfig = {
       name: "lede",
       type: "textarea",
       defaultValue:
-        "Three offerings, made well — dumpling flavors change weekly. One of the Sandpoint area's only spots for authentic hand-folded Northern Chinese dumplings, in Ponderay.",
+        "Three offerings, made well — dumpling flavors change weekly. One of the Sandpoint area's only spots for authentic Northern Chinese dumplings, in Ponderay.",
       admin: { description: "Short intro paragraph shown under the headline." },
+    },
+    {
+      type: "group",
+      name: "footer",
+      admin: { description: "The two note paragraphs at the very bottom of the menu, after the Extras grid." },
+      fields: [
+        {
+          name: "weeklyFlavorsNote",
+          type: "textarea",
+          defaultValue:
+            'Dumpling flavors change weekly. In the coming months we plan on offering an "Americana" line of dumplings under the moniker — yes, as Americans, we change everything. Some initial ideas include Memphis Sweet BBQ as well as other flavors.',
+          admin: { description: "First footer note." },
+        },
+        {
+          name: "allergenNote",
+          type: "textarea",
+          defaultValue:
+            "There are gluten and soy-based products (soy sauce, oil, etc.) in this food, as this is part of maintaining authenticity.",
+          admin: { description: "Second footer note, shown in a muted style below the first." },
+        },
+      ],
     },
   ],
 };

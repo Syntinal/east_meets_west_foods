@@ -6,7 +6,7 @@ import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import DraftModeBanner from "@/components/DraftModeBanner";
 import { RefreshOnSave } from "@/components/live-preview/RefreshOnSave";
-import { NAV_PAGES, type NavEntry } from "@/lib/navigation";
+import { NAV_PAGES, resolveNavLabel, type NavEntry } from "@/lib/navigation";
 import "./globals.css";
 
 // Statically rendered for real visitors — the Navigation global's and
@@ -37,7 +37,11 @@ export const viewport: Viewport = {
 // `navOrder` field — see collections/Pages.ts.
 const STATIC_NAV_ORDER = new Map(NAV_PAGES.map((page, i) => [page.key, i * 10]));
 
-async function getVisiblePages(isDraftMode: boolean): Promise<NavEntry[]> {
+type ReviewLink = { text: string; url: string };
+
+async function getVisiblePages(
+  isDraftMode: boolean,
+): Promise<{ pages: NavEntry[]; reviewLink: ReviewLink }> {
   const payload = await getPayload({ config });
   const [nav, dynamicPages] = await Promise.all([
     payload.findGlobal({ slug: "navigation" }) as unknown as Promise<Record<string, unknown>>,
@@ -59,6 +63,7 @@ async function getVisiblePages(isDraftMode: boolean): Promise<NavEntry[]> {
 
   const staticEntries = NAV_PAGES.filter((page) => nav[page.key] !== false).map((page) => ({
     ...page,
+    ...resolveNavLabel(page, nav),
     order: STATIC_NAV_ORDER.get(page.key) ?? 0,
   }));
 
@@ -72,12 +77,38 @@ async function getVisiblePages(isDraftMode: boolean): Promise<NavEntry[]> {
     };
   });
 
-  return [...staticEntries, ...dynamicEntries].sort((a, b) => a.order - b.order);
+  const reviewLinkData = nav.reviewLink as ReviewLink | undefined;
+  const reviewLink: ReviewLink = {
+    text: reviewLinkData?.text || "Leave a Review",
+    url:
+      reviewLinkData?.url ||
+      "https://www.google.com/maps/place//data=!4m3!3m2!1s0x5363d1966a6b04e9:0x6d04125dba42b761!12e1",
+  };
+
+  return { pages: [...staticEntries, ...dynamicEntries].sort((a, b) => a.order - b.order), reviewLink };
+}
+
+// See getContact() in app/(frontend)/contact/page.tsx for why overrideAccess
+// must be true (not false) for a Global's draft lookup to actually work.
+// Only address/phone are needed here — the footer's source of truth for
+// both, replacing what used to be its own independently hardcoded copy.
+async function getFooterContactInfo(isDraftMode: boolean): Promise<{ address: string; phone: string }> {
+  const payload = await getPayload({ config });
+  const contact = (await payload.findGlobal({
+    slug: "contact",
+    draft: isDraftMode,
+    overrideAccess: true,
+    depth: 0,
+  })) as unknown as { address?: string | null; phone?: string | null };
+  return { address: contact.address ?? "", phone: contact.phone ?? "" };
 }
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const { isEnabled: isDraftMode } = await draftMode();
-  const visiblePages = await getVisiblePages(isDraftMode);
+  const [{ pages: visiblePages, reviewLink }, contactInfo] = await Promise.all([
+    getVisiblePages(isDraftMode),
+    getFooterContactInfo(isDraftMode),
+  ]);
 
   return (
     <html lang="en">
@@ -92,9 +123,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body>
         {isDraftMode && <DraftModeBanner />}
         {isDraftMode && <RefreshOnSave />}
-        <Nav pages={visiblePages} />
+        <Nav pages={visiblePages} reviewLink={reviewLink} />
         {children}
-        <Footer pages={visiblePages} />
+        <Footer pages={visiblePages} address={contactInfo.address} phone={contactInfo.phone} />
       </body>
     </html>
   );

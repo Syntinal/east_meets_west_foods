@@ -30,3 +30,18 @@ export type NavEntry = {
   label: string;
   shortLabel?: string;
 };
+
+// Resolves a NAV_PAGES entry's effective label/shortLabel against the
+// Navigation global's `{key}Label`/`{key}ShortLabel` fields (see
+// globals/Navigation.ts), falling back to NAV_PAGES's own hardcoded default
+// when the admin field is blank/unset. Shared by app/(frontend)/layout.tsx
+// (Nav/Footer) and app/(frontend)/page.tsx (Home's teaser card headings) so
+// an edited nav label takes effect everywhere it's used, not just one place.
+export function resolveNavLabel(
+  page: NavPage,
+  nav: Record<string, unknown> | null | undefined,
+): { label: string; shortLabel?: string } {
+  const label = (nav?.[`${page.key}Label`] as string | undefined) || page.label;
+  const shortLabel = (nav?.[`${page.key}ShortLabel`] as string | undefined) || page.shortLabel;
+  return { label, shortLabel };
+}
