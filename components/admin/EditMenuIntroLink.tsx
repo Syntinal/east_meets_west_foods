@@ -24,7 +24,8 @@ export function EditMenuIntroLink() {
         Edit intro text →
       </a>
       <span style={{ fontSize: 13, opacity: 0.7 }}>
-        Edit the heading and paragraph shown above the menu.
+        Edit the heading and paragraph shown above the menu, plus the two
+        footer notes at the bottom of the page.
       </span>
     </div>
   );

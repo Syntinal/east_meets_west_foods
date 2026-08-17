@@ -1,5 +1,3 @@
-import { FolderTableCell as FolderTableCell_f9c02e79a4aed9a3924487c0cd4cafb1 } from '@payloadcms/next/rsc'
-import { FolderField as FolderField_f9c02e79a4aed9a3924487c0cd4cafb1 } from '@payloadcms/next/rsc'
 import { ControlTooltips as ControlTooltips_3e5d042b9b28e1583f476167de730652 } from '@/components/admin/ControlTooltips'
 import { ListPreviewView as ListPreviewView_b1008220587472f221c9c823a01815a9 } from '@/components/admin/ListPreviewView'
 import { FacebookPostStatusNotice as FacebookPostStatusNotice_67ab34af78fbf7b638c1b1d89d18a111 } from '@/components/admin/FacebookPostStatusNotice'
@@ -27,7 +25,6 @@ import { UnderlineFeatureClient as UnderlineFeatureClient_e70f5e05f09f93e00b997e
 import { BoldFeatureClient as BoldFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
 import { ItalicFeatureClient as ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
 import { EmptyDraftsNotice as EmptyDraftsNotice_8c788eb9f55a479edd9d4e63cf67136e } from '@/components/admin/EmptyDraftsNotice'
-import { FolderTypeField as FolderTypeField_2b8867833a34864a02ddf429b0728a40 } from '@payloadcms/next/client'
 import { GettingStarted as GettingStarted_b85a0a1b27110055335ae11124b2eb0f } from '@/components/admin/GettingStarted'
 import { SitePagesNav as SitePagesNav_0b2f2dd5487abb893916026098cf1400 } from '@/components/admin/SitePagesNav'
 import { VercelBlobClientUploadHandler as VercelBlobClientUploadHandler_16c82c5e25f430251a3e3ba57219ff4e } from '@payloadcms/storage-vercel-blob/client'
@@ -35,8 +32,6 @@ import { CollectionCards as CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1 } f
 
 /** @type import('payload').ImportMap */
 export const importMap = {
-  "@payloadcms/next/rsc#FolderTableCell": FolderTableCell_f9c02e79a4aed9a3924487c0cd4cafb1,
-  "@payloadcms/next/rsc#FolderField": FolderField_f9c02e79a4aed9a3924487c0cd4cafb1,
   "@/components/admin/ControlTooltips#ControlTooltips": ControlTooltips_3e5d042b9b28e1583f476167de730652,
   "@/components/admin/ListPreviewView#ListPreviewView": ListPreviewView_b1008220587472f221c9c823a01815a9,
   "@/components/admin/FacebookPostStatusNotice#FacebookPostStatusNotice": FacebookPostStatusNotice_67ab34af78fbf7b638c1b1d89d18a111,
@@ -64,7 +59,6 @@ export const importMap = {
   "@payloadcms/richtext-lexical/client#BoldFeatureClient": BoldFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "@payloadcms/richtext-lexical/client#ItalicFeatureClient": ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "@/components/admin/EmptyDraftsNotice#EmptyDraftsNotice": EmptyDraftsNotice_8c788eb9f55a479edd9d4e63cf67136e,
-  "@payloadcms/next/client#FolderTypeField": FolderTypeField_2b8867833a34864a02ddf429b0728a40,
   "@/components/admin/GettingStarted#GettingStarted": GettingStarted_b85a0a1b27110055335ae11124b2eb0f,
   "@/components/admin/SitePagesNav#SitePagesNav": SitePagesNav_0b2f2dd5487abb893916026098cf1400,
   "@payloadcms/storage-vercel-blob/client#VercelBlobClientUploadHandler": VercelBlobClientUploadHandler_16c82c5e25f430251a3e3ba57219ff4e,
