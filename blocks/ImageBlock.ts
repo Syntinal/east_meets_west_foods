@@ -4,7 +4,13 @@ export const ImageBlock: Block = {
   slug: "image",
   labels: { singular: "Image", plural: "Image Blocks" },
   fields: [
-    { name: "image", type: "upload", relationTo: "media", required: true },
+    {
+      name: "image",
+      type: "upload",
+      relationTo: "media",
+      required: true,
+      filterOptions: { mimeType: { contains: "image" } },
+    },
     {
       name: "caption",
       type: "text",

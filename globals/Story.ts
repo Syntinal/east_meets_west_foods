@@ -49,6 +49,7 @@ export const Story: GlobalConfig = {
           name: "image",
           type: "upload",
           relationTo: "media",
+          filterOptions: { mimeType: { contains: "image" } },
           admin: { description: "Photo shown next to the story copy." },
         },
       ],

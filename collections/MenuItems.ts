@@ -103,6 +103,7 @@ export const MenuItems: CollectionConfig = {
       name: "image",
       type: "upload",
       relationTo: "media",
+      filterOptions: { mimeType: { contains: "image" } },
       admin: {
         description: "Photo shown next to this dish on the menu page.",
         condition: (_, siblingData) => siblingData.group === "main",

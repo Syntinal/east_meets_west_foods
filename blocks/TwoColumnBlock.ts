@@ -12,7 +12,7 @@ export const TwoColumnBlock: Block = {
       name: "left",
       label: "Left column",
       fields: [
-        { name: "image", type: "upload", relationTo: "media" },
+        { name: "image", type: "upload", relationTo: "media", filterOptions: { mimeType: { contains: "image" } } },
         { name: "content", type: "richText" },
       ],
     },
@@ -21,7 +21,7 @@ export const TwoColumnBlock: Block = {
       name: "right",
       label: "Right column",
       fields: [
-        { name: "image", type: "upload", relationTo: "media" },
+        { name: "image", type: "upload", relationTo: "media", filterOptions: { mimeType: { contains: "image" } } },
         { name: "content", type: "richText" },
       ],
     },

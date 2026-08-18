@@ -8,6 +8,7 @@ export type NewsDoc = {
   type: "post" | "announcement";
   excerpt?: string | null;
   featuredImage?: { url?: string | null; alt?: string | null } | string | null;
+  featuredVideo?: { url?: string | null; alt?: string | null } | string | null;
   publishedDate?: string | null;
   // Lexical's serialized editor state — rendered via Payload's <RichText>.
   body: unknown;
@@ -17,6 +18,7 @@ export type NewsDoc = {
 // live-preview counterpart — same markup either way, just fed different data.
 export function NewsPostView({ post }: { post: NewsDoc }) {
   const image = post.featuredImage && typeof post.featuredImage === "object" ? post.featuredImage : null;
+  const video = post.featuredVideo && typeof post.featuredVideo === "object" ? post.featuredVideo : null;
 
   return (
     <>
@@ -31,10 +33,16 @@ export function NewsPostView({ post }: { post: NewsDoc }) {
         </div>
       </header>
 
-      {image?.url && (
+      {video?.url ? (
         <div className="menu-card-img" style={{ marginBottom: 24, borderRadius: 4, overflow: "hidden" }}>
-          <img src={image.url} alt={image.alt ?? post.title} />
+          <video src={video.url} controls playsInline style={{ width: "100%", height: "auto", display: "block" }} />
         </div>
+      ) : (
+        image?.url && (
+          <div className="menu-card-img" style={{ marginBottom: 24, borderRadius: 4, overflow: "hidden" }}>
+            <img src={image.url} alt={image.alt ?? post.title} />
+          </div>
+        )
       )}
 
       <div className="text-panel news-body">

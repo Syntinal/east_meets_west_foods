@@ -41,6 +41,7 @@ export const PageCardBlock: Block = {
       name: "image",
       type: "upload",
       relationTo: "media",
+      filterOptions: { mimeType: { contains: "image" } },
       admin: {
         description: "Landscape or square, at least 800×600px.",
         condition: (_, siblingData) => siblingData?.page !== "news",
@@ -58,6 +59,7 @@ export const PageCardBlock: Block = {
       name: "newsFallbackImage",
       type: "upload",
       relationTo: "media",
+      filterOptions: { mimeType: { contains: "image" } },
       label: "Fallback photo (News only)",
       admin: {
         description: "Used only when the most recent News post doesn't have its own featured photo.",

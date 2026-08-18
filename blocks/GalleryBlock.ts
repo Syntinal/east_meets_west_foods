@@ -12,7 +12,13 @@ export const GalleryBlock: Block = {
       minRows: 1,
       admin: { description: "Add, remove, or reorder photos. Shown in a grid visitors can click to enlarge." },
       fields: [
-        { name: "image", type: "upload", relationTo: "media", required: true },
+        {
+          name: "image",
+          type: "upload",
+          relationTo: "media",
+          required: true,
+          filterOptions: { mimeType: { contains: "image" } },
+        },
         {
           name: "caption",
           type: "text",

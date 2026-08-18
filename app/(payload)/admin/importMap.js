@@ -1,6 +1,6 @@
 import { ControlTooltips as ControlTooltips_3e5d042b9b28e1583f476167de730652 } from '@/components/admin/ControlTooltips'
 import { ListPreviewView as ListPreviewView_b1008220587472f221c9c823a01815a9 } from '@/components/admin/ListPreviewView'
-import { FacebookPostStatusNotice as FacebookPostStatusNotice_67ab34af78fbf7b638c1b1d89d18a111 } from '@/components/admin/FacebookPostStatusNotice'
+import { SocialPostStatusNotice as SocialPostStatusNotice_0b27c3289e7409d4d2574d9dfc710a69 } from '@/components/admin/SocialPostStatusNotice'
 import { RscEntryLexicalCell as RscEntryLexicalCell_44fe37237e0ebf4470c9990d8cb7b07e } from '@payloadcms/richtext-lexical/rsc'
 import { RscEntryLexicalField as RscEntryLexicalField_44fe37237e0ebf4470c9990d8cb7b07e } from '@payloadcms/richtext-lexical/rsc'
 import { LexicalDiffComponent as LexicalDiffComponent_44fe37237e0ebf4470c9990d8cb7b07e } from '@payloadcms/richtext-lexical/rsc'
@@ -34,7 +34,7 @@ import { CollectionCards as CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1 } f
 export const importMap = {
   "@/components/admin/ControlTooltips#ControlTooltips": ControlTooltips_3e5d042b9b28e1583f476167de730652,
   "@/components/admin/ListPreviewView#ListPreviewView": ListPreviewView_b1008220587472f221c9c823a01815a9,
-  "@/components/admin/FacebookPostStatusNotice#FacebookPostStatusNotice": FacebookPostStatusNotice_67ab34af78fbf7b638c1b1d89d18a111,
+  "@/components/admin/SocialPostStatusNotice#SocialPostStatusNotice": SocialPostStatusNotice_0b27c3289e7409d4d2574d9dfc710a69,
   "@payloadcms/richtext-lexical/rsc#RscEntryLexicalCell": RscEntryLexicalCell_44fe37237e0ebf4470c9990d8cb7b07e,
   "@payloadcms/richtext-lexical/rsc#RscEntryLexicalField": RscEntryLexicalField_44fe37237e0ebf4470c9990d8cb7b07e,
   "@payloadcms/richtext-lexical/rsc#LexicalDiffComponent": LexicalDiffComponent_44fe37237e0ebf4470c9990d8cb7b07e,

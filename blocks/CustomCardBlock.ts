@@ -9,7 +9,13 @@ export const CustomCardBlock: Block = {
   slug: "customCard",
   labels: { singular: "Custom Card", plural: "Custom Cards" },
   fields: [
-    { name: "image", type: "upload", relationTo: "media", admin: { description: "Landscape or square, at least 800×600px." } },
+    {
+      name: "image",
+      type: "upload",
+      relationTo: "media",
+      filterOptions: { mimeType: { contains: "image" } },
+      admin: { description: "Landscape or square, at least 800×600px." },
+    },
     { name: "heading", type: "text", required: true },
     { name: "body", type: "textarea", admin: { description: "Short blurb shown on the card." } },
     { name: "ctaText", type: "text", defaultValue: "Learn More →", admin: { description: "The link text at the bottom of the card." } },

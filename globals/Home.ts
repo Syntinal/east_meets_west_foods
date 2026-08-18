@@ -79,6 +79,7 @@ export const Home: GlobalConfig = {
           name: "logoImage",
           type: "upload",
           relationTo: "media",
+          filterOptions: { mimeType: { contains: "image" } },
           admin: { description: "Transparent PNG recommended. Appears next to the site name in the header." },
         },
         {
@@ -97,6 +98,7 @@ export const Home: GlobalConfig = {
           name: "image",
           type: "upload",
           relationTo: "media",
+          filterOptions: { mimeType: { contains: "image" } },
           admin: {
             description:
               "Landscape orientation, at least 1600×900px recommended — this is the large banner photo at the top of the page.",
@@ -172,6 +174,7 @@ export const Home: GlobalConfig = {
               type: "upload",
               relationTo: "media",
               required: true,
+              filterOptions: { mimeType: { contains: "image" } },
               admin: { description: "Any orientation. Shown in a grid visitors can click to enlarge." },
             },
             {
