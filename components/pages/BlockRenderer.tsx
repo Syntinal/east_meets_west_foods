@@ -18,7 +18,7 @@ export type PageBlock =
       blockType: "cardGrid";
       id?: string;
       heading?: string | null;
-      cards: { image?: MediaRef; title: string; body?: string | null; priceLine?: string | null }[];
+      cards: { image?: MediaRef; title: string; body?: unknown; priceLine?: string | null }[];
     };
 
 function resolveImage(media: MediaRef): { url: string; alt: string } | null {
@@ -124,7 +124,7 @@ export function BlockRenderer({ blocks }: { blocks: PageBlock[] }) {
                         )}
                         <div className="menu-card-body">
                           <h3>{card.title}</h3>
-                          {card.body && <p>{card.body}</p>}
+                          {card.body ? <RichText data={card.body as never} /> : null}
                           {card.priceLine && <div className="card-grid-price">{card.priceLine}</div>}
                         </div>
                       </article>

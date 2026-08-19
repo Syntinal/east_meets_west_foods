@@ -374,6 +374,22 @@ img { max-width: 100%; display: block; }
   font-size: 0.95rem;
 }
 
+/* Same typography as .menu-card p above, for a Card Grid card's rich-text
+   body (see blocks/CardGridBlock.ts) — without this, list items would
+   fall back to the browser default (larger left indent, black text) and
+   read as visibly unstyled next to the card's other copy. */
+.menu-card ul,
+.menu-card ol {
+  margin: 0 0 18px;
+  padding-left: 20px;
+  color: var(--gray);
+  font-size: 0.95rem;
+}
+
+.menu-card li + li {
+  margin-top: 4px;
+}
+
 .price-list {
   list-style: none;
   margin: auto 0 0;
