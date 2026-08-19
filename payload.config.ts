@@ -27,6 +27,16 @@ const dirname = path.dirname(filename);
 export default buildConfig({
   admin: {
     user: Users.slug,
+    // The admin defaults to following the OS/browser's dark-mode
+    // preference (or a per-user toggle) when this isn't set — which is
+    // exactly why app/(payload)/admin.css's site-color overrides looked
+    // like they did nothing: those mostly recolor the *light* palette,
+    // and the admin was rendering in *dark* mode, where the change was
+    // barely visible (dark near-black to dark near-black). The live site
+    // itself has only one look — no dark mode exists to match — so there's
+    // no reason for the admin to offer one either. Locking to light is
+    // also one less setting for a non-technical owner to stumble into.
+    theme: "light",
     components: {
       beforeDashboard: ["@/components/admin/GettingStarted#GettingStarted"],
       // A flat, site-page-ordered quick list rendered above Payload's own

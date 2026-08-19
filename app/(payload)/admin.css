@@ -1,3 +1,63 @@
+/* Recolors the admin to feel like an extension of the live site rather than
+   a separate tool — the owner asked for this directly ("the user feels like
+   he is updating the site and not on a different site"). Payload's entire
+   theme (light AND dark) is generated from one neutral ramp,
+   `--color-base-0` (white) through `--color-base-1000` (black) — see
+   node_modules/@payloadcms/ui/dist/scss/colors.scss. Every other token
+   (`--theme-elevation-*`, `--theme-bg`, `--theme-text`, `--theme-border-color`,
+   `.btn--style-primary`'s background, etc.) is defined as `var(--color-base-N)`
+   for some N, including a *second*, differently-ordered mapping used only
+   under `html[data-theme='dark']`. Overriding the base ramp itself (instead
+   of the derived --theme-* tokens directly) means Payload's own already-
+   correct light/dark logic keeps working on top of these new colors — this
+   file doesn't need its own light/dark branches. Confirmed by reading that
+   source file directly rather than guessing at what each variable feeds.
+
+   Deliberately scoped to the light end (page/card/border backgrounds) and
+   dark end (body text + `.btn--style-primary`, which is elevation-800 —
+   confirmed via the same file) of the ramp, matching the site's own
+   --paper/--line/--ink/--black (app/(frontend)/globals.css). The middle of
+   the ramp (steps 250-750, mostly secondary text/icon/disabled-state grays)
+   is left at Payload's defaults — lower visual priority, and changing them
+   risks subtly breaking contrast relationships in components not audited
+   here.
+
+   Deliberately NOT touched: `--color-success-*` / `--color-blue-*` (an
+   alias of the same ramp). These aren't just "success toast" green — Payload
+   reuses them as its general selection/active accent (checked radio glow,
+   drag-and-drop highlight, selected rows). Recoloring that to the site's red
+   would sit uncomfortably close to `--color-error-*` (also a red), risking
+   exactly the kind of "wait, did this fail or succeed?" ambiguity that
+   matters most for a non-technical user. Brand color shows up here through
+   the warm neutral background and the site's own ink tone on primary
+   buttons/text instead — see the "Where things stand" conversation for the
+   fuller reasoning.
+
+   Also deliberately NOT added: the site's repeating food-pattern background
+   image (app/(frontend)/globals.css's `body`). Lovely on the marketing
+   pages' open space; behind dense admin forms it would fight with
+   readability, which matters more here than decoration. */
+:root {
+  --color-base-0: #fbfaf6; /* site's --paper — page/panel background */
+  --color-base-50: #f6f1e5; /* deeper cream — hover states, subtle fills */
+  --color-base-100: #efe8d7; /* card & input fill */
+  --color-base-150: #e8e3d6; /* site's --line, exactly — default border color */
+  --color-base-200: #ddd6c3; /* deeper border / disabled background */
+
+  --color-base-800: #292824; /* near site's --ink — body text AND .btn--style-primary's background */
+  --color-base-850: #201f1c;
+  --color-base-900: #1a1a1a; /* site's --black, exactly — becomes the dark-theme page background */
+  --color-base-950: #121110;
+  --color-base-1000: #0c0b09; /* warm near-black, in place of pure #000 */
+
+  /* Matches the site's own body font (app/(frontend)/globals.css) — loaded
+     via the <link> added in app/(payload)/layout.tsx, since this admin
+     route group has its own <head> and doesn't inherit the frontend's font
+     link. Falls back to Payload's own stack if that link is ever removed. */
+  --font-body:
+    "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
 /* Payload's built-in file/thumbnail column (used in every collection's list
    view AND the "Choose from existing" upload picker) renders images at a
    fixed ~50px (`.file__thumbnail`, from @payloadcms/ui's FileCell — there's

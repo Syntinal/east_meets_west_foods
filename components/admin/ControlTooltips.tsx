@@ -20,6 +20,24 @@ const TOOLTIPS: Record<string, string | ((el: Element) => string)> = {
   "action-save-draft": "Save draft — saves your changes so you don't lose them, without making them visible to visitors yet.",
 };
 
+// The "Versions" tab (Payload's native version-history view, already on by
+// default whenever `versions.drafts` is enabled — see
+// node_modules/@payloadcms/next/dist/elements/DocumentHeader/Tabs/tabs/index.js)
+// has no explanation anywhere that it's also how you undo a mistake: open an
+// older version, click Restore. It has no stable id like the buttons above
+// (it's a plain link with class "doc-tab"), so it's matched by its href
+// suffix instead — every document's Versions tab links to `<doc url>/versions`.
+const VERSIONS_TAB_TOOLTIP =
+  "Versions — see every earlier saved version of this page. Made a mistake and already published it? Open an older version here and click Restore to bring it back.";
+
+function applyVersionsTabTooltip() {
+  const links = document.querySelectorAll('a.doc-tab[href$="/versions"]');
+  for (const el of links) {
+    if (el.getAttribute("title") !== VERSIONS_TAB_TOOLTIP) el.setAttribute("title", VERSIONS_TAB_TOOLTIP);
+    if (el.getAttribute("aria-label") !== VERSIONS_TAB_TOOLTIP) el.setAttribute("aria-label", VERSIONS_TAB_TOOLTIP);
+  }
+}
+
 function applyTooltips() {
   for (const [id, text] of Object.entries(TOOLTIPS)) {
     const el = document.getElementById(id);
@@ -28,6 +46,7 @@ function applyTooltips() {
     if (el.getAttribute("title") !== value) el.setAttribute("title", value);
     if (el.getAttribute("aria-label") !== value) el.setAttribute("aria-label", value);
   }
+  applyVersionsTabTooltip();
 }
 
 export function ControlTooltips() {
