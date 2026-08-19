@@ -1,4 +1,5 @@
 import type { Block } from "payload";
+import { pageCardThumbnail } from "@/lib/blockIcons";
 
 // One of the homepage teaser cards that links to one of this site's own
 // built-in pages (Menu/Sauce/Story/News) — home page only, not part of the
@@ -20,6 +21,7 @@ import type { Block } from "payload";
 export const PageCardBlock: Block = {
   slug: "pageCard",
   labels: { singular: "Page Card (Menu/Sauce/Story/News)", plural: "Page Cards" },
+  admin: { images: { thumbnail: pageCardThumbnail } },
   fields: [
     {
       name: "page",

@@ -1,8 +1,10 @@
 import type { Block } from "payload";
+import { imageThumbnail } from "@/lib/blockIcons";
 
 export const ImageBlock: Block = {
   slug: "image",
   labels: { singular: "Image", plural: "Image Blocks" },
+  admin: { images: { thumbnail: imageThumbnail } },
   fields: [
     {
       name: "image",

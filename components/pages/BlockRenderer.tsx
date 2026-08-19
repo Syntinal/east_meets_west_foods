@@ -13,6 +13,12 @@ export type PageBlock =
       id?: string;
       left?: { image?: MediaRef; content?: unknown } | null;
       right?: { image?: MediaRef; content?: unknown } | null;
+    }
+  | {
+      blockType: "cardGrid";
+      id?: string;
+      heading?: string | null;
+      cards: { image?: MediaRef; title: string; body?: string | null; priceLine?: string | null }[];
     };
 
 function resolveImage(media: MediaRef): { url: string; alt: string } | null {
@@ -82,6 +88,36 @@ export function BlockRenderer({ blocks }: { blocks: PageBlock[] }) {
                 <Column data={block.left} />
                 <Column data={block.right} />
               </div>
+            );
+
+          case "cardGrid":
+            return (
+              <section key={key} className="page-block">
+                {block.heading && (
+                  <header className="section-head">
+                    <h2 className="section-title">{block.heading}</h2>
+                  </header>
+                )}
+                <div className="menu-grid">
+                  {(block.cards ?? []).map((card, i) => {
+                    const image = resolveImage(card.image);
+                    return (
+                      <article className="menu-card" key={i}>
+                        {image?.url && (
+                          <div className="menu-card-img">
+                            <img src={image.url} alt={image.alt || card.title} />
+                          </div>
+                        )}
+                        <div className="menu-card-body">
+                          <h3>{card.title}</h3>
+                          {card.body && <p>{card.body}</p>}
+                          {card.priceLine && <div className="card-grid-price">{card.priceLine}</div>}
+                        </div>
+                      </article>
+                    );
+                  })}
+                </div>
+              </section>
             );
 
           default:

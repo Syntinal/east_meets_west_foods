@@ -1,10 +1,12 @@
 import type { Block } from "payload";
+import { galleryThumbnail } from "@/lib/blockIcons";
 
 // Same shape as the Home global's photo gallery group (see globals/Home.ts)
 // — reused here so components/home/GalleryGrid.tsx can render either one.
 export const GalleryBlock: Block = {
   slug: "gallery",
   labels: { singular: "Photo Gallery", plural: "Photo Gallery Blocks" },
+  admin: { images: { thumbnail: galleryThumbnail } },
   fields: [
     {
       name: "photos",

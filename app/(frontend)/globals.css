@@ -405,6 +405,19 @@ img { max-width: 100%; display: block; }
   text-transform: uppercase;
 }
 
+/* A single price/tag line on a generic Card Grid block card (see
+   blocks/CardGridBlock.ts) — same red/bold/border-top treatment as
+   .price-list's rows, without needing a whole list for one line. */
+.card-grid-price {
+  margin-top: auto;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+  font-family: "Fredoka", sans-serif;
+  font-weight: 700;
+  color: var(--red);
+  font-size: 1.05rem;
+}
+
 /* ============ MENU EXTRAS (meal deal, drinks, snacks) ============ */
 .extras-grid {
   display: grid;

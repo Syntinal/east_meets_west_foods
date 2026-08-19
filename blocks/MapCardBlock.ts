@@ -1,4 +1,5 @@
 import type { Block } from "payload";
+import { mapCardThumbnail } from "@/lib/blockIcons";
 
 // The "Visit / Contact" teaser card — home page only, not part of the
 // generic Pages block picker (see globals/Home.ts's top comment for why).
@@ -8,6 +9,7 @@ import type { Block } from "payload";
 export const MapCardBlock: Block = {
   slug: "mapCard",
   labels: { singular: "Map Card (Visit / Contact)", plural: "Map Cards" },
+  admin: { images: { thumbnail: mapCardThumbnail } },
   fields: [
     { name: "heading", type: "text", defaultValue: "Visit / Contact" },
     {

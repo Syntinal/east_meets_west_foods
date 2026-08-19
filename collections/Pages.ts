@@ -6,6 +6,10 @@ import { safeRevalidatePath } from "@/lib/safeRevalidate";
 import { slugify } from "@/lib/slugify";
 import { NAV_PAGES } from "@/lib/navigation";
 import { RichTextBlock, ImageBlock, GalleryBlock, CallToActionBlock, TwoColumnBlock } from "@/blocks";
+// Kept out of the shared blocks/index.ts barrel deliberately — a Pages-only
+// block, not offered in Home's teaser-card picker. See CardGridBlock.ts's
+// own header comment for the full reasoning.
+import { CardGridBlock } from "@/blocks/CardGridBlock";
 
 // Slugs that must stay off-limits to admin-created Pages. These aren't
 // actually reachable even without this check — every one of them is a
@@ -174,7 +178,7 @@ export const Pages: CollectionConfig = {
       label: "Page content",
       minRows: 1,
       admin: { description: "Build the page by adding content blocks — reorder, remove, or add more any time." },
-      blocks: [RichTextBlock, ImageBlock, GalleryBlock, CallToActionBlock, TwoColumnBlock],
+      blocks: [RichTextBlock, ImageBlock, GalleryBlock, CallToActionBlock, TwoColumnBlock, CardGridBlock],
     },
     {
       type: "group",

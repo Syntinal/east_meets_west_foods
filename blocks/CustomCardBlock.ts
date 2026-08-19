@@ -1,4 +1,5 @@
 import type { Block } from "payload";
+import { customCardThumbnail } from "@/lib/blockIcons";
 
 // A genuinely new homepage teaser card, pointing anywhere the owner wants
 // — home page only, not part of the generic Pages block picker (see
@@ -8,6 +9,7 @@ import type { Block } from "payload";
 export const CustomCardBlock: Block = {
   slug: "customCard",
   labels: { singular: "Custom Card", plural: "Custom Cards" },
+  admin: { images: { thumbnail: customCardThumbnail } },
   fields: [
     {
       name: "image",

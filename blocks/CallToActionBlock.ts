@@ -1,8 +1,10 @@
 import type { Block } from "payload";
+import { ctaThumbnail } from "@/lib/blockIcons";
 
 export const CallToActionBlock: Block = {
   slug: "cta",
   labels: { singular: "Call to Action", plural: "Call to Action Blocks" },
+  admin: { images: { thumbnail: ctaThumbnail } },
   fields: [
     { name: "heading", type: "text", admin: { description: "Optional short heading above the button." } },
     { name: "body", type: "textarea", admin: { description: "Optional short line of text above the button." } },
