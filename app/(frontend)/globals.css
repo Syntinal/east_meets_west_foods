@@ -31,6 +31,15 @@ body {
   background-repeat: repeat;
   background-size: 520px 520px;
   background-attachment: fixed;
+  /* Safety net for .page-block-image--full's `width: 100vw` (Pages'
+     "Full Bleed" photo size — see the ADMIN-BUILT PAGES section below):
+     100vw is measured before a vertical scrollbar is subtracted, so on a
+     desktop browser with a scrollbar it's a few pixels wider than the
+     actual visible viewport, which would otherwise add a sliver of
+     unwanted horizontal scroll site-wide the moment any page uses that
+     option. Harmless everywhere else — nothing else on the site
+     intentionally overflows horizontally. */
+  overflow-x: hidden;
 }
 
 a { color: inherit; text-decoration: none; }
@@ -1270,9 +1279,17 @@ img { max-width: 100%; display: block; }
   gap: 32px;
 }
 
+/* "Normal" (blocks/ImageBlock.ts's default `size`, no modifier class) —
+   caps at 780px, matching the site's established reading-column width
+   (.mission-statement, .text-panel--faq use the same number) rather than
+   the full 1180px .page-blocks/.container width. Without this cap, a
+   single uploaded photo could end up wider than any body text on the site
+   ever reads, which is what made the old plain vs. "full width" choice
+   feel like barely a choice at all — both were close to the same width. */
 .page-block-image img {
   border-radius: 6px;
   margin: 0 auto;
+  max-width: 780px;
 }
 
 .page-block-image figcaption {
@@ -1282,8 +1299,32 @@ img { max-width: 100%; display: block; }
   color: var(--gray);
 }
 
+/* "Large" — fills the page's content area (up to 1180px, same width the
+   old "Full width" checkbox actually reached — see ImageBlock.ts's
+   comment). Still inset from the actual browser edge on wide screens,
+   since .container itself is `min(1180px, 92%)`. */
+.page-block-image--large img {
+  max-width: 100%;
+  border-radius: 0;
+}
+
+/* "Full Bleed" — genuinely edge-to-edge this time, unlike the old "Full
+   width" checkbox. `calc(50% - 50vw)` is the standard trick for breaking
+   an element out of a centered container to the true viewport edge: it
+   computes the exact negative margin needed regardless of how wide
+   .container actually is, as long as every ancestor between here and the
+   page edge is itself centered with `margin: 0 auto` (true here). Applied
+   to the <figure> itself, not just the <img>, so the caption below it
+   also gets pulled full width. */
+.page-block-image--full {
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+}
+
 .page-block-image--full img {
   width: 100%;
+  max-width: none;
   border-radius: 0;
 }
 
@@ -1322,7 +1363,10 @@ img { max-width: 100%; display: block; }
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 28px;
-  align-items: start;
+  /* Centered, matching .story-grid/.sauce-grid — the closest site
+     precedent for a photo-beside-text pair. Was "start" (top-aligned),
+     which read as two disconnected columns rather than one paired unit. */
+  align-items: center;
 }
 
 .page-block-two-col .page-block-col img {

@@ -5,7 +5,7 @@ type MediaRef = { url?: string | null; alt?: string | null } | string | null | u
 
 export type PageBlock =
   | { blockType: "richText"; id?: string; content: unknown }
-  | { blockType: "image"; id?: string; image: MediaRef; caption?: string | null; fullBleed?: boolean | null }
+  | { blockType: "image"; id?: string; image: MediaRef; caption?: string | null; size?: "normal" | "large" | "full" | null }
   | { blockType: "gallery"; id?: string; photos: GalleryPhoto[] }
   | { blockType: "cta"; id?: string; heading?: string | null; body?: string | null; buttonLabel: string; buttonHref: string }
   | {
@@ -32,7 +32,18 @@ function Column({ data }: { data?: { image?: MediaRef; content?: unknown } | nul
   return (
     <div className="page-block-col">
       {image?.url && <img src={image.url} alt={image.alt} />}
-      {data?.content ? <RichText data={data.content as never} /> : null}
+      {/* .text-panel is the site's standard readable-backing box — same
+          treatment Story/Sauce give their text column (see
+          app/(frontend)/globals.css's "READABLE BACKING" section) — so a
+          Two Column block's text reads as part of the site, not bare copy
+          floating on the page. Boxes just the text, not the image: the
+          image already gets its own framed-photo treatment via the plain
+          `img` rule below, and Story/Sauce never box their photos either. */}
+      {data?.content ? (
+        <div className="text-panel">
+          <RichText data={data.content as never} />
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -56,8 +67,11 @@ export function BlockRenderer({ blocks }: { blocks: PageBlock[] }) {
           case "image": {
             const image = resolveImage(block.image);
             if (!image?.url) return null;
+            // "normal" (the default) adds no modifier class — same plain
+            // .page-block-image styling as before this field existed.
+            const sizeClass = block.size && block.size !== "normal" ? ` page-block-image--${block.size}` : "";
             return (
-              <figure key={key} className={`page-block page-block-image${block.fullBleed ? " page-block-image--full" : ""}`}>
+              <figure key={key} className={`page-block page-block-image${sizeClass}`}>
                 <img src={image.url} alt={block.caption ?? image.alt} />
                 {block.caption && <figcaption>{block.caption}</figcaption>}
               </figure>
