@@ -19,6 +19,15 @@ export type PageBlock =
       id?: string;
       heading?: string | null;
       cards: { image?: MediaRef; title: string; body?: unknown; priceLine?: string | null }[];
+    }
+  | { blockType: "file"; id?: string; file: MediaRef; label: string }
+  | { blockType: "video"; id?: string; video: MediaRef; caption?: string | null }
+  | { blockType: "quote"; id?: string; quote: string; citation?: string | null }
+  | {
+      blockType: "faq";
+      id?: string;
+      heading?: string | null;
+      questions: { question: string; answer?: unknown }[];
     };
 
 function resolveImage(media: MediaRef): { url: string; alt: string } | null {
@@ -132,6 +141,60 @@ export function BlockRenderer({ blocks }: { blocks: PageBlock[] }) {
                   })}
                 </div>
               </section>
+            );
+
+          case "file": {
+            const file = resolveImage(block.file);
+            if (!file?.url) return null;
+            return (
+              <div key={key} className="page-block page-block-file">
+                {/* `download` prompts a save instead of navigating —
+                    appropriate for a PDF that's meant to be downloaded/
+                    printed, not read as a webpage. */}
+                <a className="page-block-btn" href={file.url} download>
+                  {block.label}
+                </a>
+              </div>
+            );
+          }
+
+          case "video": {
+            const video = resolveImage(block.video);
+            if (!video?.url) return null;
+            return (
+              <figure key={key} className="page-block page-block-video">
+                <video src={video.url} controls playsInline />
+                {block.caption && <figcaption>{block.caption}</figcaption>}
+              </figure>
+            );
+          }
+
+          case "quote":
+            // Reuses .pull-quote verbatim — the same treatment
+            // Story/Sauce give a featured quote (see StoryView.tsx).
+            return (
+              <blockquote key={key} className="page-block pull-quote">
+                <p>&quot;{block.quote}&quot;</p>
+                {block.citation && <cite>{block.citation}</cite>}
+              </blockquote>
+            );
+
+          case "faq":
+            // Reuses the real FAQ page's markup/CSS verbatim (.faq-list/
+            // .faq-item/.faq-question/.faq-answer — see components/faq/
+            // FaqView.tsx) so a page's own mini-FAQ looks identical to /faq.
+            return (
+              <div key={key} className="page-block text-panel text-panel--faq">
+                {block.heading && <h2 className="section-title">{block.heading}</h2>}
+                <dl className="faq-list">
+                  {(block.questions ?? []).map((q, i) => (
+                    <div className="faq-item" key={i}>
+                      <dt className="faq-question">{q.question}</dt>
+                      <dd className="faq-answer">{q.answer ? <RichText data={q.answer as never} /> : null}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </div>
             );
 
           default:

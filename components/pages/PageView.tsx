@@ -1,11 +1,13 @@
 import { BlockRenderer, type PageBlock } from "./BlockRenderer";
 
+type MediaRef = { url?: string | null; alt?: string | null } | string | null | undefined;
+
 export type PageDoc = {
   id: string;
   title: string;
   slug: string;
   layout: PageBlock[];
-  seo?: { metaDescription?: string | null } | null;
+  seo?: { metaDescription?: string | null; ogImage?: MediaRef } | null;
 };
 
 // Shared between the plain server-rendered /[slug] page and its

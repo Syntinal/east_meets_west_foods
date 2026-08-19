@@ -5,15 +5,17 @@ import { authenticated } from "@/access/authenticated";
 // (payload.config.ts) takes over uploads entirely once BLOB_READ_WRITE_TOKEN
 // is set, since Vercel's filesystem is ephemeral/read-only in production.
 //
-// Holds both photos and video (e.g. short clips meant for a Facebook post —
-// see collections/News.ts's featuredVideo). `mimeTypes` restricts to just
-// those two families rather than leaving uploads wide open to arbitrary
-// files. Payload's own focal-point/crop tooling and image-resize pipeline
-// both gate themselves on the file actually being an image (confirmed in
-// node_modules/payload/dist/uploads/generateFileData.js's `isImage()`
-// checks) — a video upload skips that whole path automatically, including
-// the self-fetch-for-crop-data step the Vercel Blob `clientUploads: false`
-// comment below describes, so no separate workaround is needed for video.
+// Holds photos, video (e.g. short clips meant for a Facebook post — see
+// collections/News.ts's featuredVideo), and PDFs (blocks/FileBlock.ts —
+// catering menus, event flyers, printable forms on a self-service Page).
+// `mimeTypes` restricts to just these three rather than leaving uploads
+// wide open to arbitrary files. Payload's own focal-point/crop tooling and
+// image-resize pipeline both gate themselves on the file actually being an
+// image (confirmed in node_modules/payload/dist/uploads/generateFileData.js's
+// `isImage()` checks) — video and PDF uploads both skip that whole path
+// automatically, including the self-fetch-for-crop-data step the Vercel
+// Blob `clientUploads: false` comment below describes, so no separate
+// workaround is needed for either.
 //
 // Individual upload fields elsewhere that render their value as an <img>
 // (Home's hero/gallery, Menu Items' photo, page blocks, etc.) add
@@ -40,13 +42,13 @@ export const Media: CollectionConfig = {
   },
   upload: {
     staticDir: "public/media",
-    mimeTypes: ["image/*", "video/*"],
+    mimeTypes: ["image/*", "video/*", "application/pdf"],
   },
   fields: [
     {
       name: "alt",
       type: "text",
-      admin: { description: "Alt text for images, or a short description for videos (not shown on the page)." },
+      admin: { description: "Alt text for images, or a short description for videos/PDFs (not shown on the page)." },
     },
   ],
 };

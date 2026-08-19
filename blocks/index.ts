@@ -3,3 +3,7 @@ export { ImageBlock } from "./ImageBlock";
 export { GalleryBlock } from "./GalleryBlock";
 export { CallToActionBlock } from "./CallToActionBlock";
 export { TwoColumnBlock } from "./TwoColumnBlock";
+export { FileBlock } from "./FileBlock";
+export { VideoBlock } from "./VideoBlock";
+export { QuoteBlock } from "./QuoteBlock";
+export { FaqBlock } from "./FaqBlock";

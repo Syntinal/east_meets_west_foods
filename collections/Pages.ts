@@ -5,7 +5,7 @@ import { getPreviewURL } from "@/lib/preview";
 import { safeRevalidatePath } from "@/lib/safeRevalidate";
 import { slugify } from "@/lib/slugify";
 import { NAV_PAGES } from "@/lib/navigation";
-import { RichTextBlock, ImageBlock, GalleryBlock, CallToActionBlock, TwoColumnBlock } from "@/blocks";
+import { RichTextBlock, ImageBlock, GalleryBlock, CallToActionBlock, TwoColumnBlock, FileBlock, VideoBlock, QuoteBlock, FaqBlock } from "@/blocks";
 // Kept out of the shared blocks/index.ts barrel deliberately — a Pages-only
 // block, not offered in Home's teaser-card picker. See CardGridBlock.ts's
 // own header comment for the full reasoning.
@@ -140,6 +140,23 @@ export const Pages: CollectionConfig = {
       validate: validateSlug,
     },
     {
+      // Lets the owner prep a page as a draft and have it go live on its
+      // own at a future date/time, instead of publishing being always-
+      // manual — e.g. a seasonal "Holiday Hours" page finished ahead of
+      // time. Only takes effect on a *draft* page (see
+      // app/(payload)/api/cron/publish-scheduled/route.ts) — setting this
+      // on an already-published page does nothing, since there's nothing
+      // left to auto-publish.
+      name: "publishAt",
+      type: "date",
+      label: "Auto-publish at",
+      admin: {
+        position: "sidebar",
+        date: { pickerAppearance: "dayAndTime" },
+        description: "Optional. If this page is still a draft, it'll be published automatically once this date/time passes — no need to come back and click Publish.",
+      },
+    },
+    {
       type: "group",
       name: "navigation",
       admin: { description: "Controls whether — and where — this page shows up in the site's menu." },
@@ -178,7 +195,7 @@ export const Pages: CollectionConfig = {
       label: "Page content",
       minRows: 1,
       admin: { description: "Build the page by adding content blocks — reorder, remove, or add more any time." },
-      blocks: [RichTextBlock, ImageBlock, GalleryBlock, CallToActionBlock, TwoColumnBlock, CardGridBlock],
+      blocks: [RichTextBlock, ImageBlock, GalleryBlock, CallToActionBlock, TwoColumnBlock, CardGridBlock, FileBlock, VideoBlock, QuoteBlock, FaqBlock],
     },
     {
       type: "group",
@@ -189,6 +206,21 @@ export const Pages: CollectionConfig = {
           name: "metaDescription",
           type: "textarea",
           admin: { description: "Shown in search results and when the page is shared. Falls back to a generic description if left blank." },
+        },
+        {
+          // Every hardcoded page (Story, Sauce, FAQ, etc.) has a real photo
+          // baked into its openGraph.images — see e.g. app/(frontend)/faq/
+          // page.tsx. A self-service Page's generateMetadata()
+          // (app/(frontend)/[slug]/page.tsx) never set `images` at all, so
+          // sharing a new Page's link on Facebook/etc. showed no preview
+          // photo. Optional and additive — omitting it keeps today's
+          // behavior (no image) exactly as before.
+          name: "ogImage",
+          type: "upload",
+          relationTo: "media",
+          label: "Social share image",
+          filterOptions: { mimeType: { contains: "image" } },
+          admin: { description: "Shown as the preview photo when this page's link is shared on Facebook, etc. Optional." },
         },
       ],
     },

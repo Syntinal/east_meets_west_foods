@@ -1344,6 +1344,31 @@ img { max-width: 100%; display: block; }
   border-radius: 0;
 }
 
+/* A downloadable file (blocks/FileBlock.ts) and a standalone video
+   (blocks/VideoBlock.ts) — same centered treatment as .page-block-cta
+   below/.page-block-image above, respectively, so both read as
+   intentional page sections rather than a bare link or a raw <video> tag
+   plopped onto the page. */
+.page-block-file {
+  text-align: center;
+  padding: 24px;
+}
+
+.page-block-video video {
+  width: 100%;
+  max-width: 780px;
+  display: block;
+  margin: 0 auto;
+  border-radius: 6px;
+}
+
+.page-block-video figcaption {
+  margin-top: 8px;
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--gray);
+}
+
 .page-block-cta {
   text-align: center;
   padding: 32px 24px;

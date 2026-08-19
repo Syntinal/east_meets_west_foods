@@ -117,3 +117,36 @@ export const cardGridThumbnail = thumbnail(
     <line x1="162" y1="92" x2="194" y2="92"/>
   </g>`,
 );
+
+// A document with a folded corner and a downward arrow — a file to download.
+export const fileThumbnail = thumbnail(
+  "#e6f7fa",
+  "#0891b2",
+  `<path d="M75 32 h55 l22 22 v74 h-77 z" fill="none" stroke="#0891b2" stroke-width="7" stroke-linejoin="round"/>
+  <path d="M130 32 l22 22 h-22 z" fill="#0891b2"/>
+  <path d="M113 68 v34 M100 89 l13 15 l13 -15" stroke="#0891b2" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`,
+);
+
+// A rounded rectangle with a play triangle — a video.
+export const videoThumbnail = thumbnail(
+  "#ffe4e9",
+  "#be123c",
+  `<rect x="45" y="42" width="150" height="76" rx="10" fill="none" stroke="#be123c" stroke-width="7"/>
+  <path d="M100 66 l45 14 l-45 14 z" fill="#be123c"/>`,
+);
+
+// A large opening quotation mark — a quote/testimonial.
+export const quoteThumbnail = thumbnail(
+  "#f2fce4",
+  "#4d7c0f",
+  `<path d="M65 55 c-16 10 -22 24 -22 38 c0 12 8 20 18 20 c9 0 16 -7 16 -16 c0 -8 -6 -14 -13 -15 c1 -10 8 -18 17 -23 z" fill="#4d7c0f"/>
+  <path d="M130 55 c-16 10 -22 24 -22 38 c0 12 8 20 18 20 c9 0 16 -7 16 -16 c0 -8 -6 -14 -13 -15 c1 -10 8 -18 17 -23 z" fill="#4d7c0f"/>`,
+);
+
+// A speech bubble with a question mark — a mini FAQ.
+export const faqThumbnail = thumbnail(
+  "#eef2ff",
+  "#4f46e5",
+  `<path d="M50 45 h140 a10 10 0 0 1 10 10 v50 a10 10 0 0 1 -10 10 h-95 l-25 22 v-22 h-20 a10 10 0 0 1 -10 -10 v-50 a10 10 0 0 1 10 -10 z" fill="none" stroke="#4f46e5" stroke-width="6" stroke-linejoin="round"/>
+  <text x="120" y="98" font-family="Georgia, serif" font-size="46" font-weight="bold" fill="#4f46e5" text-anchor="middle">?</text>`,
+);

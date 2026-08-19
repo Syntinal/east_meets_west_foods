@@ -37,6 +37,12 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   if (!page) return {};
 
   const description = page.seo?.metaDescription ?? `${page.title} — East Meets West Dumplings Bar.`;
+  // Optional — every hardcoded page (Story, Sauce, FAQ, etc.) has a real
+  // photo baked into its own openGraph.images; a self-service Page
+  // previously had no equivalent at all, so sharing its link showed no
+  // preview photo. `images`/`twitter.images` are simply omitted when this
+  // isn't set, same as before this field existed.
+  const ogImage = page.seo?.ogImage && typeof page.seo.ogImage === "object" ? page.seo.ogImage : null;
 
   return {
     title: `${page.title} — East Meets West Dumplings Bar`,
@@ -50,11 +56,13 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
       title: page.title,
       description,
       url: `https://eastmeetswestfoods.co/${page.slug}`,
+      ...(ogImage?.url ? { images: [{ url: ogImage.url, alt: ogImage.alt ?? page.title }] } : {}),
     },
     twitter: {
       card: "summary_large_image",
       title: page.title,
       description,
+      ...(ogImage?.url ? { images: [ogImage.url] } : {}),
     },
   };
 }
