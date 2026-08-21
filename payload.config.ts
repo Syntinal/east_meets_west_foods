@@ -94,17 +94,27 @@ export default buildConfig({
       // from the browser to Blob storage instead, bypassing that limit
       // entirely. See collections/MediaAssets.ts for the full story.
       clientUploads: true,
-      // Without this, a same-named re-upload collides with whatever's
-      // already at that path in Blob storage and fails with a "blob
-      // already exists" error — hit this for real immediately after a
-      // failed upload left an orphaned blob (the mimeTypes bug described
-      // in collections/MediaAssets.ts) and retrying under the same
-      // filename then failed a second, different way. addRandomSuffix
-      // makes every upload's storage path unique regardless, so retries
-      // (or two files that happen to share a name) never collide. Media
-      // doesn't need this — clientUploads: false there means uploads
-      // never hit this failure mode the same way.
-      addRandomSuffix: true,
+      // Deliberately NOT addRandomSuffix: true here (tried it, reverted —
+      // see git history) — it fixed the original "blob already exists on
+      // retry" bug, but at the cost of every file getting a permanently
+      // ugly stored name (e.g.
+      // "IMG_0894-F2q5MNq0NZ5Lxoh61MWex5dJzykt7m.MOV"), and that original
+      // bug's real cause was the mimeTypes validation bug above — already
+      // fixed independently, so retries no longer collide with an orphan
+      // for the reason that originally forced this on. Left at the
+      // default (false, matching Media): filenames stay exactly as
+      // uploaded, and on a genuine name collision, Vercel Blob's own v2
+      // put() behavior rejects the upload outright rather than silently
+      // overwriting (allowOverwrite isn't set either) — nothing gets
+      // saved, and the owner sees an error and has to rename/retry. A
+      // real "(1)"/"(2)"-style auto-rename on collision was considered
+      // and explicitly not built: Vercel's client-upload token API has
+      // no way to reassign the target filename server-side (confirmed
+      // via @vercel/blob's own types — onBeforeGenerateToken can only
+      // toggle flags, not the pathname), so real auto-dedup would mean
+      // replacing Payload's entire supported client-upload wiring with
+      // custom code — judged not worth that risk for how rarely two
+      // files would genuinely share an exact name.
     }),
   ],
   secret: process.env.PAYLOAD_SECRET || "",
