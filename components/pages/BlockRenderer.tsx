@@ -11,8 +11,8 @@ export type PageBlock =
   | {
       blockType: "twoColumn";
       id?: string;
-      left?: { image?: MediaRef; content?: unknown } | null;
-      right?: { image?: MediaRef; content?: unknown } | null;
+      left?: { image?: MediaRef; video?: MediaRef; content?: unknown } | null;
+      right?: { image?: MediaRef; video?: MediaRef; content?: unknown } | null;
     }
   | {
       blockType: "cardGrid";
@@ -36,11 +36,18 @@ function resolveImage(media: MediaRef): { url: string; alt: string } | null {
   return { url: image.url, alt: image.alt ?? "" };
 }
 
-function Column({ data }: { data?: { image?: MediaRef; content?: unknown } | null }) {
+function Column({ data }: { data?: { image?: MediaRef; video?: MediaRef; content?: unknown } | null }) {
+  const video = resolveImage(data?.video);
   const image = resolveImage(data?.image);
   return (
     <div className="page-block-col">
-      {image?.url && <img src={image.url} alt={image.alt} />}
+      {/* Video wins if both are set — same rule News' featuredImage/
+          featuredVideo pair uses (see collections/News.ts). */}
+      {video?.url ? (
+        <video src={video.url} controls playsInline />
+      ) : (
+        image?.url && <img src={image.url} alt={image.alt} />
+      )}
       {/* .text-panel is the site's standard readable-backing box — same
           treatment Story/Sauce give their text column (see
           app/(frontend)/globals.css's "READABLE BACKING" section) — so a

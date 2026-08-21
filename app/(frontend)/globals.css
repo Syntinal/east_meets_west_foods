@@ -1415,6 +1415,12 @@ img { max-width: 100%; display: block; }
   margin-bottom: 12px;
 }
 
+.page-block-two-col .page-block-col video {
+  width: 100%;
+  border-radius: 6px;
+  margin-bottom: 12px;
+}
+
 .faq-answer {
   margin: 0;
   color: var(--ink);

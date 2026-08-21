@@ -16,6 +16,17 @@ export const TwoColumnBlock: Block = {
       label: "Left column",
       fields: [
         { name: "image", type: "upload", relationTo: "media", filterOptions: { mimeType: { contains: "image" } } },
+        {
+          name: "video",
+          type: "upload",
+          // media-assets, not media — see collections/MediaAssets.ts for
+          // why video lives in a separate collection now. Takes priority
+          // over the photo above when both are set, same "video wins"
+          // rule News' featuredImage/featuredVideo pair uses.
+          relationTo: "media-assets",
+          filterOptions: { mimeType: { contains: "video" } },
+          admin: { description: "Optional. Shown instead of the photo above if set." },
+        },
         { name: "content", type: "richText" },
       ],
     },
@@ -25,6 +36,13 @@ export const TwoColumnBlock: Block = {
       label: "Right column",
       fields: [
         { name: "image", type: "upload", relationTo: "media", filterOptions: { mimeType: { contains: "image" } } },
+        {
+          name: "video",
+          type: "upload",
+          relationTo: "media-assets",
+          filterOptions: { mimeType: { contains: "video" } },
+          admin: { description: "Optional. Shown instead of the photo above if set." },
+        },
         { name: "content", type: "richText" },
       ],
     },
