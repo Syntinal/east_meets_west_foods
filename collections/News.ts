@@ -4,7 +4,7 @@ import { readPublished } from "@/access/readPublished";
 import { postToSocialPlatform, type SocialPlatform, type SocialPostResult } from "@/lib/socialPost";
 import { getPreviewURL } from "@/lib/preview";
 import { safeRevalidatePath } from "@/lib/safeRevalidate";
-import { slugify } from "@/lib/slugify";
+import { resolveAutoSlug } from "@/lib/slugify";
 
 // Maps each of the 3 platforms to its own group of sidebar fields (see the
 // `socialMedia` group below) — one config object driving both the
@@ -168,25 +168,22 @@ export const News: CollectionConfig = {
   },
   hooks: {
     beforeValidate: [
-      // Mirrors collections/Pages.ts's own beforeValidate exactly: an empty
-      // slug is auto-filled from the title, but a *typed* slug is always
-      // normalized through slugify() too, not just accepted as-is — this
-      // used to only cover the blank case, which let a hand-typed value
-      // (e.g. pasting the title straight into Slug) save with spaces/
-      // capitals/punctuation Postgres and the URL both accept but the
-      // /news/[slug] route's exact-match lookup won't, since Next.js
-      // doesn't URL-decode a dynamic route param containing a %-escaped
-      // character (e.g. a space) before handing it to page code — see
-      // CLAUDE.md's News-slug-404 writeup for the confirmed mechanism.
-      ({ data }) => {
-        if (!data) return data;
-        if (!data.slug && data.title) {
-          data.slug = slugify(data.title);
-        } else if (data.slug) {
-          data.slug = slugify(data.slug);
-        }
-        return data;
-      },
+      // Mirrors collections/Pages.ts's own beforeValidate exactly (both
+      // delegate to lib/slugify.ts's resolveAutoSlug so the two collections
+      // can't drift out of sync). An empty slug is auto-filled from the
+      // title, and — since News has autosave on and would otherwise freeze
+      // the slug at whatever partial title existed on the first autosave,
+      // see resolveAutoSlug's own comment — a non-blank slug still tracks
+      // title edits as long as it hasn't been hand-customized. A *typed*
+      // slug is always normalized through slugify() too, not just accepted
+      // as-is — this used to only cover the blank case, which let a
+      // hand-typed value (e.g. pasting the title straight into Slug) save
+      // with spaces/capitals/punctuation Postgres and the URL both accept
+      // but the /news/[slug] route's exact-match lookup won't, since
+      // Next.js doesn't URL-decode a dynamic route param containing a
+      // %-escaped character (e.g. a space) before handing it to page code —
+      // see CLAUDE.md's News-slug-404 writeup for the confirmed mechanism.
+      ({ data, originalDoc }) => resolveAutoSlug(data, originalDoc),
     ],
     afterChange: [
       ({ doc }) => {

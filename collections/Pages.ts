@@ -3,7 +3,7 @@ import { authenticated } from "@/access/authenticated";
 import { readPublished } from "@/access/readPublished";
 import { getPreviewURL } from "@/lib/preview";
 import { safeRevalidatePath } from "@/lib/safeRevalidate";
-import { slugify } from "@/lib/slugify";
+import { resolveAutoSlug } from "@/lib/slugify";
 import { NAV_PAGES } from "@/lib/navigation";
 import { RichTextBlock, ImageBlock, GalleryBlock, CallToActionBlock, TwoColumnBlock, FileBlock, VideoBlock, QuoteBlock, FaqBlock } from "@/blocks";
 // Kept out of the shared blocks/index.ts barrel deliberately — a Pages-only
@@ -95,15 +95,15 @@ export const Pages: CollectionConfig = {
   },
   hooks: {
     beforeValidate: [
-      ({ data }) => {
-        if (!data) return data;
-        if (!data.slug && data.title) {
-          data.slug = slugify(data.title);
-        } else if (data.slug) {
-          data.slug = slugify(data.slug);
-        }
-        return data;
-      },
+      // Delegates to lib/slugify.ts's resolveAutoSlug, shared with
+      // collections/News.ts so the two collections can't drift out of
+      // sync — an empty slug is auto-filled from the title, and a
+      // non-blank slug still tracks title edits as long as it hasn't been
+      // hand-customized (Pages has autosave on too, same as News — see
+      // resolveAutoSlug's own comment for why a plain "only fill when
+      // blank" check freezes the slug at whatever partial title existed
+      // on the first autosave).
+      ({ data, originalDoc }) => resolveAutoSlug(data, originalDoc),
     ],
     // Nav placement lives on the doc itself (not a separate global), so any
     // save can change what the site-wide nav looks like — always bust the
