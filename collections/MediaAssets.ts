@@ -63,6 +63,17 @@ export const MediaAssets: CollectionConfig = {
   },
   admin: {
     group: "Site Settings",
+    // Without this, Payload falls back to showing each item's raw stored
+    // filename everywhere (this list, the "choose existing" picker,
+    // breadcrumbs) — normally fine, but addRandomSuffix (see
+    // payload.config.ts) means that filename now has a random string
+    // stapled onto it (e.g. "IMG_0894-F2q5MNq0NZ5Lxoh61MWex5dJzykt7m.MOV"),
+    // which isn't something the owner can use to tell files apart. This
+    // makes the owner's own "title" field (below) the display name
+    // instead — effectively lets them "rename" a file for their own
+    // purposes without touching the actual stored filename/URL, which
+    // stays exactly as Blob assigned it.
+    useAsTitle: "alt",
   },
   access: {
     read: () => true,
@@ -77,7 +88,16 @@ export const MediaAssets: CollectionConfig = {
     {
       name: "alt",
       type: "text",
-      admin: { description: "A short description of the video or file (not shown on the page)." },
+      // Still named "alt" internally (no schema change — a rename here
+      // is a column rename, which risks Drizzle's interactive rename
+      // prompt; see this repo's own gotchas on that). Only the label/
+      // description changed, purely a display concern.
+      label: "Title",
+      admin: {
+        description:
+          "A short name for this video or file — shown here in the list instead of the messy uploaded " +
+          "filename, and in the picker wherever it's used elsewhere. Not shown on the public site.",
+      },
     },
   ],
 };
