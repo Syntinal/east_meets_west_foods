@@ -94,6 +94,17 @@ export default buildConfig({
       // from the browser to Blob storage instead, bypassing that limit
       // entirely. See collections/MediaAssets.ts for the full story.
       clientUploads: true,
+      // Without this, a same-named re-upload collides with whatever's
+      // already at that path in Blob storage and fails with a "blob
+      // already exists" error — hit this for real immediately after a
+      // failed upload left an orphaned blob (the mimeTypes bug described
+      // in collections/MediaAssets.ts) and retrying under the same
+      // filename then failed a second, different way. addRandomSuffix
+      // makes every upload's storage path unique regardless, so retries
+      // (or two files that happen to share a name) never collide. Media
+      // doesn't need this — clientUploads: false there means uploads
+      // never hit this failure mode the same way.
+      addRandomSuffix: true,
     }),
   ],
   secret: process.env.PAYLOAD_SECRET || "",

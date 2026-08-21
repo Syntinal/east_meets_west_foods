@@ -30,6 +30,31 @@ import { authenticated } from "@/access/authenticated";
 // each of those fields (News' featuredVideo, blocks/FileBlock.ts,
 // blocks/VideoBlock.ts) already narrows further by mimeType (video vs pdf)
 // on top of pointing at this collection.
+//
+// Deliberately NOT setting `upload.mimeTypes` here, unlike Media — this is
+// a real tradeoff, not an oversight. Confirmed against Payload's own
+// source (node_modules/payload/dist/uploads/checkFileRestrictions.js) and
+// GitHub issues #16485/#14709: whenever a collection sets `mimeTypes`,
+// Payload runs a "secondary" validation step that re-sniffs the real file
+// bytes and, if that sniff comes back empty (a confirmed, still-open bug
+// for client-uploaded files — the extension→mimetype fallback map only
+// covers a handful of *text* formats and defaults everything else,
+// including PDFs and video like `.mov`, to `text/plain`), rejects the
+// upload outright. Hit this for real: a genuine .mov upload here failed
+// with "File type text/plain (from extension MOV) is not allowed," even
+// though the file itself was fine — confirmed by the raw bytes landing
+// correctly in Vercel Blob (visible in Manage Blobs) despite Payload
+// refusing to create the document for it. That secondary check only runs
+// when `mimeTypes` is set (`configMimeTypes.length > 0`); leaving it unset
+// skips that whole broken path. Payload's baseline dangerous-file-type
+// block (.exe/.dll/.bat/etc., unconditional regardless of `mimeTypes`)
+// still applies, so this isn't wide open — just no longer scoped
+// specifically to video/PDF at the collection level. The consuming
+// fields' own `filterOptions` still narrow the "choose existing" picker
+// to the right type; a trusted single owner uploading the wrong file type
+// directly into this collection by mistake is the same class of accepted,
+// low-likelihood gap collections/Media.ts's own comment already notes for
+// its filterOptions-only fields. Revisit once Payload ships a real fix.
 export const MediaAssets: CollectionConfig = {
   slug: "media-assets",
   labels: {
@@ -47,7 +72,6 @@ export const MediaAssets: CollectionConfig = {
   },
   upload: {
     staticDir: "public/media-assets",
-    mimeTypes: ["video/*", "application/pdf"],
   },
   fields: [
     {
