@@ -2,10 +2,10 @@ import type { Block } from "payload";
 import { fileThumbnail } from "@/lib/blockIcons";
 
 // A downloadable file (PDF) — a catering menu, an event flyer, a printable
-// order form. Needed collections/Media.ts to accept `application/pdf`
-// first (previously image/video only, see that file's own comment); the
+// order form. Lives in collections/MediaAssets.ts (video/PDF), not
+// collections/Media.ts (images only) — see that file's own comment; the
 // filterOptions below scope the "choose from existing" picker to PDFs
-// specifically so this field doesn't also offer every photo/video in the
+// specifically so this field doesn't also offer every video in that same
 // library, same pattern as every other upload field's `contains` filter.
 export const FileBlock: Block = {
   slug: "file",
@@ -15,7 +15,9 @@ export const FileBlock: Block = {
     {
       name: "file",
       type: "upload",
-      relationTo: "media",
+      // media-assets, not media — see collections/MediaAssets.ts for why
+      // PDFs live in a separate collection now.
+      relationTo: "media-assets",
       required: true,
       filterOptions: { mimeType: { contains: "pdf" } },
       admin: { description: "The PDF visitors will download." },

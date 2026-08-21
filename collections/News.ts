@@ -449,7 +449,9 @@ export const News: CollectionConfig = {
     {
       name: "featuredVideo",
       type: "upload",
-      relationTo: "media",
+      // media-assets, not media — see collections/MediaAssets.ts for why
+      // video lives in a separate collection now.
+      relationTo: "media-assets",
       filterOptions: { mimeType: { contains: "video" } },
       admin: {
         description:

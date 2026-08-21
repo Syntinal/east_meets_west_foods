@@ -7,6 +7,7 @@ import { buildConfig } from "payload";
 
 import { Users } from "./collections/Users";
 import { Media } from "./collections/Media";
+import { MediaAssets } from "./collections/MediaAssets";
 import { MenuItems } from "./collections/MenuItems";
 import { News } from "./collections/News";
 import { Testimonials } from "./collections/Testimonials";
@@ -45,11 +46,17 @@ export default buildConfig({
       beforeNavLinks: ["@/components/admin/SitePagesNav#SitePagesNav"],
     },
   },
-  collections: [Users, Media, MenuItems, News, Testimonials, Pages],
+  collections: [Users, Media, MediaAssets, MenuItems, News, Testimonials, Pages],
   globals: [Navigation, Home, MenuIntro, NewsIntro, TestimonialsIntro, Sauce, Story, Faq, Contact],
   editor: lexicalEditor(),
   // Only kicks in once a Blob store is connected on Vercel and injects this
-  // token — local dev keeps writing to public/media on disk, untouched.
+  // token — local dev keeps writing to public/media(-assets) on disk,
+  // untouched. Two separate vercelBlobStorage() plugin instances, one per
+  // collection, because `clientUploads` is a plugin-wide setting (not
+  // configurable per collection within a single instance — confirmed via
+  // @payloadcms/storage-vercel-blob's own types: `collections` entries only
+  // carry `prefix`/`disableLocalStorage`/etc., not `clientUploads`), and
+  // Media and MediaAssets deliberately need opposite values — see each.
   plugins: [
     vercelBlobStorage({
       enabled: Boolean(process.env.BLOB_READ_WRITE_TOKEN),
@@ -72,6 +79,21 @@ export default buildConfig({
       // Vercel's request-body limit, so buffered (non-client) uploads are a
       // safe way to route around this rather than disabling focal point.
       clientUploads: false,
+    }),
+    vercelBlobStorage({
+      enabled: Boolean(process.env.BLOB_READ_WRITE_TOKEN),
+      collections: { "media-assets": true },
+      token: process.env.BLOB_READ_WRITE_TOKEN,
+      // true, not false: MediaAssets holds video/PDF, which never triggers
+      // the focal-point crop-data re-fetch above (that path only runs for
+      // images — see collections/MediaAssets.ts's own comment) — so there's
+      // no reason to eat Media's buffered-upload workaround here, and every
+      // reason not to: buffered uploads are capped at Vercel's ~4.5MB
+      // serverless-function body limit, which even a short phone video clip
+      // routinely exceeds. clientUploads: true sends the bytes straight
+      // from the browser to Blob storage instead, bypassing that limit
+      // entirely. See collections/MediaAssets.ts for the full story.
+      clientUploads: true,
     }),
   ],
   secret: process.env.PAYLOAD_SECRET || "",
