@@ -42,6 +42,20 @@ const Layout = ({ children }: Args) => (
       rel="stylesheet"
       precedence="default"
     />
+    {/* A second, separate stylesheet for the richText "Text Style" toolbar's
+        font choices (see lib/richTextState.ts) — Fredoka/Lora already load
+        on the public site, Dancing Script is new (added there too, in
+        app/(frontend)/layout.tsx). Loaded here so an editor picking one of
+        these actually previews in the real font while typing, instead of a
+        fallback that only starts looking right after publishing. Doesn't
+        change the reasoning above: admin form chrome (labels, buttons, the
+        rest of admin.css's --font-body) still renders in Inter only, this
+        is purely for text *inside* richText fields. */}
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Dancing+Script:wght@400;600;700&display=swap"
+      rel="stylesheet"
+      precedence="default"
+    />
     <RootLayout config={config} importMap={importMap} serverFunction={serverFunction}>
       {children}
     </RootLayout>

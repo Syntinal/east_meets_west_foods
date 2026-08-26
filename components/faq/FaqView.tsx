@@ -1,4 +1,4 @@
-import { RichText } from "@payloadcms/richtext-lexical/react";
+import { RichText } from "@/components/StyledRichText";
 
 export type FaqQuestion = { question?: string | null; answer?: unknown };
 export type FaqDoc = {

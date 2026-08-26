@@ -1,4 +1,4 @@
-import { RichText } from "@payloadcms/richtext-lexical/react";
+import { RichText } from "@/components/StyledRichText";
 
 type MediaRef = { url?: string | null; alt?: string | null } | string | null;
 

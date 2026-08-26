@@ -1,7 +1,7 @@
 import path from "path";
 import { fileURLToPath } from "url";
 import { postgresAdapter } from "@payloadcms/db-postgres";
-import { lexicalEditor } from "@payloadcms/richtext-lexical";
+import { TextStateFeature, lexicalEditor } from "@payloadcms/richtext-lexical";
 import { vercelBlobStorage } from "@payloadcms/storage-vercel-blob";
 import { buildConfig } from "payload";
 
@@ -21,6 +21,7 @@ import { Sauce } from "./globals/Sauce";
 import { Story } from "./globals/Story";
 import { Faq } from "./globals/Faq";
 import { Contact } from "./globals/Contact";
+import { richTextState } from "./lib/richTextState";
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -48,7 +49,15 @@ export default buildConfig({
   },
   collections: [Users, Media, MediaAssets, MenuItems, News, Testimonials, Pages],
   globals: [Navigation, Home, MenuIntro, NewsIntro, TestimonialsIntro, Sauce, Story, Faq, Contact],
-  editor: lexicalEditor(),
+  // Adds a "Text Style" color/font dropdown to every richText field's
+  // toolbar on top of Payload's own recommended defaults (bold, italic,
+  // links, lists, headings, etc.) — see lib/richTextState.ts for the actual
+  // color/font choices and for why rendering them back out on the public
+  // site needs its own converter (components/StyledRichText.tsx), since
+  // TextStateFeature only wires up the admin editor's own live preview.
+  editor: lexicalEditor({
+    features: ({ defaultFeatures }) => [...defaultFeatures, TextStateFeature({ state: richTextState })],
+  }),
   // Only kicks in once a Blob store is connected on Vercel and injects this
   // token — local dev keeps writing to public/media(-assets) on disk,
   // untouched. Two separate vercelBlobStorage() plugin instances, one per

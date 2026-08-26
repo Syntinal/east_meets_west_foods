@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { RichText } from "@payloadcms/richtext-lexical/react";
+import { RichText } from "@/components/StyledRichText";
 
 export type NewsDoc = {
   id: string;

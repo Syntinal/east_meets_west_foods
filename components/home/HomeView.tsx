@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { RichText } from "@payloadcms/richtext-lexical/react";
+import { RichText } from "@/components/StyledRichText";
 import TestimonialCarousel from "@/components/TestimonialCarousel";
 import { GalleryGrid, type GalleryPhoto } from "./GalleryGrid";
 import { TeaserCards, type TeaserBlock, type LatestNewsPost } from "./TeaserCards";
