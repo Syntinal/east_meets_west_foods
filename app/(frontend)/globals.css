@@ -63,7 +63,10 @@ img { max-width: 100%; display: block; }
 }
 
 .nav-inner {
-  width: min(1180px, 92%);
+  /* Wider than the site's usual 1180px .container — this row has to fit
+     9 links plus the review pill, so it gets its own, roomier max-width
+     rather than sharing the standard content container's. */
+  width: min(1340px, 94%);
   margin: 0 auto;
   display: flex;
   align-items: center;
@@ -127,18 +130,33 @@ img { max-width: 100%; display: block; }
   margin: 0;
   padding: 0;
   display: flex;
-  justify-content: center;
+  align-items: center;
+  /* Fill the full nav-inner width (same content width the rest of the
+     site uses), but via flex-start + the review pill's margin-left: auto
+     below rather than space-between — that kept the full-width feel but
+     pushed the links themselves apart from each other; this keeps the
+     links grouped close together like Apple/Tesla's nav and lets the
+     leftover width go to the gap before the review pill instead. */
+  width: 100%;
+  justify-content: flex-start;
   flex-wrap: wrap;
-  gap: 4px;
+  gap: 2px;
 }
 
 .primary-nav-list a {
   display: block;
-  padding: 18px 22px;
-  font-size: 0.82rem;
+  padding: 17px 14px;
+  font-size: 0.85rem;
   font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
+  /* Title Case + tight/normal tracking (not all-caps + wide tracking) —
+     matches Apple/Tesla's own nav styling, and all-caps text is measurably
+     ~10% slower to read than mixed-case (Nielsen Norman Group), since caps
+     lose the word-shape cues from ascenders/descenders that mixed case
+     gives you. The nav labels are already stored in Title Case
+     (lib/navigation.ts / the Navigation global) — this was purely a CSS
+     transform on top of that. */
+  letter-spacing: 0.01em;
+  text-transform: none;
   color: var(--white);
   transition: color 0.15s ease;
   position: relative;
@@ -176,18 +194,23 @@ img { max-width: 100%; display: block; }
 .primary-nav-list li.nav-review {
   display: flex;
   align-items: center;
-  margin-left: 22px;
+  /* Pushes the pill to the far right, soaking up whatever width the
+     grouped links on the left don't use — see .primary-nav-list's comment
+     above for why this replaced justify-content: space-between. */
+  margin-left: auto;
+  padding-left: 14px;
 }
 
 .nav-review-link {
   position: relative;
-  padding: 7px 15px !important;
+  padding: 6px 14px !important;
   border-radius: 999px;
   border: 1px solid rgba(255, 215, 106, 0.4);
   color: var(--white) !important;
   font-size: 0.78rem !important;
   font-weight: 600 !important;
-  letter-spacing: 0.16em !important;
+  letter-spacing: 0.01em !important;
+  text-transform: none !important;
   white-space: nowrap;
   transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
 }
@@ -1485,7 +1508,10 @@ img { max-width: 100%; display: block; }
   }
 }
 
-@media (max-width: 720px) {
+/* Matches the width the tightened .primary-nav-list actually needs to stay
+   on one line (verified at ~1045-1060px) — below this, the hamburger menu
+   takes over instead of letting the row wrap onto a second line. */
+@media (max-width: 1060px) {
   .nav-inner {
     flex-direction: column;
     align-items: stretch;
