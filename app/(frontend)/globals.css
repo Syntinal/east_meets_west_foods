@@ -390,6 +390,18 @@ img { max-width: 100%; display: block; }
   margin-top: 4px;
 }
 
+/* News list card excerpt only — deliberately not the plain .menu-card p
+   selector above, which is shared with Menu items and Card Grid blocks
+   that aren't meant to be clamped. Visual backstop alongside
+   collections/News.ts's excerpt maxLength. */
+.news-card-excerpt {
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
 .price-list {
   list-style: none;
   margin: auto 0 0;
@@ -922,6 +934,17 @@ img { max-width: 100%; display: block; }
   color: var(--gray);
   font-size: 0.92rem;
   flex: 1;
+  /* Visual backstop alongside each field's maxLength (see blocks/CustomCardBlock.ts,
+     PageCardBlock.ts, MapCardBlock.ts) — caps wrapped lines regardless of how a
+     given character count happens to wrap at this card's width. 4, not 3: at this
+     grid's narrowest card width (240px, see .teaser-grid), legitimate text well
+     under the 130-char cap can still wrap to 4 lines — a 3-line clamp was cutting
+     off valid content (confirmed on the Sauce card's 92-char blurb).  */
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .teaser-card-cta {
@@ -1383,6 +1406,12 @@ img { max-width: 100%; display: block; }
 .page-block-cta p {
   margin: 0 0 18px;
   color: var(--ink);
+  /* Visual backstop alongside blocks/CallToActionBlock.ts's maxLength. */
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .page-block-btn {

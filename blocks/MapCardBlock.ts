@@ -16,7 +16,11 @@ export const MapCardBlock: Block = {
       name: "body",
       type: "textarea",
       defaultValue: "476534 US HWY 95, Suite B — Ponderay, ID 83852.",
-      admin: { description: "Shown under the heading. Doesn't affect the map itself — see the field's comment in code." },
+      maxLength: 130,
+      admin: {
+        description:
+          "Shown under the heading — keep it to about 3 lines (130 characters max). Doesn't affect the map itself — see the field's comment in code.",
+      },
     },
     { name: "ctaText", type: "text", defaultValue: "Get Directions →" },
   ],

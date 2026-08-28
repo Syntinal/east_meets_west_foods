@@ -44,7 +44,19 @@ export const Home: GlobalConfig = {
     update: authenticated,
   },
   versions: {
-    drafts: true,
+    // `validate: true` makes Save Draft run the same field validation as
+    // Publish (maxLength, required, etc.) — without it, Payload skips most
+    // validation on draft saves by design, so a pasted paragraph well over
+    // a card body's maxLength would save silently as a draft and only get
+    // caught at Publish time. Safe to turn on here specifically because
+    // Home has no autosave (see below) — every draft save is a deliberate
+    // "Save Draft" click, not an in-progress autosave tick, so there's no
+    // risk of blocking mid-typing the way it would on an autosave-enabled
+    // entity (News, Pages — deliberately left alone, see their own
+    // versions.drafts config).
+    drafts: {
+      validate: true,
+    },
   },
   admin: {
     // false (not a string label) skips this entirely from the sidebar's

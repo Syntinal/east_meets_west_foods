@@ -20,7 +20,12 @@ export const CustomCardBlock: Block = {
       admin: { description: "Landscape or square, at least 800×600px." },
     },
     { name: "heading", type: "text", required: true },
-    { name: "body", type: "textarea", admin: { description: "Short blurb shown on the card." } },
+    {
+      name: "body",
+      type: "textarea",
+      maxLength: 130,
+      admin: { description: "Short blurb shown on the card — keep it to about 3 lines (130 characters max)." },
+    },
     { name: "ctaText", type: "text", defaultValue: "Learn More →", admin: { description: "The link text at the bottom of the card." } },
     {
       name: "href",

@@ -55,7 +55,7 @@ export function NewsListView({ posts, intro }: { posts: NewsListDoc[]; intro: Ne
                       <h2>
                         <Link href={`/news/${post.slug}`}>{post.title}</Link>
                       </h2>
-                      {post.excerpt && <p>{post.excerpt}</p>}
+                      {post.excerpt && <p className="news-card-excerpt">{post.excerpt}</p>}
                       <Link href={`/news/${post.slug}`} className="teaser-card-cta">
                         {intro.readMoreText}
                       </Link>

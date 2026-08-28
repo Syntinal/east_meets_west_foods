@@ -8,7 +8,12 @@ export const CallToActionBlock: Block = {
   admin: { images: { thumbnail: ctaThumbnail } },
   fields: [
     { name: "heading", type: "text", admin: { description: "Optional short heading above the button." } },
-    { name: "body", type: "textarea", admin: { description: "Optional short line of text above the button." } },
+    {
+      name: "body",
+      type: "textarea",
+      maxLength: 150,
+      admin: { description: "Optional short line of text above the button — keep it to about 3 lines (150 characters max)." },
+    },
     {
       name: "buttonLabel",
       type: "text",

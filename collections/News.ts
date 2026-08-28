@@ -448,7 +448,15 @@ export const News: CollectionConfig = {
         description: "The date shown on the post. Defaults to today.",
       },
     },
-    { name: "excerpt", type: "textarea", admin: { description: "Short summary shown on the News list and used as the page description for search engines." } },
+    {
+      name: "excerpt",
+      type: "textarea",
+      maxLength: 160,
+      admin: {
+        description:
+          "Short summary shown on the News list and used as the page description for search engines — keep it to about 4 lines (160 characters max; search engines truncate around there too).",
+      },
+    },
     {
       name: "featuredImage",
       type: "upload",

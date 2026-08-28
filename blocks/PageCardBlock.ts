@@ -52,8 +52,9 @@ export const PageCardBlock: Block = {
     {
       name: "body",
       type: "textarea",
+      maxLength: 130,
       admin: {
-        description: "Short blurb shown on the card.",
+        description: "Short blurb shown on the card — keep it to about 3 lines (130 characters max).",
         condition: (_, siblingData) => siblingData?.page !== "news",
       },
     },
