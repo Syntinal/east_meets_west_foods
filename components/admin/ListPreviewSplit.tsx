@@ -17,24 +17,28 @@ export type PreviewItem = { id: string; label: string; badge?: string; previewUr
 // deliberately doesn't try to reproduce that inline; see the plan doc for
 // why.
 //
-// Reordering (`reorderable`/`orderFieldName`): Menu Items previously had
-// no way to reorder except typing numbers into its `order` field (see
-// collections/MenuItems.ts) — every array field on this site (gallery
-// photos, FAQ questions, page blocks) already gets real drag handles for
-// free from Payload's own array UI, so this was a real inconsistency for
-// a non-technical owner. Payload does have a native drag-reorder feature
-// (`orderable` at the collection level), but it's still marked
-// experimental in this Payload version and its drag UI lives entirely
-// inside Payload's *own* List view rendering — which this component
-// already fully replaces — so adopting it here would mean depending on
-// an experimental, still-changing internal endpoint instead of this
-// collection's own simple, stable `order` number field. This implements
-// drag-and-drop directly against that existing field instead: dropping a
-// row renumbers the whole list by 10s (0, 10, 20, ...) and PATCHes every
-// item via Payload's normal REST API — the exact same field an "Edit →"
-// visit or a future admin still edits directly, so nothing about how
-// ordering works elsewhere on this collection changes, just how it's
-// triggered from this screen.
+// Reordering (`reorderable`): Menu Items previously had no way to reorder
+// except typing numbers into its `order` field (see collections/MenuItems.ts)
+// — every array field on this site (gallery photos, FAQ questions, page
+// blocks) already gets real drag handles for free from Payload's own array
+// UI, so this was a real inconsistency for a non-technical owner. Payload
+// does have a native drag-reorder feature (`orderable` at the collection
+// level), but it's still marked experimental in this Payload version and
+// its drag UI lives entirely inside Payload's *own* List view rendering —
+// which this component already fully replaces — so adopting it here would
+// mean depending on an experimental, still-changing internal endpoint
+// instead of this collection's own simple, stable `order` number field.
+// This implements drag-and-drop directly against that existing field
+// instead: dropping a row renumbers the whole list by 10s (0, 10, 20, ...)
+// and persists it via the dedicated /api/reorder route (see its header
+// comment) — the exact same field an "Edit →" visit or a future admin
+// still edits directly, so nothing about how ordering works elsewhere on
+// this collection changes, just how it's triggered from this screen.
+// Deliberately NOT a plain `PATCH /api/<collection>/<id>` — that endpoint
+// merges onto the document's latest saved version (draft or published),
+// which can silently drag a pending draft's stale content/status into the
+// live row on a simple reorder; see /api/reorder/route.ts for the full
+// incident and fix.
 export function ListPreviewSplit({
   items,
   defaultPreviewUrl,
@@ -42,17 +46,18 @@ export function ListPreviewSplit({
   createLabel,
   reorderable,
   collectionSlug,
-  orderFieldName = "order",
 }: {
   items: PreviewItem[];
   defaultPreviewUrl: string;
   createHref: string;
   createLabel: string;
   // Only set together — see collections/MenuItems.ts for the one
-  // collection currently opted in.
+  // collection currently opted in. The order field's actual name lives
+  // server-side in app/(payload)/api/reorder/route.ts's own allowlist, not
+  // here — this component only ever needs to know *whether* to show drag
+  // handles, not which column they map to.
   reorderable?: boolean;
   collectionSlug?: string;
-  orderFieldName?: string;
 }) {
   const [orderedItems, setOrderedItems] = useState(items);
   const [selectedId, setSelectedId] = useState<string | null>(items[0]?.id ?? null);
@@ -78,18 +83,27 @@ export function ListPreviewSplit({
     if (!collectionSlug) return;
     setSavingOrder(true);
     try {
-      await Promise.all(
-        next.map((item, index) =>
-          fetch(`/api/${collectionSlug}/${item.id}`, {
-            method: "PATCH",
-            credentials: "same-origin",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ [orderFieldName]: index * 10 }),
-          }).then((res) => {
-            if (!res.ok) throw new Error(`Failed to save the new order for "${item.label}".`);
-          })
-        )
-      );
+      // Goes through the dedicated /api/reorder route, NOT Payload's own
+      // generated `PATCH /api/<collection>/<id>` endpoint — that endpoint
+      // merges a partial update onto the document's latest saved version
+      // (draft or published), so if an item has a pending unpublished
+      // draft sitting on top, an order-only PATCH there would silently
+      // drag that draft's stale content and status into the live row. See
+      // app/(payload)/api/reorder/route.ts's header comment for the full
+      // mechanism and CLAUDE.md for the incident that surfaced it.
+      const res = await fetch("/api/reorder", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          collectionSlug,
+          items: next.map((item, index) => ({ id: item.id, order: index * 10 })),
+        }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        throw new Error(body?.error || "Failed to save the new order.");
+      }
     } catch (err) {
       alert(
         `Couldn't save the new order — your changes weren't kept, sorry. Try again in a moment.\n\n(${
