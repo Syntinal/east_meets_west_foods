@@ -34,6 +34,13 @@ type ListConfig = {
   // this view replaced that table entirely. Optional since only News has
   // this field.
   itemBadge?: (doc: Doc) => string | undefined;
+  // Lets this screen's list be dragged into a new order instead of typing
+  // numbers into the collection's own `order` field — see
+  // ListPreviewSplit.tsx's header comment for the full reasoning. Only
+  // Menu Items is opted in for now (Testimonials has the identical
+  // `order` field/mechanic and could get this too with no extra work, but
+  // wasn't asked for yet).
+  reorderable?: boolean;
 };
 
 const CONFIG: Record<string, ListConfig> = {
@@ -43,6 +50,7 @@ const CONFIG: Record<string, ListConfig> = {
     defaultPath: "/menu",
     itemPreviewUrl: (doc) => getPreviewURL("/menu", String(doc.id)),
     itemLabel: (doc) => doc.title || "Untitled",
+    reorderable: true,
   },
   "news-posts": {
     label: "News",
@@ -135,6 +143,8 @@ export function ListPreviewView(props: {
         defaultPreviewUrl={getPreviewURL(config.defaultPath)}
         createHref={newDocumentURL ?? `/admin/collections/${collectionSlug}/create`}
         createLabel={config.createLabel}
+        reorderable={config.reorderable}
+        collectionSlug={collectionSlug}
       />
     </div>
   );

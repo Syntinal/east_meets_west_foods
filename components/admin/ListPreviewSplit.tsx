@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export type PreviewItem = { id: string; label: string; badge?: string; previewUrl: string; editHref: string };
 
@@ -16,20 +16,110 @@ export type PreviewItem = { id: string; label: string; badge?: string; previewUr
 // (which has its own live-updating form/preview split) — this component
 // deliberately doesn't try to reproduce that inline; see the plan doc for
 // why.
+//
+// Reordering (`reorderable`/`orderFieldName`): Menu Items previously had
+// no way to reorder except typing numbers into its `order` field (see
+// collections/MenuItems.ts) — every array field on this site (gallery
+// photos, FAQ questions, page blocks) already gets real drag handles for
+// free from Payload's own array UI, so this was a real inconsistency for
+// a non-technical owner. Payload does have a native drag-reorder feature
+// (`orderable` at the collection level), but it's still marked
+// experimental in this Payload version and its drag UI lives entirely
+// inside Payload's *own* List view rendering — which this component
+// already fully replaces — so adopting it here would mean depending on
+// an experimental, still-changing internal endpoint instead of this
+// collection's own simple, stable `order` number field. This implements
+// drag-and-drop directly against that existing field instead: dropping a
+// row renumbers the whole list by 10s (0, 10, 20, ...) and PATCHes every
+// item via Payload's normal REST API — the exact same field an "Edit →"
+// visit or a future admin still edits directly, so nothing about how
+// ordering works elsewhere on this collection changes, just how it's
+// triggered from this screen.
 export function ListPreviewSplit({
   items,
   defaultPreviewUrl,
   createHref,
   createLabel,
+  reorderable,
+  collectionSlug,
+  orderFieldName = "order",
 }: {
   items: PreviewItem[];
   defaultPreviewUrl: string;
   createHref: string;
   createLabel: string;
+  // Only set together — see collections/MenuItems.ts for the one
+  // collection currently opted in.
+  reorderable?: boolean;
+  collectionSlug?: string;
+  orderFieldName?: string;
 }) {
+  const [orderedItems, setOrderedItems] = useState(items);
   const [selectedId, setSelectedId] = useState<string | null>(items[0]?.id ?? null);
-  const selected = items.find((item) => item.id === selectedId);
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [savingOrder, setSavingOrder] = useState(false);
+
+  // Keeps this in sync if the server-rendered `items` prop ever changes
+  // out from under it (e.g. returning to this list after editing an item
+  // elsewhere) — compared by id sequence rather than replaced
+  // unconditionally, so an in-flight local reorder (see below) isn't
+  // clobbered by the exact same list re-rendering.
+  useEffect(() => {
+    setOrderedItems((current) => {
+      const sameIds = current.length === items.length && current.every((item, i) => item.id === items[i].id);
+      return sameIds ? current : items;
+    });
+  }, [items]);
+
+  const selected = orderedItems.find((item) => item.id === selectedId);
   const iframeSrc = selected?.previewUrl ?? defaultPreviewUrl;
+
+  async function persistOrder(next: PreviewItem[]) {
+    if (!collectionSlug) return;
+    setSavingOrder(true);
+    try {
+      await Promise.all(
+        next.map((item, index) =>
+          fetch(`/api/${collectionSlug}/${item.id}`, {
+            method: "PATCH",
+            credentials: "same-origin",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ [orderFieldName]: index * 10 }),
+          }).then((res) => {
+            if (!res.ok) throw new Error(`Failed to save the new order for "${item.label}".`);
+          })
+        )
+      );
+    } catch (err) {
+      alert(
+        `Couldn't save the new order — your changes weren't kept, sorry. Try again in a moment.\n\n(${
+          err instanceof Error ? err.message : String(err)
+        })`
+      );
+      setOrderedItems(items); // revert to the last known-good order
+    } finally {
+      setSavingOrder(false);
+    }
+  }
+
+  function handleDrop(targetId: string) {
+    if (!draggingId || draggingId === targetId) {
+      setDraggingId(null);
+      return;
+    }
+    const fromIndex = orderedItems.findIndex((item) => item.id === draggingId);
+    const toIndex = orderedItems.findIndex((item) => item.id === targetId);
+    if (fromIndex === -1 || toIndex === -1) {
+      setDraggingId(null);
+      return;
+    }
+    const next = [...orderedItems];
+    const [moved] = next.splice(fromIndex, 1);
+    next.splice(toIndex, 0, moved);
+    setOrderedItems(next);
+    setDraggingId(null);
+    void persistOrder(next);
+  }
 
   return (
     <div style={{ display: "flex", gap: 16, height: "70vh", minHeight: 480 }}>
@@ -49,52 +139,89 @@ export function ListPreviewSplit({
         >
           + New {createLabel}
         </a>
-        {items.length === 0 && <p style={{ padding: "0 12px", opacity: 0.7, fontSize: 13 }}>Nothing here yet.</p>}
+        {orderedItems.length === 0 && <p style={{ padding: "0 12px", opacity: 0.7, fontSize: 13 }}>Nothing here yet.</p>}
+        {reorderable && orderedItems.length > 1 && (
+          <p style={{ padding: "0 12px 8px", opacity: 0.65, fontSize: 12 }}>
+            Drag <span aria-hidden>⠿</span> to reorder{savingOrder ? " — saving…" : "."}
+          </p>
+        )}
         <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
-          {items.map((item) => (
-            <li
-              key={item.id}
-              style={{
-                borderTop: "1px solid var(--theme-elevation-100, #eee)",
-                background: item.id === selectedId ? "var(--theme-elevation-50, #f5f5f5)" : undefined,
-              }}
-            >
-              <button
-                type="button"
-                onClick={() => setSelectedId(item.id)}
+          {orderedItems.map((item) => {
+            const canDrag = Boolean(reorderable && collectionSlug && orderedItems.length > 1);
+            return (
+              <li
+                key={item.id}
+                draggable={canDrag}
+                onDragStart={canDrag ? () => setDraggingId(item.id) : undefined}
+                onDragOver={canDrag ? (e) => e.preventDefault() : undefined}
+                onDrop={canDrag ? () => handleDrop(item.id) : undefined}
+                onDragEnd={canDrag ? () => setDraggingId(null) : undefined}
                 style={{
-                  display: "block",
-                  width: "100%",
-                  textAlign: "left",
-                  padding: "10px 12px 2px",
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  font: "inherit",
-                  color: "inherit",
+                  display: "flex",
+                  alignItems: "stretch",
+                  borderTop: "1px solid var(--theme-elevation-100, #eee)",
+                  background: item.id === selectedId ? "var(--theme-elevation-50, #f5f5f5)" : undefined,
+                  opacity: draggingId === item.id ? 0.5 : 1,
                 }}
               >
-                {item.label}
-                {item.badge && (
+                {canDrag && (
                   <span
+                    aria-hidden
+                    title="Drag to reorder"
                     style={{
-                      display: "block",
-                      fontSize: 11,
-                      opacity: 0.65,
-                      textTransform: "uppercase",
-                      letterSpacing: "0.03em",
-                      marginTop: 2,
+                      display: "flex",
+                      alignItems: "center",
+                      padding: "0 4px 0 10px",
+                      cursor: "grab",
+                      opacity: 0.55,
+                      fontSize: 14,
                     }}
                   >
-                    {item.badge}
+                    ⠿
                   </span>
                 )}
-              </button>
-              <a href={item.editHref} style={{ display: "block", padding: "0 12px 10px", fontSize: 12, opacity: 0.75 }}>
-                Edit →
-              </a>
-            </li>
-          ))}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedId(item.id)}
+                    style={{
+                      display: "block",
+                      width: "100%",
+                      textAlign: "left",
+                      padding: canDrag ? "10px 12px 2px 0" : "10px 12px 2px",
+                      background: "none",
+                      border: "none",
+                      cursor: "pointer",
+                      font: "inherit",
+                      color: "inherit",
+                    }}
+                  >
+                    {item.label}
+                    {item.badge && (
+                      <span
+                        style={{
+                          display: "block",
+                          fontSize: 11,
+                          opacity: 0.65,
+                          textTransform: "uppercase",
+                          letterSpacing: "0.03em",
+                          marginTop: 2,
+                        }}
+                      >
+                        {item.badge}
+                      </span>
+                    )}
+                  </button>
+                  <a
+                    href={item.editHref}
+                    style={{ display: "block", padding: canDrag ? "0 12px 10px 0" : "0 12px 10px", fontSize: 12, opacity: 0.75 }}
+                  >
+                    Edit →
+                  </a>
+                </div>
+              </li>
+            );
+          })}
         </ul>
       </div>
       <iframe

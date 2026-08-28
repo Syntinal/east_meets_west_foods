@@ -1,8 +1,22 @@
-import type { GlobalConfig } from "payload";
+import type { GlobalConfig, TextFieldSingleValidation } from "payload";
 import { revalidatePath } from "next/cache";
 import { authenticated } from "@/access/authenticated";
 import { readPublished } from "@/access/readPublished";
 import { getPreviewURL } from "@/lib/preview";
+
+// ContactView.tsx's toTelHref() builds the click-to-call link by stripping
+// everything but digits and assuming exactly 10 remain (or 11 starting
+// with a leading "1") — that assumption is only documented in a comment
+// there, never checked here. A typo (a dropped or doubled digit) or a
+// pasted-in extension ("...6283 ext 2") saves fine as plain text and
+// silently produces a tel: link that dials the wrong number or an invalid
+// one — nothing on screen would say so. Catches that at save time instead.
+const validatePhone: TextFieldSingleValidation = (value) => {
+  if (!value) return true;
+  const digits = value.replace(/\D/g, "");
+  if (digits.length === 10 || (digits.length === 11 && digits.startsWith("1"))) return true;
+  return 'That doesn\'t look like a complete phone number — enter all 10 digits, e.g. "(208) 627-6283".';
+};
 
 // The Contact page, previously hand-coded HTML — now editable. The Google
 // Maps embed/overlay link and the JSON-LD `hasMap` URL in
@@ -66,6 +80,7 @@ export const Contact: GlobalConfig = {
       admin: {
         description: 'e.g. "(208) 627-6283" — also used to build the click-to-call link (assumes a 10-digit US number).',
       },
+      validate: validatePhone,
     },
     { name: "blurb", type: "textarea", admin: { description: "Short line about the location, shown under the phone number." } },
     {

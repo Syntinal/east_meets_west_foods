@@ -1,5 +1,6 @@
 import type { Block } from "payload";
 import { customCardThumbnail } from "@/lib/blockIcons";
+import { validateHref } from "@/lib/validateHref";
 
 // A genuinely new homepage teaser card, pointing anywhere the owner wants
 // — home page only, not part of the generic Pages block picker (see
@@ -30,6 +31,7 @@ export const CustomCardBlock: Block = {
         description:
           'Where the whole card links to — e.g. "/catering" (a Page you\'ve created), "tel:+12086276283", "mailto:someone@example.com", or a full https:// link.',
       },
+      validate: validateHref,
     },
   ],
 };

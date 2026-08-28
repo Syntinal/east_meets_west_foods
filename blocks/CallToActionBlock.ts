@@ -1,5 +1,6 @@
 import type { Block } from "payload";
 import { ctaThumbnail } from "@/lib/blockIcons";
+import { validateHref } from "@/lib/validateHref";
 
 export const CallToActionBlock: Block = {
   slug: "cta",
@@ -23,6 +24,7 @@ export const CallToActionBlock: Block = {
         description:
           'Where the button goes — e.g. "/contact", "tel:+12086276283", "mailto:someone@example.com", or a full https:// link.',
       },
+      validate: validateHref,
     },
   ],
 };
