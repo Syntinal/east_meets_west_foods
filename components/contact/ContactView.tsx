@@ -57,7 +57,7 @@ export function ContactView({ contact }: { contact: ContactDoc }) {
                   </span>
                 </div>
               )}
-              {contact.blurb && <p className="muted-text">{contact.blurb}</p>}
+              {contact.blurb && <p className="muted-text contact-blurb">{contact.blurb}</p>}
             </div>
             <div className="visit-map">
               <iframe

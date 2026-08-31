@@ -400,17 +400,18 @@ img { max-width: 100%; display: block; }
 /* Same typography as .menu-card p above, for a Card Grid card's rich-text
    body (see blocks/CardGridBlock.ts) — without this, list items would
    fall back to the browser default (larger left indent, black text) and
-   read as visibly unstyled next to the card's other copy. */
-.menu-card ul,
+   read as visibly unstyled next to the card's other copy. Excludes
+   .price-list: as a class selector alone it's lower-specificity than this
+   element+class selector, so without the :not() here these rules silently
+   won regardless of source order — killing .price-list's own
+   margin-top: auto (its bottom-anchor) and forcing back a 20px
+   padding-left no matter what .price-list itself set. */
+.menu-card ul:not(.price-list),
 .menu-card ol {
   margin: 0 0 18px;
   padding-left: 20px;
   color: var(--gray);
   font-size: 0.95rem;
-}
-
-.menu-card li + li {
-  margin-top: 4px;
 }
 
 /* News list card excerpt only — deliberately not the plain .menu-card p
@@ -443,6 +444,15 @@ img { max-width: 100%; display: block; }
 
 .price-list li + li {
   border-top: 1px dashed var(--line);
+}
+
+/* Without this, the last row's own padding-bottom stacks on top of
+   .menu-card-body's bottom padding, leaving a bigger gap under the prices
+   than the 18px left/right inset around them. Zeroing it here makes the
+   card's own padding the only thing setting that edge, flush and
+   consistent with the sides. */
+.price-list li:last-child {
+  padding-bottom: 0;
 }
 
 .price-list li span {
@@ -1245,6 +1255,10 @@ img { max-width: 100%; display: block; }
 .contact-link-list a { color: var(--ink); }
 .contact-link-list a:hover { color: var(--red); }
 
+.muted-text.contact-blurb {
+  margin-top: 8px;
+}
+
 .muted-text {
   color: var(--gray);
   font-size: 0.94rem;
@@ -1478,6 +1492,19 @@ img { max-width: 100%; display: block; }
   color: var(--ink);
   font-size: 0.97rem;
   line-height: 1.65;
+}
+
+/* margin: 0 above is on the <dd> itself — the rich text answer renders as
+   a <p> underneath it (see components/StyledRichText.tsx), which still
+   carries the browser's default paragraph margin unless reset here too.
+   Preserve spacing between multiple paragraphs, for an answer with more
+   than one, without reintroducing the leading/trailing gap. */
+.faq-answer p {
+  margin: 0;
+}
+
+.faq-answer p + p {
+  margin-top: 10px;
 }
 
 .faq-answer a {
