@@ -1193,6 +1193,21 @@ img { max-width: 100%; display: block; }
 
 .footer-slim-nav a:hover { color: var(--red); }
 
+.footer-social-links {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.footer-social-link {
+  display: inline-flex;
+  align-items: center;
+  color: rgba(255, 255, 255, 0.5);
+  transition: color 0.15s ease;
+}
+
+.footer-social-link:hover { color: var(--red); }
+
 /* ============ CONTACT ============ */
 .contact-grid {
   display: grid;

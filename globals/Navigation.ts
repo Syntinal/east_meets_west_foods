@@ -84,5 +84,32 @@ export const Navigation: GlobalConfig = {
         },
       ],
     },
+    {
+      type: "group",
+      name: "socialLinks",
+      admin: { description: "Links to the business's social media profiles, shown in the site footer. Leave a field blank to hide that link." },
+      fields: [
+        {
+          name: "facebook",
+          type: "text",
+          label: "Facebook URL",
+          defaultValue: "https://www.facebook.com/people/East-Meets-West-Dumpling-Bar/61592584360042/",
+        },
+        {
+          name: "instagram",
+          type: "text",
+          label: "Instagram URL",
+          defaultValue: "https://www.instagram.com",
+          admin: { description: "Placeholder links to Instagram's main site until the business's own account is set up — swap in the real profile URL once it exists." },
+        },
+        {
+          name: "tiktok",
+          type: "text",
+          label: "TikTok URL",
+          defaultValue: "https://www.tiktok.com",
+          admin: { description: "Placeholder links to TikTok's main site until the business's own account is set up — swap in the real profile URL once it exists." },
+        },
+      ],
+    },
   ],
 };

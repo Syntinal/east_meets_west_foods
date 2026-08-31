@@ -38,10 +38,11 @@ export const viewport: Viewport = {
 const STATIC_NAV_ORDER = new Map(NAV_PAGES.map((page, i) => [page.key, i * 10]));
 
 type ReviewLink = { text: string; url: string };
+type SocialLinks = { facebook: string; instagram: string; tiktok: string };
 
 async function getVisiblePages(
   isDraftMode: boolean,
-): Promise<{ pages: NavEntry[]; reviewLink: ReviewLink }> {
+): Promise<{ pages: NavEntry[]; reviewLink: ReviewLink; socialLinks: SocialLinks }> {
   const payload = await getPayload({ config });
   const [nav, dynamicPages] = await Promise.all([
     payload.findGlobal({ slug: "navigation" }) as unknown as Promise<Record<string, unknown>>,
@@ -85,7 +86,18 @@ async function getVisiblePages(
       "https://www.google.com/maps/place//data=!4m3!3m2!1s0x5363d1966a6b04e9:0x6d04125dba42b761!12e1",
   };
 
-  return { pages: [...staticEntries, ...dynamicEntries].sort((a, b) => a.order - b.order), reviewLink };
+  const socialLinksData = nav.socialLinks as Partial<SocialLinks> | undefined;
+  const socialLinks: SocialLinks = {
+    facebook: socialLinksData?.facebook || "",
+    instagram: socialLinksData?.instagram || "",
+    tiktok: socialLinksData?.tiktok || "",
+  };
+
+  return {
+    pages: [...staticEntries, ...dynamicEntries].sort((a, b) => a.order - b.order),
+    reviewLink,
+    socialLinks,
+  };
 }
 
 // See getContact() in app/(frontend)/contact/page.tsx for why overrideAccess
@@ -105,7 +117,7 @@ async function getFooterContactInfo(isDraftMode: boolean): Promise<{ address: st
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const { isEnabled: isDraftMode } = await draftMode();
-  const [{ pages: visiblePages, reviewLink }, contactInfo] = await Promise.all([
+  const [{ pages: visiblePages, reviewLink, socialLinks }, contactInfo] = await Promise.all([
     getVisiblePages(isDraftMode),
     getFooterContactInfo(isDraftMode),
   ]);
@@ -125,7 +137,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         {isDraftMode && <RefreshOnSave />}
         <Nav pages={visiblePages} reviewLink={reviewLink} />
         {children}
-        <Footer pages={visiblePages} address={contactInfo.address} phone={contactInfo.phone} />
+        <Footer
+          pages={visiblePages}
+          address={contactInfo.address}
+          phone={contactInfo.phone}
+          socialLinks={socialLinks}
+        />
       </body>
     </html>
   );
