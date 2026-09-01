@@ -787,6 +787,17 @@ img { max-width: 100%; display: block; }
   display: block;
 }
 
+/* ============ NEWS POST VIDEO ============ */
+/* Deliberately no aspect-ratio/object-fit crop, unlike .menu-card-img — a
+   News post's featured video can be portrait (e.g. a Cloudinary Video
+   Studio clip), and cropping to a fixed box would cut off the Studio's
+   burned-in bottom caption. The video's own width:100%/height:auto inline
+   style (components/news/NewsPostView.tsx) already sizes it correctly;
+   this class is just the cosmetic rounded-corner clip both media types share. */
+.news-post-video {
+  border-bottom: 1px solid var(--line);
+}
+
 /* ============ NEWS POST BODY ============ */
 /* Explicit sans-serif for the rendered rich text — Story/Sauce intentionally
    use the serif (Lora) body font, but News reads more like a blog/updates

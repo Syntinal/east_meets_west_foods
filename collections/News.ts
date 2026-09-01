@@ -5,6 +5,8 @@ import { postToSocialPlatform, type SocialPlatform, type SocialPostResult } from
 import { getPreviewURL } from "@/lib/preview";
 import { safeRevalidatePath } from "@/lib/safeRevalidate";
 import { resolveAutoSlug } from "@/lib/slugify";
+import { MUSIC_LIBRARY } from "@/lib/musicLibrary";
+import { buildOverlayVideoUrl, type AudioMode, type CaptionStyle, type CaptionPosition } from "@/lib/cloudinaryVideo";
 
 // Maps each of the 3 platforms to its own group of sidebar fields (see the
 // `socialMedia` group below) — one config object driving both the
@@ -254,6 +256,30 @@ export const News: CollectionConfig = {
         }).filter((p) => p.eligible);
         if (eligiblePlatforms.length === 0) return;
 
+        // The Cloudinary overlay video (music + caption baked in, see
+        // collections/News.ts's cloudinaryVideo group and
+        // lib/cloudinaryVideo.ts) takes priority over the plain Featured
+        // Video upload when present — same priority rule
+        // components/news/NewsPostView.tsx uses for this post's own page.
+        // Built here (not stored) since it's just a transformation URL;
+        // computed fresh each time in case the owner changed the caption/
+        // music since the last publish.
+        const cloudinaryPublicId = doc.cloudinaryVideo?.publicId;
+        const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+        const overlayVideoUrl =
+          cloudinaryPublicId && cloudName
+            ? buildOverlayVideoUrl({
+                cloudName,
+                publicId: cloudinaryPublicId,
+                overlayText: doc.cloudinaryVideo?.overlayText,
+                musicPublicId:
+                  MUSIC_LIBRARY.find((track) => track.id === doc.cloudinaryVideo?.musicTrackId)?.publicId ?? null,
+                audioMode: (doc.cloudinaryVideo?.audioMode as AudioMode) || "replace",
+                captionStyle: (doc.cloudinaryVideo?.captionStyle as CaptionStyle) || "white-on-black",
+                captionPosition: (doc.cloudinaryVideo?.captionPosition as CaptionPosition) || "bottom",
+              })
+            : null;
+
         const input = {
           title: doc.title,
           excerpt: doc.excerpt,
@@ -264,8 +290,9 @@ export const News: CollectionConfig = {
               : null,
           // Takes priority over featuredImage in postToSocialPlatform()
           // when both are set — see lib/socialPost.ts.
-          featuredVideo:
-            doc.featuredVideo && typeof doc.featuredVideo === "object"
+          featuredVideo: overlayVideoUrl
+            ? { url: overlayVideoUrl }
+            : doc.featuredVideo && typeof doc.featuredVideo === "object"
               ? { url: doc.featuredVideo.url }
               : null,
         };
@@ -478,6 +505,84 @@ export const News: CollectionConfig = {
           "are set, the video takes priority in both places). The News list still uses the featured image, " +
           "not this, for its thumbnail.",
       },
+    },
+    // Turns a raw video clip into a finished promo video with background
+    // music and a text caption baked in, via Cloudinary (free tier). See
+    // components/admin/CloudinaryVideoStudio.tsx for the wizard itself and
+    // lib/cloudinaryVideo.ts for the transformation-URL logic it shares
+    // with this post's page and the social-posting hook below. The 4 real
+    // fields here (publicId/overlayText/musicTrackId/audioMode) are
+    // `admin.hidden` — the Studio component is their only UI, same idiom
+    // as the socialMedia group's hidden status/url/error fields above,
+    // just client-written instead of server-written.
+    {
+      name: "cloudinaryVideo",
+      type: "group",
+      admin: {
+        description:
+          "Optional. Build a promo video (background music + text caption) from a raw clip via Cloudinary — see the Video Studio below. When set, this replaces the plain Featured Video above everywhere it's used: this post's page, and Facebook/Instagram/TikTok posting.",
+      },
+      fields: [
+        { name: "publicId", type: "text", admin: { hidden: true } },
+        { name: "overlayText", type: "text", admin: { hidden: true } },
+        {
+          name: "musicTrackId",
+          type: "select",
+          defaultValue: "none",
+          options: [
+            { label: "No music", value: "none" },
+            ...MUSIC_LIBRARY.map((track) => ({ label: track.label, value: track.id })),
+          ],
+          admin: { hidden: true },
+        },
+        {
+          name: "audioMode",
+          type: "select",
+          defaultValue: "replace",
+          options: [
+            { label: "Replace original audio with music", value: "replace" },
+            { label: "Mix music under original audio", value: "mix" },
+          ],
+          admin: { hidden: true },
+        },
+        {
+          name: "captionStyle",
+          type: "select",
+          defaultValue: "white-on-black",
+          // Keep in sync with lib/cloudinaryVideo.ts's CAPTION_STYLES —
+          // preset combos, not a raw color picker, so nothing unreadable
+          // (e.g. white-on-white) can get picked.
+          options: [
+            { label: "White text, black background", value: "white-on-black" },
+            { label: "Black text, white background", value: "black-on-white" },
+            { label: "White text, red background", value: "white-on-red" },
+            { label: "White text, no background", value: "white-no-bg" },
+            { label: "Black text, no background", value: "black-no-bg" },
+          ],
+          admin: { hidden: true },
+        },
+        {
+          name: "captionPosition",
+          type: "select",
+          defaultValue: "bottom",
+          // Keep in sync with lib/cloudinaryVideo.ts's CAPTION_POSITIONS.
+          options: [
+            { label: "Top", value: "top" },
+            { label: "Center", value: "center" },
+            { label: "Bottom", value: "bottom" },
+          ],
+          admin: { hidden: true },
+        },
+        {
+          name: "studio",
+          type: "ui",
+          admin: {
+            components: {
+              Field: "@/components/admin/CloudinaryVideoStudio#CloudinaryVideoStudio",
+            },
+          },
+        },
+      ],
     },
     {
       name: "body",
