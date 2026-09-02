@@ -11,10 +11,8 @@ type Doc = {
   title?: string;
   authorName?: string;
   publishedDate?: string;
-  excerpt?: string;
-  body?: unknown;
+  message?: string;
   _status?: string;
-  type?: string;
   showAsHomepageBanner?: boolean;
 };
 
@@ -60,19 +58,19 @@ const CONFIG: Record<string, ListConfig> = {
     // News has autosave on, which silently pre-creates an empty draft row
     // the moment "Create new" is opened — if that screen is abandoned
     // before typing anything, the row is left behind with no title. A
-    // never-published doc with no title AND no slug/body/excerpt either is
-    // that exact pattern, not a real post that just needs a title — label
-    // it as such so it doesn't get mistaken for one. See
+    // never-published doc with no title AND no message/slug either is that
+    // exact pattern, not a real post that just needs a title — label it as
+    // such so it doesn't get mistaken for one. See
     // components/admin/EmptyDraftsNotice.tsx (same signal, used for Pages).
     itemLabel: (doc) => {
       if (doc.title) return doc.title;
-      const looksAbandoned = doc._status === "draft" && !doc.slug && !doc.body && !doc.excerpt;
+      const looksAbandoned = doc._status === "draft" && !doc.slug && !doc.message;
       return looksAbandoned ? "(Empty draft — safe to delete)" : "Untitled";
     },
-    itemBadge: (doc) => {
-      const base = doc.type === "announcement" ? "Announcement" : "Post";
-      return doc.showAsHomepageBanner ? `${base} · Homepage banner` : base;
-    },
+    // Post/Announcement no longer exists as a distinction (every post can
+    // be featured on the homepage now — see CLAUDE.md's News redesign), so
+    // this badge only has one thing left to say.
+    itemBadge: (doc) => (doc.showAsHomepageBanner ? "Homepage banner" : undefined),
   },
   testimonials: {
     label: "Testimonials",

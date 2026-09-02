@@ -8,6 +8,7 @@ import { HomeView, type HomeDoc, type BannerDoc, type TestimonialDoc } from "@/c
 import { LiveHome } from "@/components/home/LiveHome";
 import type { LatestNewsPost } from "@/components/home/TeaserCards";
 import { NAV_PAGES, resolveNavLabel } from "@/lib/navigation";
+import { deriveExcerptFromMessage } from "@/lib/newsText";
 
 const title = "East Meets West Dumplings Bar — Dumplings near Sandpoint, ID";
 const description =
@@ -76,7 +77,8 @@ async function getHomepageAnnouncement(): Promise<BannerDoc | null> {
     draft: isDraftMode,
     where: {
       and: [
-        { type: { equals: "announcement" } },
+        // Available on every post now, not just an "Announcement" type
+        // (that distinction was removed — see CLAUDE.md's News redesign).
         { showAsHomepageBanner: { equals: true } },
         ...(isDraftMode ? [] : [{ _status: { equals: "published" as const } }]),
         {
@@ -117,10 +119,10 @@ async function getLatestNewsPost(isDraftMode: boolean): Promise<LatestNewsPost> 
     depth: 1,
   });
   const post = result.docs[0] as
-    | { featuredImage?: { url?: string | null; alt?: string | null } | string | null; excerpt?: string | null }
+    | { featuredImage?: { url?: string | null; alt?: string | null } | string | null; message?: string | null }
     | undefined;
   if (!post) return null;
-  return { image: post.featuredImage ?? null, excerpt: post.excerpt ?? null };
+  return { image: post.featuredImage ?? null, excerpt: post.message ? deriveExcerptFromMessage(post.message) : null };
 }
 
 async function getTestimonials(nav: Record<string, unknown>): Promise<TestimonialDoc[]> {

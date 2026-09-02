@@ -4,11 +4,12 @@ import { readPublished } from "@/access/readPublished";
 import { postToSocialPlatform, type SocialPlatform, type SocialPostResult } from "@/lib/socialPost";
 import { getPreviewURL } from "@/lib/preview";
 import { safeRevalidatePath } from "@/lib/safeRevalidate";
-import { resolveAutoSlug } from "@/lib/slugify";
+import { slugify } from "@/lib/slugify";
+import { deriveTitleFromMessage } from "@/lib/newsText";
 import { MUSIC_LIBRARY } from "@/lib/musicLibrary";
 import { buildOverlayVideoUrl, type AudioMode, type CaptionStyle, type CaptionPosition } from "@/lib/cloudinaryVideo";
 
-// Maps each of the 3 platforms to its own group of sidebar fields (see the
+// Maps each of the 3 platforms to its own group of fields (see the
 // `socialMedia` group below) — one config object driving both the
 // `afterChange` hook and the field definitions, so adding a 4th platform
 // later means extending this array plus adding one more field block, not
@@ -55,11 +56,11 @@ const PLATFORM_LABEL: Record<SocialPlatform, string> = {
   tiktok: "TikTok",
 };
 
-// Generates one platform's 5 sidebar fields (the owner-facing checkbox,
-// the 4 hidden fields the afterChange hook manages, and its live status
-// notice) from a PLATFORM_FIELDS entry — used 3x below instead of hand-
-// duplicating the same shape per platform, so Facebook/Instagram/TikTok
-// can't silently drift out of sync with each other.
+// Generates one platform's 5 fields (the owner-facing checkbox, the 4
+// hidden fields the afterChange hook manages, and its live status notice)
+// from a PLATFORM_FIELDS entry — used 3x below instead of hand-duplicating
+// the same shape per platform, so Facebook/Instagram/TikTok can't silently
+// drift out of sync with each other.
 function platformSocialFields(cfg: PlatformFieldConfig): Field[] {
   const label = PLATFORM_LABEL[cfg.platform];
   return [
@@ -114,6 +115,28 @@ function platformSocialFields(cfg: PlatformFieldConfig): Field[] {
   ];
 }
 
+// The owner's whole job on this collection is "create a social media post"
+// — see the step-by-step wizard below (components/admin/NewsPostWizard.tsx)
+// and CLAUDE.md for the full redesign reasoning. WIZARD_STEPS is the single
+// source of truth for step numbers/labels, referenced both by the nav
+// component (clientProps below) and by every field's own `admin.condition`
+// so a field can never end up gated to a step number that doesn't exist.
+export const WIZARD_STEPS = [
+  "Add a photo or video",
+  "Write your post",
+  "Choose where to post",
+  "Feature on the homepage?",
+] as const;
+
+// `admin.condition` is called as (data, siblingData) — siblingData is what
+// the rest of this file's existing conditions (e.g. the old
+// showAsHomepageBanner/type check this replaced) already read sibling
+// top-level fields from, so wizardStep is read the same way here.
+function atStep(step: number) {
+  return (_data: unknown, siblingData: Record<string, unknown>) =>
+    (typeof siblingData?.wizardStep === "number" ? siblingData.wizardStep : 1) === step;
+}
+
 export const News: CollectionConfig = {
   slug: "news-posts",
   // Plural shows as "News" in the /admin sidebar, matching the site's own
@@ -129,10 +152,10 @@ export const News: CollectionConfig = {
     delete: authenticated,
   },
   versions: {
-    // See collections/Pages.ts for why: autosave gets a new post/announcement
-    // a real DB row (and auto-generated slug) shortly after a title is
-    // typed, so Live Preview's /news/<slug> iframe doesn't 404 while the
-    // doc only exists as unsaved form state.
+    // See collections/Pages.ts for why: autosave gets a new post a real DB
+    // row (and auto-generated slug) shortly after the owner starts typing,
+    // so Live Preview's /news/<slug> iframe doesn't 404 while the doc only
+    // exists as unsaved form state.
     drafts: {
       autosave: {
         showSaveDraftButton: true,
@@ -148,7 +171,7 @@ export const News: CollectionConfig = {
     // "Site Content" copy here was redundant and confusingly out of order.
     group: false,
     useAsTitle: "title",
-    defaultColumns: ["title", "type", "publishedDate", "_status"],
+    defaultColumns: ["title", "publishedDate", "_status"],
     preview: (doc) => getPreviewURL(`/news/${doc?.slug ?? ""}`),
     livePreview: {
       url: ({ data }) => getPreviewURL(`/news/${data?.slug ?? ""}`),
@@ -170,22 +193,38 @@ export const News: CollectionConfig = {
   },
   hooks: {
     beforeValidate: [
-      // Mirrors collections/Pages.ts's own beforeValidate exactly (both
-      // delegate to lib/slugify.ts's resolveAutoSlug so the two collections
-      // can't drift out of sync). An empty slug is auto-filled from the
-      // title, and — since News has autosave on and would otherwise freeze
-      // the slug at whatever partial title existed on the first autosave,
-      // see resolveAutoSlug's own comment — a non-blank slug still tracks
-      // title edits as long as it hasn't been hand-customized. A *typed*
-      // slug is always normalized through slugify() too, not just accepted
-      // as-is — this used to only cover the blank case, which let a
-      // hand-typed value (e.g. pasting the title straight into Slug) save
-      // with spaces/capitals/punctuation Postgres and the URL both accept
-      // but the /news/[slug] route's exact-match lookup won't, since
-      // Next.js doesn't URL-decode a dynamic route param containing a
-      // %-escaped character (e.g. a space) before handing it to page code —
-      // see CLAUDE.md's News-slug-404 writeup for the confirmed mechanism.
-      ({ data, originalDoc }) => resolveAutoSlug(data, originalDoc),
+      ({ data, originalDoc }) => {
+        if (!data) return data;
+        // Title (the internal page heading) and slug (its URL) are no
+        // longer owner-typed — both derive automatically from whatever
+        // `message` currently says (see lib/newsText.ts). They freely
+        // re-derive on every save right up until this post is actually
+        // published for the first time; `titleFinalized` then freezes both
+        // permanently, so a real, possibly-already-shared/indexed
+        // /news/<slug> URL and page heading never silently change out from
+        // under a live post just because the owner tweaked the wording in
+        // a later edit. (A naive "only fill when blank" version would
+        // freeze the title after the very first autosave on a half-typed
+        // message — the same bug this exact freeze-on-publish design
+        // avoids; see lib/slugify.ts's own history of this class of bug.)
+        // Only once there's actually something written — an autosave can
+        // fire the instant "Create new" is clicked, before any typing, and
+        // deriving from an empty message would give every fresh/abandoned
+        // draft the same title ("Untitled") and the same slug ("untitled"),
+        // tripping the slug field's unique constraint the moment a second
+        // abandoned draft exists, and breaking the "empty draft, safe to
+        // delete" detection in components/admin/ListPreviewView.tsx (which
+        // relies on a genuinely untouched draft having no slug at all).
+        const message = typeof data.message === "string" ? data.message : "";
+        if (!originalDoc?.titleFinalized && message.trim()) {
+          data.title = deriveTitleFromMessage(message);
+          data.slug = slugify(data.title as string);
+        }
+        if (data._status === "published") {
+          data.titleFinalized = true;
+        }
+        return data;
+      },
     ],
     afterChange: [
       ({ doc }) => {
@@ -281,8 +320,10 @@ export const News: CollectionConfig = {
             : null;
 
         const input = {
-          title: doc.title,
-          excerpt: doc.excerpt,
+          // The whole post IS the caption now — see lib/socialPost.ts's
+          // buildCaption(), which used to concatenate a separate title +
+          // excerpt.
+          message: doc.message ?? "",
           link: `${process.env.SITE_URL || ""}/news/${doc.slug ?? ""}`,
           featuredImage:
             doc.featuredImage && typeof doc.featuredImage === "object"
@@ -392,135 +433,66 @@ export const News: CollectionConfig = {
     ],
   },
   fields: [
+    // The whole edit screen is a 4-step guided wizard — see
+    // components/admin/NewsPostWizard.tsx. `wizardNav` is the Back/Next
+    // control strip, rendered once at the top; `wizardStep` is the one
+    // piece of shared state every other field's `admin.condition` below
+    // reads (via atStep()) to show only the current step's fields. This
+    // deliberately reuses Payload's own stock field components (upload
+    // pickers, checkboxes, the Video Studio) for each step's actual
+    // content instead of reimplementing them inside one giant custom
+    // component — only the step sequencing itself is custom.
     {
-      name: "title",
-      type: "text",
-      required: true,
-      admin: { description: "The headline shown on the News page and at the top of the post." },
-    },
-    {
-      name: "slug",
-      type: "text",
-      required: true,
-      unique: true,
+      name: "wizardNav",
+      type: "ui",
       admin: {
-        position: "sidebar",
-        description: "Powers the post's URL (/news/your-slug). Auto-filled from the title if left blank.",
+        components: {
+          Field: {
+            path: "@/components/admin/NewsPostWizard#NewsPostWizardNav",
+            clientProps: { steps: WIZARD_STEPS },
+          },
+        },
       },
     },
-    {
-      name: "type",
-      type: "select",
-      required: true,
-      defaultValue: "post",
-      admin: {
-        position: "sidebar",
-        description: '"Post" is a regular news article. "Announcement" is a short notice that can optionally show as a banner on the homepage.',
-      },
-      options: [
-        { label: "Post", value: "post" },
-        { label: "Announcement", value: "announcement" },
-      ],
-    },
-    {
-      name: "showAsHomepageBanner",
-      type: "checkbox",
-      defaultValue: false,
-      admin: {
-        position: "sidebar",
-        description: "Feature this as the banner on the homepage. Checking it here replaces whichever announcement was featured before.",
-        condition: (_, siblingData) => siblingData.type === "announcement",
-      },
-    },
-    {
-      name: "bannerEndDate",
-      type: "date",
-      admin: {
-        position: "sidebar",
-        description:
-          "Optional. The homepage banner stops showing itself on this date (e.g. when a sale ends) — no need to come back and uncheck it manually. The site rechecks roughly once a day, so removal isn't second-precise.",
-        condition: (_, siblingData) => siblingData.type === "announcement" && siblingData.showAsHomepageBanner,
-        date: { pickerAppearance: "dayOnly" },
-      },
-    },
-    // Real social publishing (Facebook, Instagram, TikTok), via Post for
-    // Me (see lib/socialPost.ts and the afterChange hook above). Started
-    // Facebook-only (Facebook's own Page settings can cross-post to a
-    // linked Instagram account on their own — that's still true, but the
-    // owner asked for real Instagram/TikTok posting through Post for Me
-    // too, not just Facebook's own auto-crosspost) and expanded once all
-    // 3 accounts were confirmed connectable. Each platform's status/url/
-    // error/failureCount fields are set automatically by the hook, never
-    // hand-edited — see the hook's comment for the full eligibility/retry
-    // design, and PLATFORM_FIELDS above for the config driving both this
-    // block and the hook.
-    //
-    // `platformSocialFields()` generates one platform's 5 fields (the
-    // checkbox, 4 hidden hook-managed fields, and its live status notice)
-    // from PLATFORM_FIELDS — kept as one shared shape instead of 3 hand-
-    // duplicated blocks so the Facebook/Instagram/TikTok sections can't
-    // silently drift out of sync with each other.
-    {
-      name: "socialMedia",
-      type: "group",
-      admin: { position: "sidebar" },
-      fields: PLATFORM_FIELDS.flatMap((cfg) => platformSocialFields(cfg)),
-    },
-    {
-      name: "publishedDate",
-      type: "date",
-      defaultValue: () => new Date().toISOString(),
-      admin: {
-        position: "sidebar",
-        description: "The date shown on the post. Defaults to today.",
-      },
-    },
-    {
-      name: "excerpt",
-      type: "textarea",
-      maxLength: 160,
-      admin: {
-        description:
-          "Short summary shown on the News list and used as the page description for search engines — keep it to about 4 lines (160 characters max; search engines truncate around there too).",
-      },
-    },
+    { name: "wizardStep", type: "number", defaultValue: 1, admin: { hidden: true } },
+
+    // --- Step 1: add a photo or video ---
     {
       name: "featuredImage",
       type: "upload",
       relationTo: "media",
       filterOptions: { mimeType: { contains: "image" } },
-      admin: { description: "Optional. Image shown at the top of the post and in the News list." },
-    },
-    {
-      name: "featuredVideo",
-      type: "upload",
-      // media-assets, not media — see collections/MediaAssets.ts for why
-      // video lives in a separate collection now.
-      relationTo: "media-assets",
-      filterOptions: { mimeType: { contains: "video" } },
+      label: "Add a photo (optional)",
       admin: {
-        description:
-          "Optional. Video shown at the top of the post instead of the featured image, and sent to whichever " +
-          "of Facebook/Instagram/TikTok are checked below instead of the featured image when posting (if both " +
-          "are set, the video takes priority in both places). The News list still uses the featured image, " +
-          "not this, for its thumbnail.",
+        condition: atStep(1),
+        description: "Shown at the top of the post, in the News list, and sent along when posting to social media.",
+        // A plain upload field's label renders as normal body text, while
+        // its "...or add a video instead" sibling below is a group field
+        // (Payload always gives those a bigger <h3>-styled title) — so the
+        // two read as mismatched in weight even though they're meant to be
+        // an equal either/or choice. See app/(payload)/admin.css for the
+        // matching rule.
+        className: "news-photo-field",
       },
     },
     // Turns a raw video clip into a finished promo video with background
     // music and a text caption baked in, via Cloudinary (free tier). See
-    // components/admin/CloudinaryVideoStudio.tsx for the wizard itself and
-    // lib/cloudinaryVideo.ts for the transformation-URL logic it shares
-    // with this post's page and the social-posting hook below. The 4 real
+    // components/admin/CloudinaryVideoStudio.tsx for the wizard step itself
+    // and lib/cloudinaryVideo.ts for the transformation-URL logic it shares
+    // with this post's page and the social-posting hook above. The 4 real
     // fields here (publicId/overlayText/musicTrackId/audioMode) are
     // `admin.hidden` — the Studio component is their only UI, same idiom
-    // as the socialMedia group's hidden status/url/error fields above,
-    // just client-written instead of server-written.
+    // as the socialMedia group's hidden status/url/error fields below,
+    // just client-written instead of server-written. This is now the only
+    // way to add video (see featuredVideo below) — one path, not two.
     {
       name: "cloudinaryVideo",
       type: "group",
+      label: "...or add a video instead (optional)",
       admin: {
+        condition: atStep(1),
         description:
-          "Optional. Build a promo video (background music + text caption) from a raw clip via Cloudinary — see the Video Studio below. When set, this replaces the plain Featured Video above everywhere it's used: this post's page, and Facebook/Instagram/TikTok posting.",
+          "If you add a video, it's used instead of the photo above — everywhere: this post's page, and social media.",
       },
       fields: [
         { name: "publicId", type: "text", admin: { hidden: true } },
@@ -582,13 +554,121 @@ export const News: CollectionConfig = {
             },
           },
         },
+        // A second, "confirmed" copy of publicId/overlayText/musicTrackId/
+        // audioMode/captionStyle/captionPosition above, written only when
+        // the owner clicks "Update preview" in the Studio (see
+        // CloudinaryVideoStudio.tsx's updateVideoPreview()) — never live off
+        // a keystroke or dropdown change, unlike their real counterparts
+        // above. Exists purely so Payload's Live Preview side-by-side panel
+        // (components/news/LiveNewsPost.tsx) — a separate browser context
+        // from the edit form, which can't see the Studio's own local
+        // "confirmed yet?" state any other way — can tell whether the
+        // *currently playing* live-preview values match what was last
+        // actually confirmed, and if not, keep showing the last confirmed
+        // video instead of silently recomputing (and re-requesting from
+        // Cloudinary) a brand new one on every edit. Before this existed,
+        // Live Preview called the real buildOverlayVideoUrl() live off
+        // whatever was currently typed/selected, same problem the Studio's
+        // own gated preview was built to avoid, just on a different render
+        // path — see CLAUDE.md's "Live Preview gap" note. Plain `text`
+        // fields (not `select`, unlike their live counterparts) — never
+        // rendered as a dropdown, just storage the Studio and LiveNewsPost
+        // both read/write directly.
+        { name: "confirmedPublicId", type: "text", admin: { hidden: true } },
+        { name: "confirmedOverlayText", type: "text", admin: { hidden: true } },
+        { name: "confirmedMusicTrackId", type: "text", admin: { hidden: true } },
+        { name: "confirmedAudioMode", type: "text", admin: { hidden: true } },
+        { name: "confirmedCaptionStyle", type: "text", admin: { hidden: true } },
+        { name: "confirmedCaptionPosition", type: "text", admin: { hidden: true } },
       ],
     },
+    // No longer offered in the wizard — the Cloudinary Video Studio above
+    // is the one video path now (its "no music, no caption" option covers
+    // what a plain video upload used to do, with no second, confusingly
+    // similar choice). Left in the schema, still `admin.hidden` rather than
+    // removed, purely so any already-existing post that used this still
+    // renders and posts exactly as it did before (see
+    // components/news/NewsPostView.tsx and lib/socialPost.ts, both of
+    // which fall back to this only when cloudinaryVideo isn't set).
     {
-      name: "body",
-      type: "richText",
+      name: "featuredVideo",
+      type: "upload",
+      // media-assets, not media — see collections/MediaAssets.ts for why
+      // video lives in a separate collection now.
+      relationTo: "media-assets",
+      filterOptions: { mimeType: { contains: "video" } },
+      admin: { hidden: true },
+    },
+
+    // --- Step 2: write your post ---
+    {
+      name: "message",
+      type: "textarea",
       required: true,
-      admin: { description: "The full content of the post." },
+      label: "What do you want to say?",
+      admin: {
+        condition: atStep(2),
+        description:
+          "This is the whole post — it's what shows on the News page, and it's sent as-is as the caption when you post to Facebook, Instagram, or TikTok below.",
+      },
+    },
+
+    // --- Step 3: choose where to post ---
+    // `platformSocialFields()` generates one platform's 5 fields (the
+    // checkbox, 4 hidden hook-managed fields, and its live status notice)
+    // from PLATFORM_FIELDS — kept as one shared shape instead of 3 hand-
+    // duplicated blocks so the Facebook/Instagram/TikTok sections can't
+    // silently drift out of sync with each other.
+    {
+      name: "socialMedia",
+      type: "group",
+      admin: { condition: atStep(3) },
+      fields: PLATFORM_FIELDS.flatMap((cfg) => platformSocialFields(cfg)),
+    },
+
+    // --- Step 4: feature on the homepage? (optional) ---
+    {
+      name: "showAsHomepageBanner",
+      type: "checkbox",
+      label: "Feature this as the banner on the homepage",
+      defaultValue: false,
+      admin: {
+        condition: atStep(4),
+        description: "Checking this replaces whichever post was featured as the homepage banner before.",
+      },
+    },
+    {
+      name: "bannerEndDate",
+      type: "date",
+      label: "Stop showing the banner on this date (optional)",
+      admin: {
+        condition: (data, siblingData) => atStep(4)(data, siblingData) && Boolean(siblingData?.showAsHomepageBanner),
+        description:
+          "The homepage banner stops showing itself on this date (e.g. when a sale ends) — no need to come back and uncheck it manually. The site rechecks roughly once a day, so removal isn't second-precise.",
+        date: { pickerAppearance: "dayOnly" },
+      },
+    },
+
+    // --- Internal bookkeeping — never shown to the owner ---
+    {
+      name: "title",
+      type: "text",
+      required: true,
+      admin: { hidden: true },
+    },
+    {
+      name: "slug",
+      type: "text",
+      required: true,
+      unique: true,
+      admin: { hidden: true },
+    },
+    { name: "titleFinalized", type: "checkbox", defaultValue: false, admin: { hidden: true } },
+    {
+      name: "publishedDate",
+      type: "date",
+      defaultValue: () => new Date().toISOString(),
+      admin: { hidden: true },
     },
   ],
 };

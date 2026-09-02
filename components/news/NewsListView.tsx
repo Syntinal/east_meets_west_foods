@@ -1,11 +1,11 @@
 import Link from "next/link";
+import { deriveExcerptFromMessage } from "@/lib/newsText";
 
 export type NewsListDoc = {
   id: string;
   title: string;
   slug: string;
-  type: "post" | "announcement";
-  excerpt?: string | null;
+  message: string;
   featuredImage?: { url?: string | null; alt?: string | null } | string | null;
   publishedDate?: string | null;
 };
@@ -51,11 +51,12 @@ export function NewsListView({ posts, intro }: { posts: NewsListDoc[]; intro: Ne
                       </div>
                     )}
                     <div className="menu-card-body">
-                      {post.type === "announcement" && <p className="card-tag">Announcement</p>}
                       <h2>
                         <Link href={`/news/${post.slug}`}>{post.title}</Link>
                       </h2>
-                      {post.excerpt && <p className="news-card-excerpt">{post.excerpt}</p>}
+                      {post.message && (
+                        <p className="news-card-excerpt">{deriveExcerptFromMessage(post.message)}</p>
+                      )}
                       <Link href={`/news/${post.slug}`} className="teaser-card-cta">
                         {intro.readMoreText}
                       </Link>

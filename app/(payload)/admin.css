@@ -73,3 +73,19 @@
   height: 220px;
   max-width: 220px;
 }
+
+/* News's Step 1 offers a photo or a video as an either/or choice (see
+   collections/News.ts) — "Add a photo" is a plain upload field, whose
+   label renders as normal body text (FieldLabel, fields/FieldLabel/
+   index.scss); "...or add a video instead" is a group field, which
+   Payload always titles with a bigger <h3>-styled header
+   (.group-field__title, @extend %h3 — fields/Group/index.scss +
+   scss/type.scss). Matched here to %h3's exact metrics (20px/24px,
+   weight 500, $baseline-px: 20px in scss/vars.scss) rather than eyeballing
+   it, so the two read as an equal choice instead of one looking like an
+   afterthought next to the other. */
+.news-photo-field .field-label {
+  font-size: 20px;
+  line-height: 24px;
+  font-weight: 500;
+}

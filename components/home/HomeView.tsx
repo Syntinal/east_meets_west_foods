@@ -3,6 +3,7 @@ import { RichText } from "@/components/StyledRichText";
 import TestimonialCarousel from "@/components/TestimonialCarousel";
 import { GalleryGrid, type GalleryPhoto } from "./GalleryGrid";
 import { TeaserCards, type TeaserBlock, type LatestNewsPost } from "./TeaserCards";
+import { deriveExcerptFromMessage } from "@/lib/newsText";
 
 type MediaRef = { url?: string | null; alt?: string | null } | string | null;
 
@@ -23,7 +24,7 @@ export type HomeDoc = {
   seo?: { eyebrow?: string | null; heading?: string | null; body?: unknown } | null;
 };
 
-export type BannerDoc = { slug: string; title: string; excerpt?: string | null };
+export type BannerDoc = { slug: string; title: string; message?: string | null };
 export type TestimonialDoc = { quote: string; authorName: string; rating: string; sourceUrl?: string | null };
 export type TeaserNavLabels = { menu: string; sauce: string; story: string; news: string };
 
@@ -81,7 +82,7 @@ export function HomeView({
             </span>
             <p className="announcement-banner-text">
               <strong>{banner.title}</strong>
-              {banner.excerpt ? ` — ${banner.excerpt}` : ""}
+              {banner.message ? ` — ${deriveExcerptFromMessage(banner.message)}` : ""}
             </p>
             <Link href={`/news/${banner.slug}`} className="announcement-banner-link">
               {bannerLinkText}

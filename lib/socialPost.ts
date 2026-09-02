@@ -110,10 +110,11 @@ const MOCK_URL: Record<SocialPlatform, string> = {
 // caption limit (2,200 characters) *is* documented directly by Meta.
 // TikTok doesn't publish an exact number for the Content Posting API's
 // description field, so it reuses Instagram's confirmed limit as a
-// conservative stand-in rather than a guess. All three are backstops,
-// not expected code paths — `title`/`excerpt` are both short fields by
-// design (see collections/News.ts) — so precision beyond "safely under
-// the real limit" doesn't matter here.
+// conservative stand-in rather than a guess. All three are backstops, not
+// expected code paths in practice — but unlike the old title+excerpt
+// shape, `message` is now a free-form box with no length limit of its own
+// (see collections/News.ts), so truncation here is a real, reachable path,
+// not just a defensive backstop.
 const MAX_CAPTION_CHARS: Record<SocialPlatform, number> = {
   facebook: 60_000,
   instagram: 2_200,
@@ -138,8 +139,8 @@ export type SocialPostResult = {
 };
 
 export type SocialPostInput = {
-  title: string;
-  excerpt?: string | null;
+  /** The whole post, as the owner wrote it in the single message box (collections/News.ts) — used as-is (truncated per-platform) as the caption. */
+  message: string;
   /** Absolute URL — the platforms need a real link, not a site-relative path. */
   link: string;
   featuredImage?: { url?: string | null } | null;
@@ -169,8 +170,8 @@ function truncate(platform: SocialPlatform, text: string): string {
 // deliberately oversized input without needing real Post for Me
 // credentials or a network call — see the temp-route verification pattern
 // this repo uses elsewhere.
-export function buildCaption(platform: SocialPlatform, title: string, excerpt?: string | null): string {
-  return truncate(platform, excerpt ? `${title}\n\n${excerpt}` : title);
+export function buildCaption(platform: SocialPlatform, message: string): string {
+  return truncate(platform, message);
 }
 
 // Post for Me has no distinct "link preview" asset type the way Buffer
@@ -182,7 +183,7 @@ export function buildCaption(platform: SocialPlatform, title: string, excerpt?: 
 // preview card is up to that platform itself, not something this code
 // (or Post for Me) controls.
 function buildCaptionWithLink(platform: SocialPlatform, input: SocialPostInput): string {
-  return truncate(platform, `${buildCaption(platform, input.title, input.excerpt)}\n\nRead more: ${input.link}`);
+  return truncate(platform, `${buildCaption(platform, input.message)}\n\nRead more: ${input.link}`);
 }
 
 function authHeaders(): HeadersInit {
@@ -310,9 +311,10 @@ async function pollResult(platform: SocialPlatform, postId: string): Promise<Soc
 // recognized — the agnostic form is the simpler "fail everything" case;
 // the platform-specific form exists so a single test post can exercise
 // e.g. "Facebook succeeds, TikTok fails" now that the 3 platforms retry
-// independently.
-function matchesMockMarker(title: string, kind: "fail" | "fail_permanent", platform: SocialPlatform): boolean {
-  return title.includes(`[[mock:${kind}:${platform}]]`) || title.includes(`[[mock:${kind}]]`);
+// independently. Checked against the message (the owner-typed field) —
+// there's no separate title field to hide these markers in anymore.
+function matchesMockMarker(message: string, kind: "fail" | "fail_permanent", platform: SocialPlatform): boolean {
+  return message.includes(`[[mock:${kind}:${platform}]]`) || message.includes(`[[mock:${kind}]]`);
 }
 
 export async function postToSocialPlatform(platform: SocialPlatform, input: SocialPostInput): Promise<SocialPostResult> {
@@ -320,10 +322,10 @@ export async function postToSocialPlatform(platform: SocialPlatform, input: Soci
   const label = PLATFORM_LABEL[platform];
 
   if (!apiKey() || !account) {
-    if (matchesMockMarker(input.title, "fail_permanent", platform)) {
+    if (matchesMockMarker(input.message, "fail_permanent", platform)) {
       return { success: false, permanent: true, error: `Simulated permanent failure (mock mode, ${label}).` };
     }
-    if (matchesMockMarker(input.title, "fail", platform)) {
+    if (matchesMockMarker(input.message, "fail", platform)) {
       return { success: false, error: `Simulated transient failure (mock mode, ${label}).` };
     }
     return {

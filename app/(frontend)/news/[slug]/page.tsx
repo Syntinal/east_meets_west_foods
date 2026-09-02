@@ -6,6 +6,7 @@ import { getPayload } from "payload";
 import JsonLd from "@/components/JsonLd";
 import { NewsPostView, type NewsDoc } from "@/components/news/NewsPostView";
 import { LiveNewsPost } from "@/components/news/LiveNewsPost";
+import { deriveExcerptFromMessage } from "@/lib/newsText";
 
 async function getPost(slug: string): Promise<NewsDoc | null> {
   const payload = await getPayload({ config });
@@ -31,7 +32,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const post = await getPost(slug);
   if (!post) return {};
 
-  const description = post.excerpt ?? "News from East Meets West Dumplings Bar.";
+  const description = post.message ? deriveExcerptFromMessage(post.message) : "News from East Meets West Dumplings Bar.";
   const image = post.featuredImage && typeof post.featuredImage === "object" ? post.featuredImage.url : null;
 
   return {
