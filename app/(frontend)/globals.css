@@ -860,6 +860,30 @@ img { max-width: 100%; display: block; }
   border-radius: 4px;
 }
 
+/* ============ VISUALLY HIDDEN (accessible-only) ============ */
+/* Standard "sr-only" clip technique — content stays in the DOM (screen
+   readers and search engines still see it; it's not display:none, which
+   would remove it from the accessibility tree entirely) but takes up no
+   visible space and paints nothing. Currently only used by
+   components/news/NewsPostView.tsx's <h1> — see its own comment for why: a
+   News post's title is always derived from its message's own first line
+   (lib/newsText.ts), so a visibly-rendered heading directly above the
+   message's body text ends up repeating that first line back at the
+   reader. The heading still needs to exist for a real, single-h1 page
+   structure (screen-reader heading-navigation, SEO) — it just doesn't need
+   to be seen twice on screen by a sighted visitor. */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 /* ============ NEWS POST BODY ============ */
 /* Explicit sans-serif for the rendered rich text — Story/Sauce intentionally
    use the serif (Lora) body font, but News reads more like a blog/updates

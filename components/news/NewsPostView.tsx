@@ -171,11 +171,15 @@ export function NewsPostView({
         ← Back to News
       </Link>
 
-      <header className="section-head">
-        <div className="text-panel text-panel--inline">
-          <h1 className="section-title">{post.title}</h1>
-        </div>
-      </header>
+      {/* Visually hidden, not removed — see globals.css's own comment on
+          .visually-hidden. post.title is always derived from the message's
+          own first line (lib/newsText.ts), so showing it here as a normal
+          on-page heading would repeat that first line right back at the
+          reader, directly above the body paragraph that already starts
+          with it. A real <h1> still needs to exist on the page — for
+          screen-reader heading navigation and a normal single-heading page
+          structure — it just doesn't need to be seen twice. */}
+      <h1 className="visually-hidden">{post.title}</h1>
 
       {video?.url ? (
         <div style={{ marginBottom: 24 }}>
