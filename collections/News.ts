@@ -7,7 +7,15 @@ import { safeRevalidatePath } from "@/lib/safeRevalidate";
 import { slugify } from "@/lib/slugify";
 import { deriveTitleFromMessage } from "@/lib/newsText";
 import { MUSIC_LIBRARY } from "@/lib/musicLibrary";
-import { buildOverlayVideoUrl, type AudioMode, type CaptionStyle, type CaptionPosition } from "@/lib/cloudinaryVideo";
+import {
+  buildOverlayVideoUrl,
+  type AudioMode,
+  type CaptionStyle,
+  type CaptionPosition,
+  type CaptionFont,
+} from "@/lib/cloudinaryVideo";
+import { resolveFeaturedImageUrl } from "@/lib/cloudinaryImage";
+import { buildClosingCardText } from "@/lib/closingCardText";
 
 // Maps each of the 3 platforms to its own group of fields (see the
 // `socialMedia` group below) — one config object driving both the
@@ -311,13 +319,32 @@ export const News: CollectionConfig = {
                 cloudName,
                 publicId: cloudinaryPublicId,
                 overlayText: doc.cloudinaryVideo?.overlayText,
+                additionalTextCards: [doc.cloudinaryVideo?.textCard2, doc.cloudinaryVideo?.textCard3],
+                closingCardText: doc.cloudinaryVideo?.addClosingCard ? buildClosingCardText() : null,
+                durationSeconds: doc.cloudinaryVideo?.durationSeconds,
                 musicPublicId:
                   MUSIC_LIBRARY.find((track) => track.id === doc.cloudinaryVideo?.musicTrackId)?.publicId ?? null,
                 audioMode: (doc.cloudinaryVideo?.audioMode as AudioMode) || "replace",
                 captionStyle: (doc.cloudinaryVideo?.captionStyle as CaptionStyle) || "white-on-black",
                 captionPosition: (doc.cloudinaryVideo?.captionPosition as CaptionPosition) || "bottom",
+                captionFont: (doc.cloudinaryVideo?.captionFont as CaptionFont) || "arial",
               })
             : null;
+
+        // The photo caption overlay (see collections/News.ts's photoCaption
+        // group and lib/cloudinaryImage.ts) — same priority rule and same
+        // "computed fresh, not stored" reasoning as overlayVideoUrl above,
+        // just for the photo instead of the video. Applied here so the
+        // photo sent to social media always matches what's shown on this
+        // post's own page and the News list (see CLAUDE.md for the scope
+        // decision — this isn't social-only).
+        const resolvedFeaturedImage = resolveFeaturedImageUrl({
+          cloudName,
+          image: doc.featuredImage,
+          captionText: doc.photoCaption?.text,
+          captionStyle: doc.photoCaption?.captionStyle,
+          captionPosition: doc.photoCaption?.captionPosition,
+        });
 
         const input = {
           // The whole post IS the caption now — see lib/socialPost.ts's
@@ -325,10 +352,7 @@ export const News: CollectionConfig = {
           // excerpt.
           message: doc.message ?? "",
           link: `${process.env.SITE_URL || ""}/news/${doc.slug ?? ""}`,
-          featuredImage:
-            doc.featuredImage && typeof doc.featuredImage === "object"
-              ? { url: doc.featuredImage.url }
-              : null,
+          featuredImage: resolvedFeaturedImage ? { url: resolvedFeaturedImage.url } : null,
           // Takes priority over featuredImage in postToSocialPlatform()
           // when both are set — see lib/socialPost.ts.
           featuredVideo: overlayVideoUrl
@@ -475,6 +499,84 @@ export const News: CollectionConfig = {
         className: "news-photo-field",
       },
     },
+    // Caption text overlaid directly on the photo itself — the same overlay
+    // mechanism/options as the Video Studio's on-screen text below (see
+    // lib/cloudinaryImage.ts's buildOverlayImageUrl, which shares its
+    // caption-style/position presets and text-encoding fix with
+    // lib/cloudinaryVideo.ts's own buildOverlayVideoUrl — one source of
+    // truth for how a caption actually renders, image or video), just
+    // composited onto this photo instead of a video clip, and via
+    // Cloudinary's `fetch` delivery (pulls the photo from wherever
+    // collections/Media.ts's own storage already put it, e.g. Vercel Blob)
+    // rather than an upload into Cloudinary's own library — this photo is
+    // already in Payload's Media collection, no separate upload flow needed
+    // the way a raw video clip needs one. Only shown once a photo is
+    // actually chosen above. Applied everywhere this photo is used — this
+    // post's page, the News list, the homepage News teaser card, and social
+    // media — not just the copy sent to social platforms.
+    {
+      name: "photoCaption",
+      type: "group",
+      label: "Text on the photo (optional)",
+      admin: {
+        condition: (_, siblingData) => atStep(1)(_, siblingData) && Boolean(siblingData?.featuredImage),
+        description: "Overlays text right on the photo, wherever it's shown — not just on social media.",
+      },
+      fields: [
+        { name: "text", type: "text", label: "Caption text" },
+        {
+          name: "captionStyle",
+          type: "select",
+          defaultValue: "white-on-black",
+          // Keep in sync with lib/cloudinaryVideo.ts's CAPTION_STYLES.
+          options: [
+            { label: "White text, black background", value: "white-on-black" },
+            { label: "Black text, white background", value: "black-on-white" },
+            { label: "White text, red background", value: "white-on-red" },
+            { label: "White text, no background", value: "white-no-bg" },
+            { label: "Black text, no background", value: "black-no-bg" },
+          ],
+          admin: { condition: (_, siblingData) => Boolean(siblingData?.text) },
+        },
+        {
+          name: "captionPosition",
+          type: "select",
+          defaultValue: "bottom",
+          // Keep in sync with lib/cloudinaryVideo.ts's CAPTION_POSITIONS.
+          options: [
+            { label: "Top", value: "top" },
+            { label: "Center", value: "center" },
+            { label: "Bottom", value: "bottom" },
+          ],
+          admin: { condition: (_, siblingData) => Boolean(siblingData?.text) },
+        },
+        // "Last confirmed" shadow copies of text/captionStyle/
+        // captionPosition above, written only when the owner clicks
+        // "Update preview" in PhotoCaptionStudio below — never live off a
+        // keystroke or dropdown. Same reasoning and mechanism as
+        // cloudinaryVideo's own confirmed* fields: Payload's Live Preview
+        // panel is a separate browser context that can't see this
+        // component's own local "confirmed yet?" state any other way, so
+        // these are the only channel between them (see CLAUDE.md's "Live
+        // Preview gap" note — this exists specifically to avoid repeating
+        // that bug for photos). confirmedImageId (no equivalent on the
+        // video side, which has no separate "which asset" concept — a
+        // video's own publicId already stands in for both) guards against
+        // a leftover confirmed caption from a since-replaced/removed photo.
+        { name: "confirmedImageId", type: "text", admin: { hidden: true } },
+        { name: "confirmedText", type: "text", admin: { hidden: true } },
+        { name: "confirmedCaptionStyle", type: "text", admin: { hidden: true } },
+        { name: "confirmedCaptionPosition", type: "text", admin: { hidden: true } },
+        {
+          name: "preview",
+          type: "ui",
+          admin: {
+            condition: (_, siblingData) => Boolean(siblingData?.text),
+            components: { Field: "@/components/admin/PhotoCaptionStudio#PhotoCaptionStudio" },
+          },
+        },
+      ],
+    },
     // Turns a raw video clip into a finished promo video with background
     // music and a text caption baked in, via Cloudinary (free tier). See
     // components/admin/CloudinaryVideoStudio.tsx for the wizard step itself
@@ -497,6 +599,24 @@ export const News: CollectionConfig = {
       fields: [
         { name: "publicId", type: "text", admin: { hidden: true } },
         { name: "overlayText", type: "text", admin: { hidden: true } },
+        // Up to 2 more cards shown in sequence after overlayText, each
+        // getting its own even slice of the clip's timeline — see
+        // lib/cloudinaryVideo.ts's buildOverlayVideoUrl. Optional; leaving
+        // these blank behaves exactly as before (one caption, full
+        // duration).
+        { name: "textCard2", type: "text", admin: { hidden: true } },
+        { name: "textCard3", type: "text", admin: { hidden: true } },
+        // The uploaded clip's own length in seconds, captured from the
+        // Cloudinary upload widget's response at upload time (see
+        // CloudinaryVideoStudio.tsx) — needed to evenly time-slice more
+        // than one text card across the clip. Not owner-facing.
+        { name: "durationSeconds", type: "number", admin: { hidden: true } },
+        {
+          name: "addClosingCard",
+          type: "checkbox",
+          defaultValue: false,
+          admin: { hidden: true },
+        },
         {
           name: "musicTrackId",
           type: "select",
@@ -546,6 +666,20 @@ export const News: CollectionConfig = {
           admin: { hidden: true },
         },
         {
+          name: "captionFont",
+          type: "select",
+          defaultValue: "arial",
+          // Keep in sync with lib/cloudinaryVideo.ts's CAPTION_FONTS.
+          options: [
+            { label: "Arial (plain)", value: "arial" },
+            { label: "Montserrat", value: "montserrat" },
+            { label: "Poppins", value: "poppins" },
+            { label: "Anton", value: "anton" },
+            { label: "Oswald", value: "oswald" },
+          ],
+          admin: { hidden: true },
+        },
+        {
           name: "studio",
           type: "ui",
           admin: {
@@ -580,6 +714,16 @@ export const News: CollectionConfig = {
         { name: "confirmedAudioMode", type: "text", admin: { hidden: true } },
         { name: "confirmedCaptionStyle", type: "text", admin: { hidden: true } },
         { name: "confirmedCaptionPosition", type: "text", admin: { hidden: true } },
+        { name: "confirmedCaptionFont", type: "text", admin: { hidden: true } },
+        // "Confirmed" mirrors of textCard2/textCard3/durationSeconds/
+        // addClosingCard above — same reasoning and mechanism as the 6
+        // confirmed* fields just above (written only on "Update preview",
+        // read by both this Studio's own Tier-2 preview and the Live
+        // Preview panel via components/news/LiveNewsPost.tsx).
+        { name: "confirmedTextCard2", type: "text", admin: { hidden: true } },
+        { name: "confirmedTextCard3", type: "text", admin: { hidden: true } },
+        { name: "confirmedDurationSeconds", type: "number", admin: { hidden: true } },
+        { name: "confirmedAddClosingCard", type: "checkbox", defaultValue: false, admin: { hidden: true } },
       ],
     },
     // No longer offered in the wizard — the Cloudinary Video Studio above

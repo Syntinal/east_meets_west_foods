@@ -2,7 +2,15 @@
 
 import { useLivePreview } from "@payloadcms/live-preview-react";
 import { MUSIC_LIBRARY } from "@/lib/musicLibrary";
-import { buildOverlayVideoUrl, type AudioMode, type CaptionStyle, type CaptionPosition } from "@/lib/cloudinaryVideo";
+import {
+  buildOverlayVideoUrl,
+  type AudioMode,
+  type CaptionStyle,
+  type CaptionPosition,
+  type CaptionFont,
+} from "@/lib/cloudinaryVideo";
+import { resolveFeaturedImageUrl } from "@/lib/cloudinaryImage";
+import { buildClosingCardText } from "@/lib/closingCardText";
 import { NewsPostView, type NewsDoc } from "./NewsPostView";
 
 const CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
@@ -39,10 +47,14 @@ export function LiveNewsPost({ initialData }: { initialData: NewsDoc }) {
                 cloudName: CLOUD_NAME,
                 publicId: confirmedPublicId,
                 overlayText: cv?.confirmedOverlayText,
+                additionalTextCards: [cv?.confirmedTextCard2, cv?.confirmedTextCard3],
+                closingCardText: cv?.confirmedAddClosingCard ? buildClosingCardText() : null,
+                durationSeconds: cv?.confirmedDurationSeconds,
                 musicPublicId: MUSIC_LIBRARY.find((track) => track.id === cv?.confirmedMusicTrackId)?.publicId ?? null,
                 audioMode: (cv?.confirmedAudioMode as AudioMode) || "replace",
                 captionStyle: (cv?.confirmedCaptionStyle as CaptionStyle) || "white-on-black",
                 captionPosition: (cv?.confirmedCaptionPosition as CaptionPosition) || "bottom",
+                captionFont: (cv?.confirmedCaptionFont as CaptionFont) || "arial",
               })
             : null,
         // Not just "isConfirmedForCurrentVideo" — also true when nothing's
@@ -53,12 +65,55 @@ export function LiveNewsPost({ initialData }: { initialData: NewsDoc }) {
         isStale:
           isConfirmedForCurrentVideo &&
           ((cv?.overlayText ?? "") !== (cv?.confirmedOverlayText ?? "") ||
+            (cv?.textCard2 ?? "") !== (cv?.confirmedTextCard2 ?? "") ||
+            (cv?.textCard3 ?? "") !== (cv?.confirmedTextCard3 ?? "") ||
+            Boolean(cv?.addClosingCard) !== Boolean(cv?.confirmedAddClosingCard) ||
             (cv?.musicTrackId || "none") !== (cv?.confirmedMusicTrackId || "none") ||
             (cv?.audioMode || "replace") !== (cv?.confirmedAudioMode || "replace") ||
             (cv?.captionStyle || "white-on-black") !== (cv?.confirmedCaptionStyle || "white-on-black") ||
-            (cv?.captionPosition || "bottom") !== (cv?.confirmedCaptionPosition || "bottom")),
+            (cv?.captionPosition || "bottom") !== (cv?.confirmedCaptionPosition || "bottom") ||
+            (cv?.captionFont || "arial") !== (cv?.confirmedCaptionFont || "arial")),
       }
     : undefined;
 
-  return <NewsPostView post={data} videoPreviewOverride={videoPreviewOverride} />;
+  // Same gating idea as videoPreviewOverride above, for the photo caption —
+  // see collections/News.ts's photoCaption.confirmedX fields and
+  // components/admin/PhotoCaptionStudio.tsx. Unlike video, there's always a
+  // sensible fallback while nothing's confirmed yet for the current photo:
+  // the plain, uncaptioned photo itself, not a placeholder message — a photo
+  // is meaningful content on its own in a way a not-yet-composited video
+  // isn't.
+  const image = data.featuredImage && typeof data.featuredImage === "object" ? data.featuredImage : null;
+  const pc = data.photoCaption;
+  const isConfirmedForCurrentImage =
+    Boolean(pc?.confirmedImageId) && String(pc?.confirmedImageId) === String(image?.id ?? "");
+
+  const imagePreviewOverride = image
+    ? {
+        // Nothing confirmed for this exact photo yet → show it plain rather
+        // than nothing, same reasoning as this override's own type comment
+        // in NewsPostView.tsx.
+        url: isConfirmedForCurrentImage
+          ? (resolveFeaturedImageUrl({
+              cloudName: CLOUD_NAME,
+              image,
+              captionText: pc?.confirmedText,
+              captionStyle: pc?.confirmedCaptionStyle,
+              captionPosition: pc?.confirmedCaptionPosition,
+            })?.url ?? null)
+          : (image.url ?? null),
+        alt: image.alt ?? null,
+        // Only meaningful once something's actually been confirmed for this
+        // exact photo — mirrors videoPreviewOverride's isStale exactly.
+        isStale:
+          isConfirmedForCurrentImage &&
+          ((pc?.text ?? "") !== (pc?.confirmedText ?? "") ||
+            (pc?.captionStyle || "white-on-black") !== (pc?.confirmedCaptionStyle || "white-on-black") ||
+            (pc?.captionPosition || "bottom") !== (pc?.confirmedCaptionPosition || "bottom")),
+      }
+    : undefined;
+
+  return (
+    <NewsPostView post={data} videoPreviewOverride={videoPreviewOverride} imagePreviewOverride={imagePreviewOverride} />
+  );
 }

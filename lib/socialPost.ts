@@ -79,6 +79,8 @@
 // Upload-Post and Buffer versions of this file used for their own
 // response-ambiguity edge cases.
 
+import { MOCK_NOTE_PREFIX } from "./socialPostMock";
+
 const API_BASE = "https://api.postforme.dev";
 
 export type SocialPlatform = "facebook" | "instagram" | "tiktok";
@@ -322,16 +324,27 @@ export async function postToSocialPlatform(platform: SocialPlatform, input: Soci
   const label = PLATFORM_LABEL[platform];
 
   if (!apiKey() || !account) {
+    // Every branch here is prefixed with MOCK_NOTE_PREFIX — the one signal
+    // components/admin/SocialPostStatusNotice.tsx uses to render this
+    // visibly differently from a real result (a distinct "test mode" box,
+    // not a real-looking green success/red failure) so a non-technical
+    // owner can never mistake a simulated result for a real post going out.
+    // See lib/socialPostMock.ts for why this is a dedicated marker rather
+    // than the UI matching on the message wording itself.
     if (matchesMockMarker(input.message, "fail_permanent", platform)) {
-      return { success: false, permanent: true, error: `Simulated permanent failure (mock mode, ${label}).` };
+      return {
+        success: false,
+        permanent: true,
+        error: `${MOCK_NOTE_PREFIX}Simulated permanent failure (mock mode, ${label}).`,
+      };
     }
     if (matchesMockMarker(input.message, "fail", platform)) {
-      return { success: false, error: `Simulated transient failure (mock mode, ${label}).` };
+      return { success: false, error: `${MOCK_NOTE_PREFIX}Simulated transient failure (mock mode, ${label}).` };
     }
     return {
       success: true,
       url: MOCK_URL[platform],
-      note: `Simulated — POSTFORME_API_KEY/${PLATFORM_ACCOUNT_ENV_VAR[platform]} aren't set, so nothing was really sent to ${label}.`,
+      note: `${MOCK_NOTE_PREFIX}POSTFORME_API_KEY/${PLATFORM_ACCOUNT_ENV_VAR[platform]} aren't set yet, so nothing was really sent to ${label} — this is a placeholder result for testing.`,
     };
   }
 

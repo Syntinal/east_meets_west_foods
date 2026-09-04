@@ -1,29 +1,59 @@
 import Link from "next/link";
 import { MUSIC_LIBRARY } from "@/lib/musicLibrary";
-import { buildOverlayVideoUrl, type AudioMode, type CaptionStyle, type CaptionPosition } from "@/lib/cloudinaryVideo";
+import {
+  buildOverlayVideoUrl,
+  type AudioMode,
+  type CaptionStyle,
+  type CaptionPosition,
+  type CaptionFont,
+} from "@/lib/cloudinaryVideo";
+import { resolveFeaturedImageUrl } from "@/lib/cloudinaryImage";
+import { buildClosingCardText } from "@/lib/closingCardText";
 
 export type NewsDoc = {
   id: string;
   title: string;
   slug: string;
-  featuredImage?: { url?: string | null; alt?: string | null } | string | null;
+  featuredImage?: { id?: string | number; url?: string | null; alt?: string | null; width?: number | null } | string | null;
   featuredVideo?: { url?: string | null; alt?: string | null } | string | null;
+  photoCaption?: {
+    text?: string | null;
+    captionStyle?: string | null;
+    captionPosition?: string | null;
+    // The "last confirmed" shadow copies — see collections/News.ts's own
+    // comment on them, and components/news/LiveNewsPost.tsx, the only
+    // reader of these.
+    confirmedImageId?: string | null;
+    confirmedText?: string | null;
+    confirmedCaptionStyle?: string | null;
+    confirmedCaptionPosition?: string | null;
+  } | null;
   cloudinaryVideo?: {
     publicId?: string | null;
     overlayText?: string | null;
+    textCard2?: string | null;
+    textCard3?: string | null;
+    durationSeconds?: number | null;
+    addClosingCard?: boolean | null;
     musicTrackId?: string | null;
     audioMode?: string | null;
     captionStyle?: string | null;
     captionPosition?: string | null;
-    // The "last confirmed" shadow copies of the 6 fields above — see
+    captionFont?: string | null;
+    // The "last confirmed" shadow copies of the fields above — see
     // collections/News.ts's own comment on them, and
     // components/news/LiveNewsPost.tsx, the only reader of these.
     confirmedPublicId?: string | null;
     confirmedOverlayText?: string | null;
+    confirmedTextCard2?: string | null;
+    confirmedTextCard3?: string | null;
+    confirmedDurationSeconds?: number | null;
+    confirmedAddClosingCard?: boolean | null;
     confirmedMusicTrackId?: string | null;
     confirmedAudioMode?: string | null;
     confirmedCaptionStyle?: string | null;
     confirmedCaptionPosition?: string | null;
+    confirmedCaptionFont?: string | null;
   } | null;
   publishedDate?: string | null;
   // The whole post, exactly as the owner typed it — plain text, not rich
@@ -55,17 +85,51 @@ type VideoPreviewOverride = {
   isStale: boolean;
 };
 
+// A Live-Preview-only override for the photo's caption overlay — see
+// components/news/LiveNewsPost.tsx, the only place that ever passes this.
+// Never passed by the plain server-rendered page, which always resolves the
+// photo live from `post` itself below via resolveFeaturedImageUrl (correct
+// there — a real published post should always show its real, current
+// caption). Unlike VideoPreviewOverride, `url` here is never null when a
+// photo exists — falling back to the plain, uncaptioned photo is always a
+// sensible thing to show while a caption hasn't been confirmed yet, unlike
+// video (which has nothing sensible to fall back to).
+type ImagePreviewOverride = {
+  url: string | null;
+  alt: string | null;
+  isStale: boolean;
+};
+
 // Shared between the plain server-rendered /news/[slug] page and its
 // live-preview counterpart — same markup either way, just fed different data.
 export function NewsPostView({
   post,
   videoPreviewOverride,
+  imagePreviewOverride,
 }: {
   post: NewsDoc;
   videoPreviewOverride?: VideoPreviewOverride;
+  imagePreviewOverride?: ImagePreviewOverride;
 }) {
   const image = post.featuredImage && typeof post.featuredImage === "object" ? post.featuredImage : null;
   const plainVideo = post.featuredVideo && typeof post.featuredVideo === "object" ? post.featuredVideo : null;
+
+  // The actual photo to display — plain, or with its caption baked in (see
+  // lib/cloudinaryImage.ts). imagePreviewOverride, when passed, wins outright
+  // — see its own type comment for why recomputing live here would defeat
+  // the point of the "confirmed" gating that override exists to carry (same
+  // reasoning as videoPreviewOverride below).
+  const resolvedImage = imagePreviewOverride
+    ? imagePreviewOverride.url
+      ? { url: imagePreviewOverride.url, alt: imagePreviewOverride.alt }
+      : null
+    : resolveFeaturedImageUrl({
+        cloudName: CLOUD_NAME,
+        image,
+        captionText: post.photoCaption?.text,
+        captionStyle: post.photoCaption?.captionStyle,
+        captionPosition: post.photoCaption?.captionPosition,
+      });
 
   // The Cloudinary overlay video (music + caption baked in) takes priority
   // over the plain Featured Video upload when present — same priority rule
@@ -81,11 +145,15 @@ export function NewsPostView({
           cloudName: CLOUD_NAME,
           publicId: cloudinaryPublicId,
           overlayText: post.cloudinaryVideo?.overlayText,
+          additionalTextCards: [post.cloudinaryVideo?.textCard2, post.cloudinaryVideo?.textCard3],
+          closingCardText: post.cloudinaryVideo?.addClosingCard ? buildClosingCardText() : null,
+          durationSeconds: post.cloudinaryVideo?.durationSeconds,
           musicPublicId:
             MUSIC_LIBRARY.find((track) => track.id === post.cloudinaryVideo?.musicTrackId)?.publicId ?? null,
           audioMode: (post.cloudinaryVideo?.audioMode as AudioMode) || "replace",
           captionStyle: (post.cloudinaryVideo?.captionStyle as CaptionStyle) || "white-on-black",
           captionPosition: (post.cloudinaryVideo?.captionPosition as CaptionPosition) || "bottom",
+          captionFont: (post.cloudinaryVideo?.captionFont as CaptionFont) || "arial",
         })
       : null;
   const video = overlayVideoUrl ? { url: overlayVideoUrl } : plainVideo;
@@ -120,15 +188,14 @@ export function NewsPostView({
           {/* Deliberately NOT the "menu-card-img" class used below for the image
               fallback — that class forces a fixed 4:3 box + overflow:hidden,
               designed for small grid-card thumbnails. A portrait video (e.g. a
-              Cloudinary Video Studio clip, often 1080x1920) scaled to that box's
-              width renders much taller than the box, silently cropping off the
-              bottom of the frame — exactly where the Video Studio's burned-in
-              caption sits (see lib/cloudinaryVideo.ts's g_south/fl_relative
-              overlay position). "news-post-video" has no forced aspect ratio, so
-              the video always renders at its own natural height with nothing
-              cropped. */}
-          <div className="news-post-video" style={{ borderRadius: 4, overflow: "hidden" }}>
-            <video src={video.url} controls playsInline style={{ width: "100%", height: "auto", display: "block" }} />
+              Cloudinary Video Studio clip, often 1080x1920) sized to the
+              viewport's own height (see .news-post-video video in globals.css)
+              instead of the content column's width, so the owner sees the
+              whole clip without scrolling, the way a Reels/TikTok-style video
+              is meant to be watched — nothing cropped, nothing needing a fixed
+              aspect-ratio box the way the thumbnail grid does. */}
+          <div className="news-post-video">
+            <video src={video.url} controls playsInline />
           </div>
         </div>
       ) : needsFirstConfirmation ? (
@@ -137,9 +204,17 @@ export function NewsPostView({
           in the Video Studio to see it here.
         </p>
       ) : (
-        image?.url && (
-          <div className="menu-card-img" style={{ marginBottom: 24, borderRadius: 4, overflow: "hidden" }}>
-            <img src={image.url} alt={image.alt ?? post.title} />
+        resolvedImage?.url && (
+          <div style={{ marginBottom: 24 }}>
+            {imagePreviewOverride?.isStale && (
+              <p style={{ fontSize: 12, color: "var(--theme-warning-500, #f5a623)", marginBottom: 8 }}>
+                You&rsquo;ve changed the photo caption since this preview was made — click &ldquo;Update
+                preview&rdquo; in Step 1 to see the latest version here.
+              </p>
+            )}
+            <div className="menu-card-img" style={{ borderRadius: 4, overflow: "hidden" }}>
+              <img src={resolvedImage.url} alt={resolvedImage.alt ?? post.title} />
+            </div>
           </div>
         )
       )}

@@ -10,6 +10,22 @@
   --gray-light: #9a9a9a;
   --line: #e8e3d6;
   --line-dark: #d8d2c0;
+  /* The sticky nav's own real height, so anything sizing itself off the
+     viewport's height (see .news-post-video video below) can subtract it
+     instead of assuming the full viewport is available — the nav sits in
+     normal document flow above that content (position:sticky still takes
+     up its own space, unlike position:fixed), so 100vh alone always
+     overshoots by this much. Computed from .primary-nav-list a's own box
+     (17px vertical padding * 2 + ~22px line box for its 0.85rem text) plus
+     .primary-nav's 2px border-bottom ≈ 58px on desktop; the ≤1060px
+     hamburger-collapsed nav (.nav-toggle's 14px padding * 2 + its ~18px
+     icon + .nav-inner's 4px padding * 2 + the same 2px border) lands within
+     a couple px of the same figure. One value covers both reasonably well
+     rather than a separate one per breakpoint — not pixel-exact, but close
+     enough that "slightly less tall than the full screen" is the visible
+     effect either way. Also applied on .primary-nav itself, as a floor,
+     so this stays true if nav content ever grows taller than assumed. */
+  --nav-height: 60px;
 }
 
 * { box-sizing: border-box; }
@@ -60,6 +76,12 @@ img { max-width: 100%; display: block; }
   background: var(--black);
   color: var(--white);
   border-bottom: 2px solid var(--red);
+  /* A floor, not a fixed height — keeps --nav-height's own estimate (see
+     :root) honest if nav content ever grows taller than assumed; doesn't
+     constrain it from being taller (e.g. if a future change adds more
+     padding), just guarantees it's never shorter than what's being
+     subtracted from .news-post-video video's height. */
+  min-height: var(--nav-height);
 }
 
 .nav-inner {
@@ -788,14 +810,54 @@ img { max-width: 100%; display: block; }
 }
 
 /* ============ NEWS POST VIDEO ============ */
-/* Deliberately no aspect-ratio/object-fit crop, unlike .menu-card-img — a
-   News post's featured video can be portrait (e.g. a Cloudinary Video
-   Studio clip), and cropping to a fixed box would cut off the Studio's
-   burned-in bottom caption. The video's own width:100%/height:auto inline
-   style (components/news/NewsPostView.tsx) already sizes it correctly;
-   this class is just the cosmetic rounded-corner clip both media types share. */
+/* Sized to the viewport's own height, not the content column's width — a
+   News post's featured video (e.g. a Cloudinary Video Studio clip, usually
+   portrait 1080x1920) previously filled the column's width with height:auto,
+   which on a typical viewport made a tall portrait clip run well past the
+   bottom of the screen, needing a scroll to see the rest of it. Per the
+   owner's request, it now fills the screen's own height instead (a Reels/
+   TikTok-style "the whole video fits on screen" viewing experience), with
+   width scaling down to match the clip's real aspect ratio automatically
+   (height set, width:auto — a plain <video>'s native sizing behavior, no
+   object-fit or aspect-ratio math needed on our end).
+   height:100dvh (dynamic viewport height, accounts for a mobile browser's
+   address bar showing/hiding) is listed after the plain 100vh fallback —
+   an unsupported value is ignored, so a browser without dvh support just
+   keeps the 100vh rule above it; one that supports it uses the more
+   accurate dvh value instead.
+   Both subtract --nav-height (see :root) — the site's sticky nav sits in
+   normal document flow above this content (position:sticky still takes up
+   its own space, unlike position:fixed), so a plain 100vh/100dvh would
+   always overshoot by the nav's own height, pushing the bottom of the
+   video below the visible screen on first load. Caught after shipping the
+   first version without this, which didn't account for the nav at all.
+   Inside Payload's admin Live Preview panel (components/news/
+   LiveNewsPost.tsx, the same shared component), there's no site nav at all
+   — an iframe is its own independent viewport with nothing above this
+   content in it, so the subtraction just makes the video a harmless
+   --nav-height shorter than the pane's full height there, not wrong, just
+   not strictly necessary in that one context.
+   max-width:100% + object-fit:contain are defensive, not the normal case —
+   every clip through this feature has been portrait so far (see
+   lib/cloudinaryVideo.ts's TEXT_MAX_WIDTH comment), where height:100vh
+   naturally computes a narrower width than the column, no capping needed;
+   these only matter for a hypothetical landscape upload, where they stop
+   the video from either overflowing the column horizontally or (object-fit:
+   contain) stretching/distorting if max-width ends up constraining it
+   tighter than the aspect ratio height:100vh alone would imply. */
 .news-post-video {
   border-bottom: 1px solid var(--line);
+}
+
+.news-post-video video {
+  display: block;
+  margin: 0 auto;
+  width: auto;
+  max-width: 100%;
+  height: calc(100vh - var(--nav-height));
+  height: calc(100dvh - var(--nav-height));
+  object-fit: contain;
+  border-radius: 4px;
 }
 
 /* ============ NEWS POST BODY ============ */

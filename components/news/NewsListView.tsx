@@ -1,14 +1,20 @@
 import Link from "next/link";
 import { deriveExcerptFromMessage } from "@/lib/newsText";
+import { resolveFeaturedImageUrl } from "@/lib/cloudinaryImage";
 
 export type NewsListDoc = {
   id: string;
   title: string;
   slug: string;
   message: string;
-  featuredImage?: { url?: string | null; alt?: string | null } | string | null;
+  featuredImage?: { url?: string | null; alt?: string | null; width?: number | null } | string | null;
+  photoCaption?: { text?: string | null; captionStyle?: string | null; captionPosition?: string | null } | null;
   publishedDate?: string | null;
 };
+
+// NEXT_PUBLIC_ since this renders in a plain server component — see
+// components/news/NewsPostView.tsx's own identical constant for why.
+const CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
 
 // The box above the post grid on /news — backed by globals/NewsIntro.ts.
 export type NewsIntroDoc = {
@@ -42,7 +48,13 @@ export function NewsListView({ posts, intro }: { posts: NewsListDoc[]; intro: Ne
           ) : (
             <div className="menu-grid">
               {posts.map((post) => {
-                const image = post.featuredImage && typeof post.featuredImage === "object" ? post.featuredImage : null;
+                const image = resolveFeaturedImageUrl({
+                  cloudName: CLOUD_NAME,
+                  image: post.featuredImage,
+                  captionText: post.photoCaption?.text,
+                  captionStyle: post.photoCaption?.captionStyle,
+                  captionPosition: post.photoCaption?.captionPosition,
+                });
                 return (
                   <article className="menu-card" key={post.id}>
                     {image?.url && (

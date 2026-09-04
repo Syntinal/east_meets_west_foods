@@ -47,38 +47,76 @@ const CAPTION_POSITIONS: Record<CaptionPosition, string> = {
 // the way an unconstrained width did.
 const TEXT_MAX_WIDTH = 900;
 
-// Corner radius (px) rounding the caption's background box, and the font
-// modifier that horizontally centers wrapped text within it — both added
-// per the owner's request that the box read a bit softer, and that
-// multi-line captions stay centered rather than ragged-left regardless of
-// which CaptionPosition is chosen. Confirmed directly against the real
-// Cloudinary API (not just docs) that `r_<px>` only takes effect when
-// comma'd directly into the l_text component itself, alongside co_/b_ —
-// chaining it as its own separate step (before or after fl_layer_apply)
-// silently no-ops, and the reserved `r_max` keyword way overshoots (it
-// rounds into a stadium/ellipse that clips into the text itself, since the
-// box has almost no internal padding around the glyphs).
+// Corner radius on the video caption's background box was removed
+// entirely, per the owner — the box's square corners were still visibly
+// showing through/alongside the rounded corners rather than a clean rounded
+// box (this feature's own earlier investigation had found the video
+// transcode pipeline handles `r_` differently from the image pipeline —
+// see git history on this comment for that investigation — but "still
+// shows corners" means even the value that investigation settled on wasn't
+// actually clean; simplest fix is dropping it rather than chasing another
+// value). `cornerRadius` in buildTextLayerBase's `sizing` param is still
+// there and still used by lib/cloudinaryImage.ts's photo captions (a
+// different, image-pipeline code path the owner didn't ask to change) —
+// just no longer defaulted-to for video, which is what actually removes it
+// from every video caption (buildCardSegments below never passes one).
 //
-// 35px, not something smaller — this was wrong once already and worth
-// recording why. Cloudinary's *video* transcode pipeline (ffmpeg-based)
-// and its *image*/thumbnail-derivative pipeline (the `.jpg` you get by
-// swapping the extension on this same URL) do NOT apply `r_` identically,
-// despite sharing transformation syntax: a `.jpg` grabbed from this exact
-// URL shows a clean rounded corner all the way down to ~10px, but the real
-// `.mp4` output silently ignores anything below ~30px — confirmed by
-// downloading the actual video (not the jpg) and extracting a real frame
-// with ffmpeg at r_20/25/30/35/40/50/80/120: 20 and 25 are indistinguishable
-// from r_0, 35 through 120 all produce byte-identical output (the video
-// pipeline appears to clamp to one effective radius somewhere in that
-// range), and only `r_max` goes further, into the glyph-clipping stadium
-// shape above. 35 is the smallest value confirmed to actually round the
-// real delivered video, on both a short single-line caption and a
-// 2-line wrapped one — verifying against the `.jpg` derivative alone is
-// not sufficient for this feature, since that isn't what ever actually
-// ships. `_center` is a text-style modifier on the font descriptor
-// (`Arial_60_center`), not a separate parameter.
-const TEXT_CORNER_RADIUS = 35;
-const TEXT_FONT = "Arial_60_center";
+// `_center` is a text-style modifier chained onto the font descriptor
+// itself (e.g. `Arial_60_center`, or `Montserrat_60_bold_center` — see
+// buildFontDescriptor below), not a separate parameter — horizontally
+// centers wrapped text within the box regardless of which CaptionPosition
+// is chosen.
+const TEXT_FONT_SIZE = 60;
+
+// A curated list, not a free-text font picker — same reasoning as
+// CAPTION_STYLES being fixed presets rather than a raw color picker: a few
+// good, legible choices beat an open-ended one that could land on something
+// illegible or off-brand. All are real Google Fonts (Cloudinary renders any
+// Google Font by name directly in a text-overlay descriptor — a documented,
+// standard Cloudinary capability, no separate upload/hosting needed on our
+// end) except "arial", the original default, kept as-is so an existing post
+// with no captionFont set (null/undefined) renders exactly as it did before
+// this option existed. The other four are common, bold, high-legibility
+// display/sans faces associated with social-media-style caption overlays
+// (Instagram/TikTok-style text cards, similar to the reference video that
+// prompted this feature) rather than a plain body-text font. "anton" has no
+// `bold` modifier — it's a single-weight display face, already bold by
+// design; Cloudinary's `_bold` modifier on a font with no real bold variant
+// is more likely to no-op or look wrong than help.
+export type CaptionFont = "arial" | "montserrat" | "poppins" | "anton" | "oswald";
+const CAPTION_FONTS: Record<CaptionFont, { family: string; bold?: boolean }> = {
+  arial: { family: "Arial" },
+  montserrat: { family: "Montserrat", bold: true },
+  poppins: { family: "Poppins", bold: true },
+  anton: { family: "Anton" },
+  oswald: { family: "Oswald", bold: true },
+};
+
+function buildFontDescriptor(font: CaptionFont): string {
+  const { family, bold } = CAPTION_FONTS[font];
+  return `${family}_${TEXT_FONT_SIZE}_${bold ? "bold_" : ""}center`;
+}
+
+// Extra top/bottom breathing room around the caption text, inside its
+// background box — per the owner's request that the box felt cramped
+// against the text. Cloudinary's text-overlay API has no documented
+// padding parameter of its own (the box is auto-fit tightly to the text by
+// its own font-rendering engine); the closest real lever is drawing a
+// border in the SAME color as the background so it reads as an extension of
+// the box rather than a visible outline (`bo_<px>px_solid_<same rgb as
+// bgColor>`) — this is a common workaround for this exact Cloudinary
+// limitation, not a documented "padding" feature. Applies to all 4 sides
+// (Cloudinary's border syntax doesn't support per-side widths the way CSS
+// does), not just top/bottom as asked — the closest approximation available
+// without a fundamentally different overlay construction. 18px, the
+// midpoint of the requested 12-24px range. Only added when there's a real
+// background to extend (the "-no-bg" caption styles have no box at all, so
+// a border there would draw a visible outline around bare text instead of
+// adding padding). NOT verified against the real Cloudinary API this
+// session, per the owner's explicit ask to skip that this round — confirm
+// visually once it's live, this is this function's best-available technique
+// rather than a confirmed one.
+const TEXT_PADDING_PX = 18;
 
 // See the comment inside buildOverlayVideoUrl's text-layer branch for the
 // full reasoning: plain encodeURIComponent leaves "," and "/" as single-
@@ -93,37 +131,168 @@ function encodeCaptionText(text: string): string {
   return encodeURIComponent(text).replace(/%2C/g, "%252C").replace(/%2F/g, "%252F");
 }
 
+// Fade duration (ms) applied to caption text — a static caption sitting on
+// screen with no transition reads as "pasted on" rather than an intentional
+// edit. Fixed rather than owner-configurable: this is a subtle polish knob,
+// not a real decision the owner needs to make per post. Confirmed working
+// against the real Cloudinary API (see buildCardSegments' own comment for
+// the `du_` requirement this needed to actually work) — the equivalent
+// music fade was also tried this session but didn't hold up against a real
+// test and was reverted; see pushMusicSegments' own comment below.
+const CAPTION_FADE_MS = 500;
+
 type BuildOverlayVideoUrlArgs = {
   cloudName: string;
   publicId: string;
+  // The first (or only, if no other cards/closing card are given) text
+  // card.
   overlayText?: string | null;
+  // Extra cards shown in sequence after overlayText, each getting its own
+  // even slice of the clip's timeline — see the "multi-card" branch below.
+  // Only takes effect when durationSeconds is known; with more than one
+  // card and no known duration, only overlayText renders (same as before
+  // this option existed).
+  additionalTextCards?: (string | null | undefined)[];
+  // A final card appended after every entry in additionalTextCards — see
+  // lib/closingCardText.ts's buildClosingCardText(). Participates in the
+  // same even time-slicing as the other cards, so it lands in the last
+  // slice of the clip rather than the caption sitting over the whole thing.
+  closingCardText?: string | null;
+  // The uploaded clip's own length, in seconds — needed to evenly time-slice
+  // more than one card across it. Captured from the Cloudinary upload
+  // widget's own response (see CloudinaryVideoStudio.tsx) at upload time;
+  // there's no other cheap way to know a clip's duration ahead of asking
+  // Cloudinary to actually composite it.
+  durationSeconds?: number | null;
   // Cloudinary public_id of the chosen background track (see
   // lib/musicLibrary.ts), or null/undefined for "no music".
   musicPublicId?: string | null;
   audioMode?: AudioMode;
   captionStyle?: CaptionStyle;
   captionPosition?: CaptionPosition;
+  captionFont?: CaptionFont;
 };
 
-// Shared by buildOverlayVideoUrl (the real .mp4) and
-// buildCaptionFramePreviewUrl (the cheap still-frame stand-in used for live
-// caption auditioning — see that function's own comment) so the two can
-// never drift apart on the actual text-layer transformation syntax. Returns
-// the `l_text:...` + `fl_layer_apply,...` segment pair, or an empty array
-// when there's no caption text to render.
-function buildTextLayerSegments(
+// One card's text layer (text + fade + position) — shared by both the
+// single-card and multi-card branches of buildOverlayVideoUrl below so they
+// can't drift on how a card actually renders. `visibleSeconds`, when given,
+// is this card's own real on-screen length (the whole clip's length for the
+// single-card case, or one slice's length for a multi-card segment) — see
+// below for why it's required for the fade to actually apply at all, and
+// also caps the fade duration to a fraction of it so a short slice/clip
+// can't ask for a longer fade-in+fade-out than it has room for. Omitted
+// entirely, NO fade is applied — safer than a fade that renders wrong (see
+// below), and matches this feature's original, pre-fade behavior exactly
+// (still relevant for an old post with no captured clip length at all).
+//
+// Two real Cloudinary quirks, both confirmed directly against the live API
+// this session, drive this function's shape:
+//
+// 1. `so_`/`eo_` do NOT scope *when* a text overlay appears on the base
+//    video's own timeline the way they do for a video overlay (the
+//    documented, standard use of those params): a lone l_text layer with
+//    so_/eo_ still rendered across the clip's ENTIRE length, so_/eo_ having
+//    no effect on it at all. This was this feature's original (wrong)
+//    approach to sequencing multiple cards, and exactly the bug an owner
+//    test caught (all cards piled on top of each other). Fixed in
+//    buildOverlayVideoUrl's multi-card branch below via the real,
+//    confirmed-working technique instead: trim the clip into actual
+//    separate segments and splice them together (`fl_splice`) — so_/eo_
+//    DOES work to trim a video overlay/asset, which is what each spliced
+//    segment is.
+// 2. `e_fade` on a text layer needs an explicit `du_` (duration) telling it
+//    how long the layer is actually visible for — without it, Cloudinary
+//    silently collapses the overlay to a brief flash right at the very
+//    start (confirmed: same broken flash whether or not so_/eo_ trimming
+//    was also present), which is what made caption fade (added this
+//    session, alongside the multi-card work) look identical to the so_/eo_
+//    bug above at a glance — a second, independent bug hiding behind the
+//    first one's symptom. `du_<visibleSeconds>` fixes it — confirmed the
+//    text now stays visible for that entire window, fading only at the
+//    real start/end.
+function buildCardSegments(
+  text: string,
+  captionStyle: CaptionStyle,
+  captionPosition: CaptionPosition,
+  visibleSeconds?: number,
+  captionFont: CaptionFont = "arial",
+): string[] {
+  // font + paddingPx: the video-only look requested by the owner (a chosen
+  // font instead of always Arial, and extra breathing room around the text
+  // — see CAPTION_FONTS/TEXT_PADDING_PX's own comments). No cornerRadius —
+  // that's what removes the video caption's corner radius entirely; photo
+  // captions (lib/cloudinaryImage.ts) still pass their own value directly,
+  // unaffected.
+  const base = buildTextLayerBase(text, captionStyle, {
+    font: buildFontDescriptor(captionFont),
+    paddingPx: TEXT_PADDING_PX,
+  });
+  if (visibleSeconds && visibleSeconds > 0) {
+    const fadeMs = Math.min(CAPTION_FADE_MS, Math.round(visibleSeconds * 1000 * 0.3));
+    return [
+      base,
+      `du_${visibleSeconds.toFixed(2)},e_fade:${fadeMs},e_fade:-${fadeMs}`,
+      `fl_layer_apply,${CAPTION_POSITIONS[captionPosition]}`,
+    ];
+  }
+  return [base, `fl_layer_apply,${CAPTION_POSITIONS[captionPosition]}`];
+}
+
+// Shared by buildOverlayVideoUrl (the real .mp4), buildCaptionFramePreviewUrl
+// (the cheap still-frame stand-in used for live caption auditioning — see
+// that function's own comment), and lib/cloudinaryImage.ts's
+// buildOverlayImageUrl (the equivalent overlay for a News post's photo, not
+// a video) — so all three can never drift apart on the actual text-layer
+// transformation syntax or the caption-encoding fix above. Returns the
+// `l_text:...` + `fl_layer_apply,...` segment pair, or an empty array when
+// there's no caption text to render.
+//
+// `sizing` lets a caller override the font/width/corner-radius/padding that
+// would otherwise default to this file's own TEXT_FONT_SIZE/TEXT_MAX_WIDTH
+// constants (font defaults to "arial" via buildFontDescriptor) — those are
+// tuned specifically for this feature's consistently-1080px-wide portrait
+// video uploads (see TEXT_MAX_WIDTH's own comment), which doesn't hold for
+// News photos (no consistent width at all). lib/cloudinaryImage.ts scales
+// font size/width/corner-radius proportionally to each photo's own real
+// width instead of reusing these literal pixel values, and doesn't pass
+// `paddingPx` at all (that's video-only — see TEXT_PADDING_PX's own
+// comment). `cornerRadius`/`paddingPx` are both genuinely optional with NO
+// fallback default — omitted, neither the `r_` nor the `bo_` segment is
+// added at all (this is what makes plain video captions have no corner
+// radius: buildCardSegments below never passes one).
+// The `l_text:...` component itself (color/bg/width/corner-radius/padding)
+// with no timing/fade/positioning attached — factored out of
+// buildTextLayerSegments so buildOverlayVideoUrl's multi-card sequencing
+// below (which needs to attach a per-card so_/eo_/e_fade component that
+// buildTextLayerSegments' other two callers — the frame-preview stand-in
+// and lib/cloudinaryImage.ts's photo overlay — have no use for and
+// shouldn't risk) can reuse the exact same color/box/wrap logic without
+// duplicating it. Returns null when there's no text to render.
+function buildTextLayerBase(
+  text: string,
+  captionStyle: CaptionStyle,
+  sizing?: { font?: string; maxWidth?: number; cornerRadius?: number; paddingPx?: number },
+): string {
+  const { textColor, bgColor } = CAPTION_STYLES[captionStyle];
+  const bgSegment = bgColor ? `,b_rgb:${bgColor}` : "";
+  const font = sizing?.font ?? buildFontDescriptor("arial");
+  const maxWidth = sizing?.maxWidth ?? TEXT_MAX_WIDTH;
+  const cornerRadiusSegment = sizing?.cornerRadius ? `,r_${sizing.cornerRadius}` : "";
+  // Only when there's a real background box to extend — see TEXT_PADDING_PX's
+  // own comment for why a "-no-bg" style skips this.
+  const paddingSegment = sizing?.paddingPx && bgColor ? `,bo_${sizing.paddingPx}px_solid_rgb:${bgColor}` : "";
+  return `l_text:${font}:${encodeCaptionText(text)},co_${textColor}${bgSegment}${paddingSegment},w_${maxWidth},c_fit${cornerRadiusSegment}`;
+}
+
+export function buildTextLayerSegments(
   overlayText: string | null | undefined,
   captionStyle: CaptionStyle,
   captionPosition: CaptionPosition,
+  sizing?: { font?: string; maxWidth?: number; cornerRadius?: number; paddingPx?: number },
 ): string[] {
   const trimmedText = overlayText?.trim();
   if (!trimmedText) return [];
-  const { textColor, bgColor } = CAPTION_STYLES[captionStyle];
-  const bgSegment = bgColor ? `,b_rgb:${bgColor}` : "";
-  return [
-    `l_text:${TEXT_FONT}:${encodeCaptionText(trimmedText)},co_${textColor}${bgSegment},w_${TEXT_MAX_WIDTH},c_fit,r_${TEXT_CORNER_RADIUS}`,
-    `fl_layer_apply,${CAPTION_POSITIONS[captionPosition]}`,
-  ];
+  return [buildTextLayerBase(trimmedText, captionStyle, sizing), `fl_layer_apply,${CAPTION_POSITIONS[captionPosition]}`];
 }
 
 // The single source of truth for this feature's Cloudinary transformation
@@ -145,19 +314,37 @@ export function buildOverlayVideoUrl({
   cloudName,
   publicId,
   overlayText,
+  additionalTextCards,
+  closingCardText,
+  durationSeconds,
   musicPublicId,
   audioMode = "replace",
   captionStyle = "white-on-black",
   captionPosition = "bottom",
+  captionFont = "arial",
 }: BuildOverlayVideoUrlArgs): string {
   const segments: string[] = [];
 
-  if (musicPublicId) {
-    // Applied directly to the base video (not inside a layer): strip its
-    // own audio track entirely ("replace"), or just turn it down so the
-    // music sits on top of it instead of drowning it out ("mix"). Either
-    // way this must come before the l_audio layer below, since it targets
-    // the base asset's own audio, not the added track.
+  const cards = [overlayText, ...(additionalTextCards ?? []), closingCardText]
+    .map((text) => text?.trim())
+    .filter((text): text is string => Boolean(text));
+  // Only takes the real multi-card (splice) path when there's more than one
+  // card AND the clip's own length is known — with more than one card but
+  // no known duration (an old post from before durationSeconds was
+  // captured), only the first card renders, same as this feature's
+  // original single-caption behavior, rather than risk a splice with no
+  // real slice lengths to compute.
+  const isMultiCard = cards.length > 1 && Boolean(durationSeconds) && (durationSeconds as number) > 0;
+
+  // Applied directly to the base video (not inside a layer): strip its own
+  // audio track entirely ("replace"), or just turn it down so the music
+  // sits on top of it instead of drowning it out ("mix"). Either way this
+  // must come before the l_audio layer, since it targets the base asset's
+  // own audio, not the added track. A plain function (not called
+  // unconditionally below) because WHERE this needs to go differs between
+  // the single-card and multi-card cases — see each branch below.
+  function pushMusicSegments() {
+    if (!musicPublicId) return;
     segments.push(audioMode === "replace" ? "ac_none" : "e_volume:-50");
     // Inside a layer parameter, "/" is a transformation-component
     // delimiter, not part of the public_id — a folder-qualified public_id
@@ -169,8 +356,26 @@ export function buildOverlayVideoUrl({
     // for ":"). The base `publicId` at the end of the URL is a normal
     // delivery path, not a layer parameter, so it's untouched.
     segments.push(`l_audio:${musicPublicId.replace(/\//g, ":")}`);
+    // No fade here, deliberately — this was attempted this session (an
+    // `e_fade`/`e_fade:-` pair, same idea as the caption fade below) and
+    // reverted after real-API testing showed it doesn't reliably work for
+    // audio the way it does for text: fade-IN measured real (rising
+    // volume), but fade-OUT never took effect at all — confirmed via
+    // `volumedetect` on a real composited clip, mean volume stayed flat
+    // right up to the very last frame regardless of an added `du_` (which
+    // is what fixed the equivalent problem for text, see
+    // buildCardSegments). Rather than ship a fade that's silently only
+    // half-working, this reverted to MUSIC_FADE_MS's pre-fade baseline
+    // (music plays straight through, cut off cleanly at the clip's end,
+    // same as before this session) — worth real research before trying
+    // again, not another guess. See CLAUDE.md's "What's next" for this.
     segments.push("fl_layer_apply");
   }
+
+  // Single-card case: music goes first, exactly as this feature has always
+  // done (proven correct — see CLAUDE.md item 28). The multi-card case
+  // pushes it later instead — see that branch below for why.
+  if (!isMultiCard) pushMusicSegments();
 
   // Text/background colors from the chosen preset (see CAPTION_STYLES — a
   // fixed list, not a raw picker, so no combo can end up unreadable).
@@ -211,7 +416,53 @@ export function buildOverlayVideoUrl({
   // clip width (uploads are consistently 1080px wide portrait video —
   // confirmed against a real uploaded clip), leaving a margin on each
   // side; a clip narrower than that would need this revisited.
-  segments.push(...buildTextLayerSegments(overlayText, captionStyle, captionPosition));
+  //
+  // Multiple cards (overlayText, additionalTextCards, closingCardText, in
+  // that order) get evenly time-sliced across the clip's own length and
+  // shown one at a time — the multi-"card" sequence this feature was
+  // extended for (see CLAUDE.md). Built via real segment trimming + splicing
+  // (`fl_splice`), NOT so_/eo_ on each text layer — see buildCardSegments'
+  // own comment for why that first attempt didn't work. Each segment after
+  // the first re-references this same clip's own publicId as its own
+  // `l_video:` overlay purely so it can be independently so_/eo_-trimmed
+  // (which DOES work at this level — it's the documented way to trim a
+  // video overlay/asset) and captioned before `fl_splice` appends it onto
+  // the growing result. Falls back to a single full-duration card (this
+  // feature's original behavior, still exactly how most posts use it)
+  // whenever there's only one card, or the clip's duration isn't known.
+  if (isMultiCard) {
+    const slice = (durationSeconds as number) / cards.length;
+    const colonPublicId = publicId.replace(/\//g, ":");
+    cards.forEach((text, i) => {
+      const startSeconds = i * slice;
+      const endSeconds = (i + 1) * slice;
+      if (i > 0) segments.push(`fl_splice,l_video:${colonPublicId}`);
+      segments.push(`so_${startSeconds.toFixed(2)},eo_${endSeconds.toFixed(2)}`);
+      segments.push(...buildCardSegments(text, captionStyle, captionPosition, slice, captionFont));
+      // Closes the l_video splice layer itself (distinct from
+      // buildCardSegments' own fl_layer_apply just above, which only closes
+      // the l_text layer nested inside it) — merges this now-captioned,
+      // trimmed segment onto the growing spliced result. Only the first
+      // segment skips this, since it isn't inside an l_video splice layer
+      // at all — it's the base asset itself, just trimmed.
+      if (i > 0) segments.push("fl_layer_apply");
+    });
+
+    // Music goes here, not in the single-card spot above — it needs to
+    // land on the WHOLE spliced-together result, not just the first
+    // segment. Each spliced-in segment re-references the clip's own
+    // original publicId, which carries none of this music layer, so
+    // applying it before splicing would only cover the first segment and
+    // leave the rest with the clip's own original audio underneath.
+    pushMusicSegments();
+  } else if (cards.length >= 1) {
+    // durationSeconds, when known, both fixes the fade (see
+    // buildCardSegments' own comment on why du_ is required for it to work
+    // at all) and matches it to the clip's real length; when it isn't known
+    // (an old post from before durationSeconds was captured), no fade is
+    // applied at all rather than one that would render wrong.
+    segments.push(...buildCardSegments(cards[0], captionStyle, captionPosition, durationSeconds ?? undefined, captionFont));
+  }
 
   segments.push("q_auto");
 
@@ -232,6 +483,7 @@ type BuildCaptionFramePreviewUrlArgs = {
   overlayText?: string | null;
   captionStyle?: CaptionStyle;
   captionPosition?: CaptionPosition;
+  captionFont?: CaptionFont;
 };
 
 // A cheap stand-in for buildOverlayVideoUrl's real .mp4, used only so the
@@ -240,12 +492,12 @@ type BuildCaptionFramePreviewUrlArgs = {
 // transformation each time. Cloudinary will hand back a single still frame
 // from an uploaded video if you request its public_id with an image
 // extension instead of `.mp4` — a "video-to-image" derivative, confirmed
-// viable here already (see buildOverlayVideoUrl's TEXT_CORNER_RADIUS
-// comment, which grabbed a `.jpg` off this exact URL shape while
-// investigating corner-radius rendering) — and a single-frame image render
-// is far lighter for Cloudinary to generate than re-encoding the whole
-// clip, so recomputing this on every keystroke is safe in a way recomputing
-// the real video isn't. This function is ONLY ever used for that live
+// viable here already (this exact URL shape was used to investigate corner-
+// radius rendering earlier in this feature's history — see git history) —
+// and a single-frame image render is far lighter for Cloudinary to generate
+// than re-encoding the whole clip, so recomputing this on every keystroke is
+// safe in a way recomputing the real video isn't. This function is ONLY
+// ever used for that live
 // preview — the real, actually-posted video always goes through
 // buildOverlayVideoUrl, only when the owner explicitly asks for it (see
 // CloudinaryVideoStudio.tsx's "Update preview" button).
@@ -260,9 +512,18 @@ export function buildCaptionFramePreviewUrl({
   overlayText,
   captionStyle = "white-on-black",
   captionPosition = "bottom",
+  captionFont = "arial",
 }: BuildCaptionFramePreviewUrlArgs): string {
   const segments: string[] = [`so_${CAPTION_FRAME_OFFSET_SECONDS}`];
-  segments.push(...buildTextLayerSegments(overlayText, captionStyle, captionPosition));
+  // Same font/padding/no-radius sizing as the real video's own card
+  // rendering (see buildCardSegments) — otherwise this cheap preview would
+  // visually mismatch the real "Update preview" video it's standing in for.
+  segments.push(
+    ...buildTextLayerSegments(overlayText, captionStyle, captionPosition, {
+      font: buildFontDescriptor(captionFont),
+      paddingPx: TEXT_PADDING_PX,
+    }),
+  );
   segments.push("q_auto");
 
   return `https://res.cloudinary.com/${cloudName}/video/upload/${segments.join("/")}/${publicId}.jpg`;

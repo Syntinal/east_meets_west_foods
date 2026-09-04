@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
-import { useField, useFormFields, Button, SelectInput, TextInput } from "@payloadcms/ui";
+import { useField, useFormFields, Button, CheckboxInput, SelectInput, TextInput } from "@payloadcms/ui";
 import { CldUploadWidget } from "next-cloudinary";
 import { MUSIC_LIBRARY } from "@/lib/musicLibrary";
 import {
@@ -12,7 +12,9 @@ import {
   type AudioMode,
   type CaptionStyle,
   type CaptionPosition,
+  type CaptionFont,
 } from "@/lib/cloudinaryVideo";
+import { buildClosingCardText } from "@/lib/closingCardText";
 import { truncateWords } from "@/lib/newsText";
 
 // The whole "Video Studio" wizard, as one self-contained component rather
@@ -131,6 +133,15 @@ const AUDIO_MODE_OPTIONS = [
   { label: "Keep it, mixed in under the music", value: "mix" },
 ];
 
+// Keep in sync with lib/cloudinaryVideo.ts's CAPTION_FONTS.
+const CAPTION_FONT_OPTIONS = [
+  { label: "Arial (plain)", value: "arial" },
+  { label: "Montserrat", value: "montserrat" },
+  { label: "Poppins", value: "poppins" },
+  { label: "Anton", value: "anton" },
+  { label: "Oswald", value: "oswald" },
+];
+
 // Extracts the plain string this component stores from SelectInput's
 // onChange payload (an Option object, or an array of them for a multi-
 // select — none of these are multi-selects, but the type allows it).
@@ -171,12 +182,22 @@ export function CloudinaryVideoStudio() {
 
   const publicId = useField<string>({ path: "cloudinaryVideo.publicId" });
   const overlayText = useField<string>({ path: "cloudinaryVideo.overlayText" });
+  // Up to 2 more cards shown in sequence after overlayText — see
+  // lib/cloudinaryVideo.ts's buildOverlayVideoUrl. durationSeconds is
+  // captured from the upload widget's own response, not owner-entered (see
+  // the CldUploadWidget onSuccess handler below) — needed to evenly
+  // time-slice more than one card across the clip.
+  const textCard2 = useField<string>({ path: "cloudinaryVideo.textCard2" });
+  const textCard3 = useField<string>({ path: "cloudinaryVideo.textCard3" });
+  const durationSeconds = useField<number>({ path: "cloudinaryVideo.durationSeconds" });
+  const addClosingCard = useField<boolean>({ path: "cloudinaryVideo.addClosingCard" });
   const musicTrackId = useField<string>({ path: "cloudinaryVideo.musicTrackId" });
   const audioMode = useField<string>({ path: "cloudinaryVideo.audioMode" });
   const captionStyle = useField<string>({ path: "cloudinaryVideo.captionStyle" });
   const captionPosition = useField<string>({ path: "cloudinaryVideo.captionPosition" });
+  const captionFont = useField<string>({ path: "cloudinaryVideo.captionFont" });
 
-  // The "last confirmed" shadow copies of the 6 fields above — real,
+  // The "last confirmed" shadow copies of the fields above — real,
   // persisted document fields (see collections/News.ts's own comment on
   // them for the full reasoning), written only by updateVideoPreview()
   // below. Reading them via useField() the same way as the live fields
@@ -187,10 +208,15 @@ export function CloudinaryVideoStudio() {
   // there).
   const confirmedPublicId = useField<string>({ path: "cloudinaryVideo.confirmedPublicId" });
   const confirmedOverlayText = useField<string>({ path: "cloudinaryVideo.confirmedOverlayText" });
+  const confirmedTextCard2 = useField<string>({ path: "cloudinaryVideo.confirmedTextCard2" });
+  const confirmedTextCard3 = useField<string>({ path: "cloudinaryVideo.confirmedTextCard3" });
+  const confirmedDurationSeconds = useField<number>({ path: "cloudinaryVideo.confirmedDurationSeconds" });
+  const confirmedAddClosingCard = useField<boolean>({ path: "cloudinaryVideo.confirmedAddClosingCard" });
   const confirmedMusicTrackId = useField<string>({ path: "cloudinaryVideo.confirmedMusicTrackId" });
   const confirmedAudioMode = useField<string>({ path: "cloudinaryVideo.confirmedAudioMode" });
   const confirmedCaptionStyle = useField<string>({ path: "cloudinaryVideo.confirmedCaptionStyle" });
   const confirmedCaptionPosition = useField<string>({ path: "cloudinaryVideo.confirmedCaptionPosition" });
+  const confirmedCaptionFont = useField<string>({ path: "cloudinaryVideo.confirmedCaptionFont" });
 
   const musicOptions = useMemo(
     () => [{ label: "No music", value: "none" }, ...MUSIC_LIBRARY.map((track) => ({ label: track.label, value: track.id }))],
@@ -249,8 +275,9 @@ export function CloudinaryVideoStudio() {
       overlayText: debouncedOverlayText,
       captionStyle: (captionStyle.value as CaptionStyle) || "white-on-black",
       captionPosition: (captionPosition.value as CaptionPosition) || "bottom",
+      captionFont: (captionFont.value as CaptionFont) || "arial",
     });
-  }, [publicId.value, debouncedOverlayText, captionStyle.value, captionPosition.value]);
+  }, [publicId.value, debouncedOverlayText, captionStyle.value, captionPosition.value, captionFont.value]);
 
   // Tier 2 — the real composited video. Built ONLY from the confirmed
   // shadow fields, never the live ones above — those only change when
@@ -270,29 +297,43 @@ export function CloudinaryVideoStudio() {
       cloudName: CLOUD_NAME,
       publicId: confirmedPublicId.value,
       overlayText: confirmedOverlayText.value,
+      additionalTextCards: [confirmedTextCard2.value, confirmedTextCard3.value],
+      closingCardText: confirmedAddClosingCard.value ? buildClosingCardText() : null,
+      durationSeconds: confirmedDurationSeconds.value,
       musicPublicId: MUSIC_LIBRARY.find((track) => track.id === confirmedMusicTrackId.value)?.publicId ?? null,
       audioMode: (confirmedAudioMode.value as AudioMode) || "replace",
       captionStyle: (confirmedCaptionStyle.value as CaptionStyle) || "white-on-black",
       captionPosition: (confirmedCaptionPosition.value as CaptionPosition) || "bottom",
+      captionFont: (confirmedCaptionFont.value as CaptionFont) || "arial",
     });
   }, [
     isConfirmedForCurrentVideo,
     confirmedPublicId.value,
     confirmedOverlayText.value,
+    confirmedTextCard2.value,
+    confirmedTextCard3.value,
+    confirmedAddClosingCard.value,
+    confirmedDurationSeconds.value,
     confirmedMusicTrackId.value,
     confirmedAudioMode.value,
     confirmedCaptionStyle.value,
     confirmedCaptionPosition.value,
+    confirmedCaptionFont.value,
   ]);
 
   function updateVideoPreview() {
     if (!CLOUD_NAME || !publicId.value) return;
     confirmedPublicId.setValue(publicId.value);
     confirmedOverlayText.setValue(overlayText.value ?? "");
+    confirmedTextCard2.setValue(textCard2.value ?? "");
+    confirmedTextCard3.setValue(textCard3.value ?? "");
+    confirmedAddClosingCard.setValue(Boolean(addClosingCard.value));
+    confirmedDurationSeconds.setValue(durationSeconds.value);
     confirmedMusicTrackId.setValue(musicTrackId.value ?? "none");
     confirmedAudioMode.setValue(audioMode.value || "replace");
     confirmedCaptionStyle.setValue(captionStyle.value || "white-on-black");
     confirmedCaptionPosition.setValue(captionPosition.value || "bottom");
+    confirmedCaptionFont.setValue(captionFont.value || "arial");
   }
 
   // True once anything the real video depends on has changed since the
@@ -303,10 +344,14 @@ export function CloudinaryVideoStudio() {
   const isPreviewStale =
     isConfirmedForCurrentVideo &&
     ((overlayText.value ?? "") !== (confirmedOverlayText.value ?? "") ||
+      (textCard2.value ?? "") !== (confirmedTextCard2.value ?? "") ||
+      (textCard3.value ?? "") !== (confirmedTextCard3.value ?? "") ||
+      Boolean(addClosingCard.value) !== Boolean(confirmedAddClosingCard.value) ||
       (musicTrackId.value || "none") !== (confirmedMusicTrackId.value || "none") ||
       (audioMode.value || "replace") !== (confirmedAudioMode.value || "replace") ||
       (captionStyle.value || "white-on-black") !== (confirmedCaptionStyle.value || "white-on-black") ||
-      (captionPosition.value || "bottom") !== (confirmedCaptionPosition.value || "bottom"));
+      (captionPosition.value || "bottom") !== (confirmedCaptionPosition.value || "bottom") ||
+      (captionFont.value || "arial") !== (confirmedCaptionFont.value || "arial"));
 
   if (!CLOUD_NAME) {
     return (
@@ -335,6 +380,12 @@ export function CloudinaryVideoStudio() {
             const info = results.info;
             if (!info || typeof info !== "object" || !info.public_id) return;
             publicId.setValue(info.public_id);
+            // Cloudinary's upload response includes the clip's own length
+            // for a video resource — needed to evenly time-slice more than
+            // one text card across it (see buildOverlayVideoUrl). Not
+            // owner-facing; nothing to fall back to if it's missing other
+            // than the existing single-full-duration-card behavior.
+            if (typeof info.duration === "number") durationSeconds.setValue(info.duration);
             // One-time convenience prefill, not a live sync — only fills it
             // in the first time a video is uploaded and no caption has been
             // typed yet; the owner can change or clear it from there.
@@ -378,10 +429,15 @@ export function CloudinaryVideoStudio() {
             onClick={() => {
               publicId.setValue("");
               overlayText.setValue("");
+              textCard2.setValue("");
+              textCard3.setValue("");
+              durationSeconds.setValue(undefined);
+              addClosingCard.setValue(false);
               musicTrackId.setValue("none");
               audioMode.setValue("replace");
               captionStyle.setValue("white-on-black");
               captionPosition.setValue("bottom");
+              captionFont.setValue("arial");
             }}
           >
             Remove video
@@ -405,6 +461,34 @@ export function CloudinaryVideoStudio() {
             placeholder={suggestedCaption || "Leave blank for no on-screen text"}
           />
 
+          {/* Up to 2 more cards, shown one at a time in sequence after the
+              text above — each gated on the previous one actually having
+              text, so the owner isn't shown 3 empty boxes at once. All
+              cards share the one caption style/position choice below;
+              adding a per-card style would be more to explain for little
+              real benefit. */}
+          {overlayText.value?.trim() && (
+            <TextInput
+              path="videoStudio.textCard2"
+              label="Second text card (optional)"
+              description="Shown right after the text above, like a second slide — e.g. “Starting Sept 1st” after “NEW: Happy Hour”."
+              value={textCard2.value ?? ""}
+              hasMany={false}
+              onChange={(e) => textCard2.setValue(e.target.value)}
+              placeholder="Leave blank for just one card"
+            />
+          )}
+          {overlayText.value?.trim() && textCard2.value?.trim() && (
+            <TextInput
+              path="videoStudio.textCard3"
+              label="Third text card (optional)"
+              value={textCard3.value ?? ""}
+              hasMany={false}
+              onChange={(e) => textCard3.setValue(e.target.value)}
+              placeholder="Leave blank for just two cards"
+            />
+          )}
+
           {overlayText.value?.trim() && (
             <>
               <SelectInput
@@ -423,6 +507,15 @@ export function CloudinaryVideoStudio() {
                 options={CAPTION_POSITION_OPTIONS}
                 value={captionPosition.value || "bottom"}
                 onChange={(option) => captionPosition.setValue(selectValue(option))}
+              />
+
+              <SelectInput
+                path="videoStudio.captionFont"
+                name="videoStudio.captionFont"
+                label="Caption font"
+                options={CAPTION_FONT_OPTIONS}
+                value={captionFont.value || "arial"}
+                onChange={(option) => captionFont.setValue(selectValue(option))}
               />
 
               {framePreviewUrl && (
@@ -494,6 +587,18 @@ export function CloudinaryVideoStudio() {
               onChange={(option) => audioMode.setValue(selectValue(option))}
             />
           )}
+
+          <div style={rowStyle}>
+            <CheckboxInput
+              id="videoStudio.addClosingCard"
+              label="Add a closing card with our name & website"
+              checked={Boolean(addClosingCard.value)}
+              onToggle={(e) => addClosingCard.setValue(e.target.checked)}
+            />
+            <p style={helpStyle}>
+              Adds one more card at the very end with our name and website — a nice way to close out a promo video.
+            </p>
+          </div>
 
           <div style={rowStyle}>
             {/* Always "Update preview", never "Generate preview" the first

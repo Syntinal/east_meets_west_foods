@@ -9,6 +9,14 @@ import { LiveHome } from "@/components/home/LiveHome";
 import type { LatestNewsPost } from "@/components/home/TeaserCards";
 import { NAV_PAGES, resolveNavLabel } from "@/lib/navigation";
 import { deriveExcerptFromMessage } from "@/lib/newsText";
+import { resolveFeaturedImageUrl } from "@/lib/cloudinaryImage";
+
+// NEXT_PUBLIC_ (not the plain server-only var) — see
+// components/news/NewsPostView.tsx's own identical constant for why: this
+// value isn't secret, and keeping one client-safe var covering both server
+// and client render paths is simpler than threading a separately-computed
+// URL through every context that might need it.
+const CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
 
 const title = "East Meets West Dumplings Bar — Dumplings near Sandpoint, ID";
 const description =
@@ -119,10 +127,21 @@ async function getLatestNewsPost(isDraftMode: boolean): Promise<LatestNewsPost> 
     depth: 1,
   });
   const post = result.docs[0] as
-    | { featuredImage?: { url?: string | null; alt?: string | null } | string | null; message?: string | null }
+    | {
+        featuredImage?: { url?: string | null; alt?: string | null; width?: number | null } | string | null;
+        photoCaption?: { text?: string | null; captionStyle?: string | null; captionPosition?: string | null } | null;
+        message?: string | null;
+      }
     | undefined;
   if (!post) return null;
-  return { image: post.featuredImage ?? null, excerpt: post.message ? deriveExcerptFromMessage(post.message) : null };
+  const image = resolveFeaturedImageUrl({
+    cloudName: CLOUD_NAME,
+    image: post.featuredImage,
+    captionText: post.photoCaption?.text,
+    captionStyle: post.photoCaption?.captionStyle,
+    captionPosition: post.photoCaption?.captionPosition,
+  });
+  return { image, excerpt: post.message ? deriveExcerptFromMessage(post.message) : null };
 }
 
 async function getTestimonials(nav: Record<string, unknown>): Promise<TestimonialDoc[]> {
