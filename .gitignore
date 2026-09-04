@@ -1,2 +1,17 @@
 .claude/
 CLAUDE.md
+
+# Next.js
+node_modules/
+.next/
+next-env.d.ts
+tsconfig.tsbuildinfo
+
+# Env
+.env
+.env*.local
+!.env.example
+
+# Payload
+payload-types.ts
+public/media/
