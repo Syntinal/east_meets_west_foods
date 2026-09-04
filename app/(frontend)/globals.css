@@ -223,23 +223,36 @@ img { max-width: 100%; display: block; }
   padding-left: 14px;
 }
 
+/* Outline drawn with an inset box-shadow, not a real `border` — a plain
+   1px border here rendered with its top edge nearly invisible in real
+   WebKit (Safari's engine), on both iOS Safari and desktop Safari,
+   confirmed via Playwright's actual bundled WebKit, not just Chromium
+   (which rendered it fine — a real, engine-specific bug, not something a
+   Chromium-only check would have caught). The pill's fractional/sub-pixel
+   position (from the flex layout around it) put that thin, semi-transparent
+   line between physical pixel rows on the top edge specifically; WebKit's
+   anti-aliasing there came out close to fully transparent, while Chromium's
+   didn't. box-shadow:inset is the standard, more robust fix for a crisp
+   thin outline at a sub-pixel position — confirmed directly (re-screenshot
+   in the same WebKit build) that it renders a complete, closed border on
+   all 4 sides where the plain `border` version didn't. */
 .nav-review-link {
   position: relative;
   padding: 6px 14px !important;
   border-radius: 999px;
-  border: 1px solid rgba(255, 215, 106, 0.4);
+  box-shadow: inset 0 0 0 1px rgba(255, 215, 106, 0.4);
   color: var(--white) !important;
   font-size: 0.78rem !important;
   font-weight: 600 !important;
   letter-spacing: 0.01em !important;
   text-transform: none !important;
   white-space: nowrap;
-  transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+  transition: color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
 
 .nav-review-link:hover {
   color: #ffd76a !important;
-  border-color: rgba(255, 215, 106, 0.85);
+  box-shadow: inset 0 0 0 1px rgba(255, 215, 106, 0.85);
   background: rgba(255, 215, 106, 0.08);
 }
 
@@ -1680,12 +1693,27 @@ img { max-width: 100%; display: block; }
   .primary-nav-list a::after {
     display: none;
   }
-  /* Review pill: full-width row in the mobile dropdown */
+  /* Review pill: full-width row in the mobile dropdown, pill centered
+     within it. The pill itself (.nav-review-link) is a flex item that
+     shrinks to fit its own content — display:flex on the li above is what
+     actually centers it, not text-align on the link (a plain block element
+     that's already exactly as wide as its content has nothing left for
+     text-align to do). justify-content:center replaces the desktop rule's
+     margin-left:auto behavior for this row (that trick only makes sense
+     when the pill shares a row with the other links); padding-left:0
+     overrides the desktop li's own 14px left padding (there to space the
+     pill from its neighbors when flush right on desktop) — left unset here
+     it would out-weigh the symmetric left/right margin below and visibly
+     skew the "centered" pill off to the right.
+     Confirmed via a real WebKit (Safari's engine, not just Chromium)
+     screenshot — see .nav-review-link's own comment above for why Chromium
+     alone isn't a reliable enough check for this component. */
   .primary-nav-list li.nav-review {
+    justify-content: center;
+    padding-left: 0;
     margin: 8px 4px 4px;
   }
   .nav-review-link {
-    text-align: center;
     padding: 13px 18px !important;
   }
 }
