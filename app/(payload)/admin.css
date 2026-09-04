@@ -58,6 +58,133 @@
     "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
+/* Payload's default sidebar is a fixed 275px (`--nav-width`,
+   @payloadcms/ui/dist/scss/app.scss) — much wider than this admin's actual
+   content needs (the longest real nav link, "Videos & Files" under Site
+   Settings when it's the active/bold page, per components/admin/
+   ListPreviewView.tsx's CONFIG-adjacent labels), leaving a large dead strip
+   of empty space to the right of every link. Owner asked for the open
+   sidebar to be trimmed to roughly 12px past the longest link instead.
+
+   Measured (not guessed) via Playwright rendering a plain HTML file in the
+   real admin font stack (--font-body above: Inter, loaded the same way
+   this admin loads it) at the real size Payload's own CSS uses for a nav
+   link (`.nav__link{font-size:17.5px;line-height:30px}`,
+   @payloadcms/next/dist/prod/styles.css) and at font-weight 600 (a nav
+   link's OWN active/current-page state, `.nav__link:has(.nav__link-
+   indicator)`, also bolds it — bold text is wider, so that's the real
+   worst case, not the normal-weight one). "Videos & Files" (Media Assets'
+   plural label — see collections/MediaAssets.ts) came back widest at
+   ~148.7px, comfortably ahead of every Site Pages label and every other
+   Site Settings one. This can't account for a future owner-typed custom
+   Page's own nav label (collections/Pages.ts's `navigation.navLabel`,
+   free text with no length limit) — an unusually long one would wrap onto
+   a second line rather than break anything, a low-severity, accepted
+   tradeoff for sizing to *known* content instead of an arbitrary one.
+
+   --nav-width is defined at :root (not just inside .nav) since it's also
+   read by an ANCESTOR of .nav (`.template-default--nav-open{grid-
+   template-columns:var(--nav-width) auto}`, the page's own overall grid) —
+   a custom property set only on .nav wouldn't be visible there (CSS custom
+   property inheritance flows down to descendants, never up to ancestors).
+   --nav-padding-inline-end has to be overridden separately, directly on
+   `.nav` — Payload's own `.nav{...}` rule (layered, see .file__thumbnail's
+   comment below for why an unlayered rule here always wins regardless)
+   redeclares it locally to `var(--base)` (20px), and a rule that directly
+   targets an element always wins over a value merely inherited onto it
+   from an ancestor like :root, independent of either rule's layer — so a
+   :root-only override of this one specific property would never actually
+   reach .nav. --nav-padding-inline-start (the LEFT gutter, unrelated to
+   this) is deliberately left untouched at Payload's own default.
+
+   Scoped to min-width:769px, matching Payload's own small-break breakpoint
+   ($breakpoint-s-width, 768px, @payloadcms/ui/dist/scss/vars.scss) exactly
+   — below it, .nav becomes a full-width (100vw) mobile drawer instead of a
+   fixed-width sidebar, and since an unlayered rule here always wins over
+   Payload's layered one regardless of specificity, an unscoped override
+   would win on mobile too and shrink that drawer down to 182px instead of
+   the full screen it's meant to cover. */
+@media (min-width: 769px) {
+  :root {
+    --nav-width: 182px;
+  }
+  .nav {
+    --nav-padding-inline-end: 12px;
+  }
+}
+
+/* This is the SIDEBAR's "Site Settings" nav group specifically — see the
+   next rule below for the DIFFERENT "Site Settings" the owner actually
+   meant here (the dashboard's built-in Collection Cards widget), kept
+   distinct on purpose since they're two real, separate Payload UI pieces
+   that both happen to render the exact same group label. "Site Settings"
+   (Users/Media/Media Assets/Pages/Navigation) is the one remaining native
+   Payload nav group in the sidebar — everything else lives in "Site
+   Pages" instead (components/admin/SitePagesNav.tsx). Payload gives its
+   own `.nav-group__label` NO explicit font-size at all (confirmed in
+   @payloadcms/next/dist/prod/styles.css — it just inherits the admin's
+   ambient 13px body text), so this shrinks it further, to 11px.
+   Scoped to `#nav-group-Site\ Settings` specifically — NavGroup
+   (@payloadcms/ui/dist/elements/NavGroup/index.js) sets `id={
+   \`nav-group-${label}\`}` on every group, real or not, so this targets
+   only the real "Site Settings" instance. SitePagesNav.tsx's own "Site
+   Pages" header reuses the identical `nav-group__label` class (deliberately,
+   for matching spacing/alignment — see its own comment) but sets no `id`,
+   so it's unaffected here; a bare `.nav-group__label` rule would have
+   shrunk both headers instead of just this one. The space in the id needs
+   escaping (`\ `) since "Site Settings" contains a literal space — an
+   unescaped space would be read as a descendant-combinator selector
+   instead of part of one id. */
+#nav-group-Site\ Settings .nav-group__label {
+  font-size: 11px;
+}
+
+/* THIS is the one the owner actually pointed at (screenshot: "Site
+   Settings" as a big heading over a row of cream-colored cards — Users,
+   Photos, Videos & Files, Pages, Navigation, each with a "+" quick-create
+   circle). That's Payload's built-in "Collection Cards" dashboard widget
+   (@payloadcms/ui/dist/widgets/CollectionCards) — confirmed by reading its
+   source: it calls the exact same getNavGroups() the sidebar itself uses
+   (same admin.group config, same reason only "Site Settings" shows up —
+   every page-backing collection/global is admin.group:false), just
+   rendered as a `.collections__label` <h2> + a grid of `.card`s instead of
+   sidebar links. `admin.dashboard` is unset in payload.config.ts, so this
+   isn't something our own code configured or can see in the codebase at
+   all — it's rendering because at least one of this project's 3 real
+   admin users (see CLAUDE.md's "Single admin user" correction) has it
+   saved in their own per-user dashboard-layout preferences
+   (getItemsFromPreferences() is checked before the — empty — config
+   default, confirmed in @payloadcms/next/dist/views/Dashboard/Default/
+   ModularDashboard/index.js).
+
+   Two changes, matching the owner's ask directly: the cream card
+   background (`.card`'s own default, `background: var(--theme-elevation-
+   50)` — @payloadcms/ui/dist/elements/Card/index.scss; this site's
+   admin.css color-ramp override above maps elevation-50 to the same
+   cream fill the screenshot shows) is removed so these cards read as
+   plain, unfilled outlines — the exact same "border only, no fill"
+   treatment components/admin/QuickActions.tsx's and GettingStarted.tsx's
+   own boxStyle already use, so Site Settings no longer visually outweighs
+   them. And `.collections__label` (Payload gives it NO explicit
+   typography of its own, `margin:0` only per CollectionCards/index.scss —
+   the large size in the screenshot is just the raw browser default for a
+   bare `<h2>`) drops to 14px/600 weight — smaller than a plain `<h3>`'s
+   own browser-default size (Quick actions'/Quick guide's headings), so
+   Site Settings reads as the least prominent heading on the page instead
+   of the most.
+
+   Scoped to `.collections` (CollectionCards' own top-level wrapper class)
+   so `.card`'s background change doesn't leak into some other, unrelated
+   future use of the shared Card component elsewhere in the admin. */
+.collections .card {
+  background: transparent;
+}
+
+.collections__label {
+  font-size: 14px;
+  font-weight: 600;
+}
+
 /* Payload's built-in file/thumbnail column (used in every collection's list
    view AND the "Choose from existing" upload picker) renders images at a
    fixed ~50px (`.file__thumbnail`, from @payloadcms/ui's FileCell — there's

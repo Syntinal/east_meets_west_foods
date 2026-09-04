@@ -40,7 +40,16 @@ export default buildConfig({
     // also one less setting for a non-technical owner to stumble into.
     theme: "light",
     components: {
-      beforeDashboard: ["@/components/admin/GettingStarted#GettingStarted"],
+      // QuickActions (jump straight to the two most-frequent actions)
+      // renders above GettingStarted's own step-by-step guide — act first,
+      // read the how-to only if you need it. See QuickActions.tsx for why
+      // this exists: Payload's own default dashboard content area below
+      // both of these was rendering empty (no widgets configured), not a
+      // "Site Settings" grid or anything else.
+      beforeDashboard: [
+        "@/components/admin/QuickActions#QuickActions",
+        "@/components/admin/GettingStarted#GettingStarted",
+      ],
       // A flat, site-page-ordered quick list rendered above Payload's own
       // Collections/Globals nav — see components/admin/SitePagesNav.tsx for
       // why that couldn't be done with `admin.group` alone.
