@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { deriveExcerptFromMessage } from "@/lib/newsText";
 import { resolveFeaturedImageUrl } from "@/lib/cloudinaryImage";
+import { buildCaptionFramePreviewUrl, type CaptionFont, type CaptionPosition, type CaptionStyle } from "@/lib/cloudinaryVideo";
 
 export type NewsListDoc = {
   id: string;
@@ -9,6 +10,17 @@ export type NewsListDoc = {
   message: string;
   featuredImage?: { url?: string | null; alt?: string | null; width?: number | null } | string | null;
   photoCaption?: { text?: string | null; captionStyle?: string | null; captionPosition?: string | null } | null;
+  // Only `publicId`/the card-1 caption fields are read here — see the
+  // fallback thumbnail below. The rest of the Video Studio's fields
+  // (music, additional cards, closing card, ...) don't matter for a still
+  // frame and aren't typed here.
+  cloudinaryVideo?: {
+    publicId?: string | null;
+    overlayText?: string | null;
+    captionStyle?: string | null;
+    captionPosition?: string | null;
+    captionFont?: string | null;
+  } | null;
   publishedDate?: string | null;
 };
 
@@ -48,13 +60,44 @@ export function NewsListView({ posts, intro }: { posts: NewsListDoc[]; intro: Ne
           ) : (
             <div className="menu-grid">
               {posts.map((post) => {
-                const image = resolveFeaturedImageUrl({
+                let image = resolveFeaturedImageUrl({
                   cloudName: CLOUD_NAME,
                   image: post.featuredImage,
                   captionText: post.photoCaption?.text,
                   captionStyle: post.photoCaption?.captionStyle,
                   captionPosition: post.photoCaption?.captionPosition,
                 });
+                // No featuredImage, but there's a Video Studio video —
+                // pull a still frame (with that video's own card-1 caption
+                // baked in, for visual consistency with the real video)
+                // instead of leaving the card with no thumbnail at all.
+                if (!image && CLOUD_NAME && post.cloudinaryVideo?.publicId) {
+                  image = {
+                    url: buildCaptionFramePreviewUrl({
+                      cloudName: CLOUD_NAME,
+                      publicId: post.cloudinaryVideo.publicId,
+                      overlayText: post.cloudinaryVideo.overlayText,
+                      captionStyle: (post.cloudinaryVideo.captionStyle as CaptionStyle) || undefined,
+                      captionPosition: (post.cloudinaryVideo.captionPosition as CaptionPosition) || undefined,
+                      captionFont: (post.cloudinaryVideo.captionFont as CaptionFont) || undefined,
+                    }),
+                    alt: null,
+                  };
+                }
+                // Both the heading and this excerpt are derived from the
+                // same `message` (see lib/newsText.ts) — for a short,
+                // single-line post (the common case this collection is
+                // designed around, see collections/News.ts's own
+                // reasoning), neither derivation needs to truncate, so
+                // they come back byte-identical. Showing the exact same
+                // sentence twice — once as the heading, once directly
+                // below it as a "teaser" — reads as a mistake, not a
+                // feature, so skip the excerpt entirely when it wouldn't
+                // add anything beyond the heading it sits under. A longer
+                // or multi-line post still gets both, since the excerpt
+                // then genuinely carries more than the heading did.
+                const excerpt = post.message ? deriveExcerptFromMessage(post.message) : null;
+                const excerptAddsSomething = excerpt && excerpt !== post.title;
                 return (
                   <article className="menu-card" key={post.id}>
                     {image?.url && (
@@ -66,9 +109,7 @@ export function NewsListView({ posts, intro }: { posts: NewsListDoc[]; intro: Ne
                       <h2>
                         <Link href={`/news/${post.slug}`}>{post.title}</Link>
                       </h2>
-                      {post.message && (
-                        <p className="news-card-excerpt">{deriveExcerptFromMessage(post.message)}</p>
-                      )}
+                      {excerptAddsSomething && <p className="news-card-excerpt">{excerpt}</p>}
                       <Link href={`/news/${post.slug}`} className="teaser-card-cta">
                         {intro.readMoreText}
                       </Link>

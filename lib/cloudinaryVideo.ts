@@ -486,8 +486,8 @@ type BuildCaptionFramePreviewUrlArgs = {
   captionFont?: CaptionFont;
 };
 
-// A cheap stand-in for buildOverlayVideoUrl's real .mp4, used only so the
-// owner can audition caption text/style/position live (on every debounced
+// A cheap stand-in for buildOverlayVideoUrl's real .mp4, used so the owner
+// can audition caption text/style/position live (on every debounced
 // keystroke and every style/position click) without spending a real video
 // transformation each time. Cloudinary will hand back a single still frame
 // from an uploaded video if you request its public_id with an image
@@ -496,11 +496,18 @@ type BuildCaptionFramePreviewUrlArgs = {
 // radius rendering earlier in this feature's history — see git history) —
 // and a single-frame image render is far lighter for Cloudinary to generate
 // than re-encoding the whole clip, so recomputing this on every keystroke is
-// safe in a way recomputing the real video isn't. This function is ONLY
-// ever used for that live
-// preview — the real, actually-posted video always goes through
-// buildOverlayVideoUrl, only when the owner explicitly asks for it (see
-// CloudinaryVideoStudio.tsx's "Update preview" button).
+// safe in a way recomputing the real video isn't. The real, actually-posted
+// video always goes through buildOverlayVideoUrl, only when the owner
+// explicitly asks for it (see CloudinaryVideoStudio.tsx's "Update preview"
+// button).
+//
+// Second, unrelated caller: components/news/NewsListView.tsx uses this same
+// still-frame trick as the /news list card's thumbnail for a post that has a
+// Video Studio video but no featuredImage — passing `overlayText: undefined`
+// there (buildTextLayerSegments returns no layer at all when there's no
+// text) gets a plain frame with no caption baked in. Before this, such a
+// post's list card rendered with no thumbnail at all — no `.menu-card-img`
+// div, nothing to click into visually.
 //
 // No audio segments (ac_none/e_volume/l_audio) — a still frame has no audio
 // track to touch, and auditioning music is handled separately via
