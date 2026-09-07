@@ -24,7 +24,21 @@ export type HomeDoc = {
   seo?: { eyebrow?: string | null; heading?: string | null; body?: unknown } | null;
 };
 
-export type BannerDoc = { slug: string; title: string; message?: string | null };
+export type BannerDoc = {
+  slug: string;
+  title: string;
+  message?: string | null;
+  // True when the post behind this banner has a video attached (plain
+  // Featured Video, or a Cloudinary Video Studio clip) — see
+  // getHomepageAnnouncement() in app/(frontend)/page.tsx, the only place
+  // that computes it. Used to skip the bold title lead-in below: the
+  // excerpt always starts with the same text as the title (both derive
+  // from the post's message, see lib/newsText.ts), which reads as an
+  // obvious repeat for a video post's typically short, title-only
+  // message — text-heavy posts usually have enough excerpt content past
+  // the title that the overlap isn't as noticeable.
+  hasVideo?: boolean;
+};
 export type TestimonialDoc = { quote: string; authorName: string; rating: string; sourceUrl?: string | null };
 export type TeaserNavLabels = { menu: string; sauce: string; story: string; news: string };
 
@@ -81,8 +95,14 @@ export function HomeView({
               <span aria-hidden="true">📣</span> {bannerBadgeLabel}
             </span>
             <p className="announcement-banner-text">
-              <strong>{banner.title}</strong>
-              {banner.message ? ` — ${deriveExcerptFromMessage(banner.message)}` : ""}
+              {banner.hasVideo ? (
+                banner.message ? deriveExcerptFromMessage(banner.message) : banner.title
+              ) : (
+                <>
+                  <strong>{banner.title}</strong>
+                  {banner.message ? ` — ${deriveExcerptFromMessage(banner.message)}` : ""}
+                </>
+              )}
             </p>
             <Link href={`/news/${banner.slug}`} className="announcement-banner-link">
               {bannerLinkText}

@@ -184,7 +184,7 @@ export function NewsPostView({
       {video?.url ? (
         <div style={{ marginBottom: 24 }}>
           {videoPreviewOverride?.isStale && (
-            <p style={{ fontSize: 12, color: "var(--theme-warning-500, #f5a623)", marginBottom: 8 }}>
+            <p style={{ fontSize: 12, color: "var(--theme-warning-500, #f5a623)", marginBottom: 8, textAlign: "center" }}>
               You&rsquo;ve changed something in the Video Studio since this preview was made — click &ldquo;Update
               preview&rdquo; there to see the latest version here.
             </p>

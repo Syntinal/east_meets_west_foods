@@ -97,7 +97,15 @@ async function getHomepageAnnouncement(): Promise<BannerDoc | null> {
     sort: "-updatedAt",
     limit: 1,
   });
-  return (result.docs[0] as unknown as BannerDoc) ?? null;
+  const doc = result.docs[0] as
+    | (BannerDoc & { cloudinaryVideo?: { publicId?: string | null } | null; featuredVideo?: unknown })
+    | undefined;
+  if (!doc) return null;
+  // Same "does this post have a video" check as NewsPostView.tsx's own
+  // `cloudinaryPublicId`/`plainVideo` — the Cloudinary Studio clip takes
+  // priority elsewhere, but for this banner-text purpose either kind
+  // counts as "has a video."
+  return { ...doc, hasVideo: Boolean(doc.cloudinaryVideo?.publicId || doc.featuredVideo) };
 }
 
 // Feeds the "News" page card (see blocks/PageCardBlock.ts), which doesn't
