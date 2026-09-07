@@ -97,7 +97,7 @@ async function getHomepageAnnouncement(): Promise<BannerDoc | null> {
     sort: "-updatedAt",
     limit: 1,
   });
-  const doc = result.docs[0] as
+  const doc = result.docs[0] as unknown as
     | (BannerDoc & { cloudinaryVideo?: { publicId?: string | null } | null; featuredVideo?: unknown })
     | undefined;
   if (!doc) return null;
