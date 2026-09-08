@@ -58,10 +58,15 @@ export const ReminderSettings: GlobalConfig = {
       type: "number",
       label: "Remind if no post in the last (hours)",
       defaultValue: 48,
-      min: 1,
+      // 24, not 1 — the check itself only ever runs once a day (see
+      // `checkDays`'s own note), so any value under 24 would behave
+      // identically to 24 anyway (the very next daily run is already
+      // guaranteed to be at least ~24h after the last one) while looking
+      // like it promises faster, sub-daily checking that doesn't exist.
+      min: 24,
       admin: {
         description:
-          "Compared against the most recent News post's creation time (draft or published — starting one counts as \"working on it\"). A checked day where this gap hasn't passed yet is silently skipped, no notification sent.",
+          "Compared against the most recent News post's creation time (draft or published — starting one counts as \"working on it\"). A checked day where this gap hasn't passed yet is silently skipped, no notification sent. Minimum is 24 since the check itself only runs once a day — see below.",
       },
     },
     {
@@ -70,6 +75,23 @@ export const ReminderSettings: GlobalConfig = {
       label: "Reminder text",
       defaultValue: "Haven't posted in a while — want to create a new post?",
       admin: { description: "The notification body text. Keep it short — this is what shows on the lock screen." },
+    },
+    {
+      name: "lastCheckedAt",
+      type: "date",
+      label: "Last checked",
+      admin: {
+        readOnly: true,
+        date: { pickerAppearance: "dayAndTime" },
+        description:
+          "Written automatically every time the daily check runs — not editable here. Vercel runs it once a day, sometime within the same hour each time (not the exact minute), so this is the real record of when it last ran, not a promise of exactly when the next one will.",
+      },
+    },
+    {
+      name: "lastCheckSummary",
+      type: "text",
+      label: "Last check result",
+      admin: { readOnly: true, description: "What that last check actually decided, in plain language." },
     },
   ],
 };

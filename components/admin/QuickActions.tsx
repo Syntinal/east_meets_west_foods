@@ -103,6 +103,20 @@ export async function QuickActions({ payload }: { payload: Payload }) {
     href: `/admin/collections/pages/${doc.id}`,
   }));
 
+  // Surfaces right where the Enable button is, not just on the Reminder
+  // Settings page — answers "is this actually running, and when" without
+  // a click. Property access + primitive cast (not casting the whole
+  // `settings` object to a shape with required fields) — confirmed safe
+  // against the payload-types.ts-absent gotcha the same way the cron
+  // route's own `checkDays`/`message` reads already are.
+  const settings = await payload.findGlobal({ slug: "reminder-settings", overrideAccess: true });
+  const lastCheckedAt = settings.lastCheckedAt as string | undefined;
+  const lastCheckSummary = settings.lastCheckSummary as string | undefined;
+  const lastChecked = lastCheckedAt
+    ? new Date(lastCheckedAt).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short", timeZone: "UTC" }) +
+      " UTC"
+    : null;
+
   return (
     <div style={boxStyle}>
       <h3 style={{ marginTop: 0, marginBottom: 16 }}>Quick actions</h3>
@@ -120,9 +134,14 @@ export async function QuickActions({ payload }: { payload: Payload }) {
       </ul>
       <hr style={{ margin: "20px 0", border: "none", borderTop: "1px solid var(--theme-elevation-100, #eee)" }} />
       <h3 style={{ marginTop: 0, marginBottom: 8 }}>Post reminders</h3>
-      <p style={{ opacity: 0.65, fontSize: 13, marginBottom: 12 }}>
+      <p style={{ opacity: 0.65, fontSize: 13, marginBottom: 4 }}>
         Get a phone notification when it&apos;s been a while since the last News post — set up once per device below.
         Schedule/wording: <a href="/admin/globals/reminder-settings">Reminder Settings</a>.
+      </p>
+      <p style={{ opacity: 0.65, fontSize: 13, marginBottom: 12 }}>
+        {lastChecked
+          ? `Last checked: ${lastChecked} — ${lastCheckSummary || "…"}`
+          : "Not checked yet — runs once a day, so the first check happens within 24h of this being set up."}
       </p>
       {/* Client component — the rest of this dashboard section stays a
           plain server component (see the header comment) so it can query
