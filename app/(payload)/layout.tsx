@@ -56,6 +56,18 @@ const Layout = ({ children }: Args) => (
       rel="stylesheet"
       precedence="default"
     />
+    {/* Makes /admin "installable" (Add to Home Screen), the prerequisite
+        iOS Safari sets for a page to ever get access to the Push API at
+        all — see public/manifest.json and CLAUDE.md's Web Push research.
+        The apple-* tags are Safari's own older, still-relied-upon
+        equivalent of the manifest fields (icon/title especially) — some
+        iOS versions read these in preference to the manifest, so both are
+        included rather than trusting the manifest alone. */}
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="apple-touch-icon" href="/assets/bao_bun.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="EMW Admin" />
+    <meta name="theme-color" content="#c8102e" />
     <RootLayout config={config} importMap={importMap} serverFunction={serverFunction}>
       {children}
     </RootLayout>

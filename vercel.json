@@ -6,6 +6,10 @@
     {
       "path": "/next/cron/publish-scheduled",
       "schedule": "0 8 * * *"
+    },
+    {
+      "path": "/next/cron/remind-post",
+      "schedule": "0 16 * * *"
     }
   ]
 }

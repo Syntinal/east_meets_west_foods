@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
 import type { Payload } from "payload";
+import { PushReminderButton } from "@/components/admin/PushReminderButton";
 
 // The dashboard's actual "what do I do right now" surface — rendered via
 // `beforeDashboard` in payload.config.ts, above GettingStarted's own
@@ -117,6 +118,17 @@ export async function QuickActions({ payload }: { payload: Payload }) {
           </li>
         ))}
       </ul>
+      <hr style={{ margin: "20px 0", border: "none", borderTop: "1px solid var(--theme-elevation-100, #eee)" }} />
+      <h3 style={{ marginTop: 0, marginBottom: 8 }}>Post reminders</h3>
+      <p style={{ opacity: 0.65, fontSize: 13, marginBottom: 12 }}>
+        Get a phone notification when it&apos;s been a while since the last News post — set up once per device below.
+        Schedule/wording: <a href="/admin/globals/reminder-settings">Reminder Settings</a>.
+      </p>
+      {/* Client component — the rest of this dashboard section stays a
+          plain server component (see the header comment) so it can query
+          `payload` directly; only the notification/service-worker
+          subscribe flow needs the browser. */}
+      <PushReminderButton />
     </div>
   );
 }
