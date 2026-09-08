@@ -67,7 +67,16 @@ export async function GET(req: Request) {
   const minHours = (settings.minHoursSinceLastPost as number | undefined) || 48;
   let hoursSinceLastPost: number | null = null;
   if (latest.docs.length > 0) {
-    const createdAt = new Date((latest.docs[0] as { createdAt: string }).createdAt).getTime();
+    // `as unknown as` (not a direct cast): without a locally-generated
+    // payload-types.ts — which never happens on Vercel, since it's
+    // gitignored and nothing regenerates it during a plain `next build` —
+    // this collection's find() result falls back to a generic shape with
+    // no declared `createdAt`, and a direct cast to a shape requiring it
+    // fails `next build`'s TypeScript check even though `next dev` (which
+    // does have a real, locally-generated types file) never complains.
+    // Caught by testing against that exact gap directly (temporarily
+    // removing the local file and re-running `tsc`), not guessed.
+    const createdAt = new Date((latest.docs[0] as unknown as { createdAt: string }).createdAt).getTime();
     hoursSinceLastPost = (Date.now() - createdAt) / (1000 * 60 * 60);
   }
 
