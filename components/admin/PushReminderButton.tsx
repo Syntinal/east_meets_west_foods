@@ -247,32 +247,50 @@ export function PushReminderButton() {
       {/* Covers logging into /admin from a computer while actually wanting
           reminders on a phone — the detection above only ever describes
           *this* device, so without this, someone on a desktop would have
-          no way to reach the iPhone steps at all. Plain <details>/<summary>
-          (no extra state, works with no JS beyond what the page already
-          ships) rather than another button+useState toggle — collapsed by
-          default so it doesn't clutter the common case where the current
-          device is already the right one. */}
+          no way to reach the setup steps for a different device at all.
+          Plain <details>/<summary> (no extra state, works with no JS
+          beyond what the page already ships) rather than another
+          button+useState toggle — collapsed by default so it doesn't
+          clutter the common case where the current device is already the
+          right one. Covers Android/other computers too, not just iPhone —
+          the two need genuinely different instructions (iPhone's Home
+          Screen requirement vs. nothing at all), so both get their own
+          short answer instead of just assuming "different device" means
+          "another iPhone." */}
       {!needsHomeScreenSteps && (
         <details style={{ marginTop: 12 }}>
           <summary style={{ fontSize: 13, color: "var(--theme-elevation-600, #666)", cursor: "pointer" }}>
-            Want this on an iPhone instead of this device?
+            Want this on a different device?
           </summary>
-          <ol style={{ ...stepListStyle, marginTop: 10 }}>
-            <li style={stepTextStyle}>
-              On that iPhone, open this admin in <strong>Safari</strong>.
-            </li>
-            <li style={stepTextStyle}>
-              Tap the <strong>Share</strong> icon → <strong>Add to Home Screen</strong> → <strong>Add</strong>.
-            </li>
-            <li style={stepTextStyle}>
-              Close Safari, then open the admin from that new <strong>Home Screen icon</strong> instead — reminders
-              only work from there, not from a Safari tab.
-            </li>
-            <li style={stepTextStyle}>
-              Log in there and tap <strong>Enable reminders on this device</strong> — it&apos;ll show right on that
-              phone&apos;s dashboard, the same as here.
-            </li>
-          </ol>
+          <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 12 }}>
+            <div>
+              <p style={{ ...stepTextStyle, fontWeight: 600, margin: "0 0 6px" }}>On an iPhone:</p>
+              <ol style={stepListStyle}>
+                <li style={stepTextStyle}>
+                  On that iPhone, open this admin in <strong>Safari</strong>.
+                </li>
+                <li style={stepTextStyle}>
+                  Tap the <strong>Share</strong> icon → <strong>Add to Home Screen</strong> → <strong>Add</strong>.
+                </li>
+                <li style={stepTextStyle}>
+                  Close Safari, then open the admin from that new <strong>Home Screen icon</strong> instead —
+                  reminders only work from there, not from a Safari tab.
+                </li>
+                <li style={stepTextStyle}>
+                  Log in there and tap <strong>Enable reminders on this device</strong> — it&apos;ll show right on
+                  that phone&apos;s dashboard, the same as here.
+                </li>
+              </ol>
+            </div>
+            <div>
+              <p style={{ ...stepTextStyle, fontWeight: 600, margin: "0 0 6px" }}>On an Android phone or a computer:</p>
+              <p style={{ ...stepTextStyle, margin: 0 }}>
+                No extra setup needed — just open this admin there in any normal browser tab, log in, and tap{" "}
+                <strong>Enable reminders on this device</strong>. Android/desktop don&apos;t have iPhone&apos;s Home
+                Screen requirement.
+              </p>
+            </div>
+          </div>
         </details>
       )}
     </div>
