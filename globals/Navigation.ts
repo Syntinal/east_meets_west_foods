@@ -17,6 +17,18 @@ import { NAV_PAGES } from "@/lib/navigation";
 // drive the matching teaser-card headings on the Home page
 // (see globals/Home.ts) and the FAQ/Testimonials nav tabs — one edit here,
 // not several.
+//
+// Each page's 3 fields are wrapped in a `type: "collapsible"` (label = the
+// page's own name, collapsed by default) purely for admin-screen
+// scannability — this was a flat list of 24 fields in a row (3 per page ×
+// 8 pages), all differing only in which page name was quoted in the label,
+// which read as a wall of near-identical boxes rather than 8 distinct
+// sections. `collapsible` is presentational only (no `name`, stores
+// nothing) — it doesn't touch the `{key}`/`{key}Label`/`{key}ShortLabel`
+// field paths above it, so this is a pure admin-UI change with no schema
+// impact, no Drizzle prompt risk. Field labels below were also trimmed
+// (dropped the repeated `"${page.label}"` prefix) now that the collapsible
+// section header itself already says which page they belong to.
 export const Navigation: GlobalConfig = {
   slug: "navigation",
   access: {
@@ -34,28 +46,33 @@ export const Navigation: GlobalConfig = {
       "Choose which pages show up in the site's navigation, and edit their labels. Unchecking a page hides it from the menu — the page itself still works if someone has the direct link.",
   },
   fields: [
-    ...NAV_PAGES.flatMap((page) => [
-      {
-        name: page.key,
-        type: "checkbox" as const,
-        label: `Show "${page.label}"`,
-        defaultValue: true,
-      },
-      {
-        name: `${page.key}Label`,
-        type: "text" as const,
-        label: `"${page.label}" nav label`,
-        defaultValue: page.label,
-        admin: { description: "Shown in the nav menu, and anywhere else this page is referred to by name." },
-      },
-      {
-        name: `${page.key}ShortLabel`,
-        type: "text" as const,
-        label: `"${page.label}" short label (footer)`,
-        defaultValue: page.shortLabel ?? "",
-        admin: { description: "Optional — a shorter version for the compact footer menu. Leave blank to reuse the label above." },
-      },
-    ]),
+    ...NAV_PAGES.map((page) => ({
+      type: "collapsible" as const,
+      label: page.label,
+      admin: { initCollapsed: true },
+      fields: [
+        {
+          name: page.key,
+          type: "checkbox" as const,
+          label: "Show in the navigation menu",
+          defaultValue: true,
+        },
+        {
+          name: `${page.key}Label`,
+          type: "text" as const,
+          label: "Nav label",
+          defaultValue: page.label,
+          admin: { description: "Shown in the nav menu, and anywhere else this page is referred to by name." },
+        },
+        {
+          name: `${page.key}ShortLabel`,
+          type: "text" as const,
+          label: "Short label (footer)",
+          defaultValue: page.shortLabel ?? "",
+          admin: { description: "Optional — a shorter version for the compact footer menu. Leave blank to reuse the label above." },
+        },
+      ],
+    })),
     {
       name: "testimonialsSection",
       type: "checkbox" as const,
@@ -63,7 +80,7 @@ export const Navigation: GlobalConfig = {
       defaultValue: true,
       admin: {
         description:
-          'Turn this off when there aren\'t any testimonials worth featuring yet. This is separate from the "Show \'Testimonials\'" checkbox above, which controls the nav tab and the full /testimonials page.',
+          'Turn this off when there aren\'t any testimonials worth featuring yet. This is separate from the "Show in the navigation menu" checkbox in the Testimonials section above, which controls the nav tab and the full /testimonials page.',
       },
     },
     {

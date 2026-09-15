@@ -149,9 +149,9 @@ export function SocialPostStatusNotice({ platform }: { platform: Platform }) {
             : `⚠ Failed to post to ${label} after repeated attempts`}
         </strong>
         <p style={{ margin: "4px 0 0" }}>
-          {error || "No error detail available."} This won&rsquo;t retry automatically — check the
-          Post for Me account/API key, or the {label} connection in Post for Me, then uncheck and recheck
-          this box to try again.
+          {error || "No error detail available."} This won&rsquo;t retry automatically — it needs a developer to
+          look at (the message above is the useful part to share with them). Once it&rsquo;s fixed, uncheck and
+          recheck this box to try posting again.
         </p>
       </div>
     );
