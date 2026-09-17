@@ -1528,6 +1528,39 @@ img { max-width: 100%; display: block; }
   border-radius: 0;
 }
 
+/* "Crop to fit" (blocks/ImageBlock.ts's `cropToFit`, on by default) — caps
+   height so a tall/portrait photo (very common from a phone) can't run the
+   whole image past the fold and push the rest of the page out of view,
+   which is what a photo with no height cap at all used to do. Same
+   width+max-height+object-fit:cover pattern already proven on .home-hero
+   img above. object-position is set inline per-image from the photo's own
+   focal point (Media's built-in crop tool — see components/pages/
+   BlockRenderer.tsx), so the crop keeps the actual subject in frame instead
+   of blindly center-cropping. A plain additive modifier class, not a
+   "--natural" override on the base rule, so it can't accidentally win/lose
+   against the size-variant rules below based on stylesheet order — compound
+   selectors make each combination explicit instead. */
+.page-block-image--crop img {
+  width: 100%;
+  max-height: 480px;
+  object-fit: cover;
+}
+
+/* Large fills more width than Normal, so it gets a taller cap too — the
+   same 480px would look squat stretched across the wider column. */
+.page-block-image--crop.page-block-image--large img {
+  max-height: 560px;
+}
+
+/* Full Bleed is a genuine edge-to-edge hero banner, so its cap is
+   viewport-relative rather than a fixed pixel value — same reasoning and
+   fallback-declaration technique as .news-post-video video's 60vh/60dvh
+   height cap below. */
+.page-block-image--crop.page-block-image--full img {
+  max-height: 70vh;
+  max-height: 70dvh;
+}
+
 /* A downloadable file (blocks/FileBlock.ts) and a standalone video
    (blocks/VideoBlock.ts) — same centered treatment as .page-block-cta
    below/.page-block-image above, respectively, so both read as

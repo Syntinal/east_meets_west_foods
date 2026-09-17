@@ -1,11 +1,22 @@
 import { RichText } from "@/components/StyledRichText";
 import { GalleryGrid, type GalleryPhoto } from "@/components/home/GalleryGrid";
 
-type MediaRef = { url?: string | null; alt?: string | null } | string | null | undefined;
+type MediaRef =
+  | { url?: string | null; alt?: string | null; focalX?: number | null; focalY?: number | null }
+  | string
+  | null
+  | undefined;
 
 export type PageBlock =
   | { blockType: "richText"; id?: string; content: unknown }
-  | { blockType: "image"; id?: string; image: MediaRef; caption?: string | null; size?: "normal" | "large" | "full" | null }
+  | {
+      blockType: "image";
+      id?: string;
+      image: MediaRef;
+      caption?: string | null;
+      size?: "normal" | "large" | "full" | null;
+      cropToFit?: boolean | null;
+    }
   | { blockType: "gallery"; id?: string; photos: GalleryPhoto[] }
   | { blockType: "cta"; id?: string; heading?: string | null; body?: string | null; buttonLabel: string; buttonHref: string }
   | {
@@ -31,10 +42,12 @@ export type PageBlock =
       questions: { question: string; answer?: unknown }[];
     };
 
-function resolveImage(media: MediaRef): { url: string; alt: string } | null {
+function resolveImage(media: MediaRef): { url: string; alt: string; focalX: number; focalY: number } | null {
   const image = media && typeof media === "object" ? media : null;
   if (!image?.url) return null;
-  return { url: image.url, alt: image.alt ?? "" };
+  // 50/50 (center) matches Payload's own default focal point for a photo
+  // that's never had its crop tool touched — see collections/Media.ts.
+  return { url: image.url, alt: image.alt ?? "", focalX: image.focalX ?? 50, focalY: image.focalY ?? 50 };
 }
 
 function Column({ data }: { data?: { image?: MediaRef; video?: MediaRef; content?: unknown } | null }) {
@@ -87,9 +100,19 @@ export function BlockRenderer({ blocks }: { blocks: PageBlock[] }) {
             // "normal" (the default) adds no modifier class — same plain
             // .page-block-image styling as before this field existed.
             const sizeClass = block.size && block.size !== "normal" ? ` page-block-image--${block.size}` : "";
+            // Undefined/null (every block saved before this field existed)
+            // reads as "on" — crop-to-fit is the default and should apply
+            // retroactively to existing Pages, not just new ones. Only an
+            // explicit false (the owner turning it off) opts out.
+            const cropToFit = block.cropToFit !== false;
+            const cropClass = cropToFit ? " page-block-image--crop" : "";
             return (
-              <figure key={key} className={`page-block page-block-image${sizeClass}`}>
-                <img src={image.url} alt={block.caption ?? image.alt} />
+              <figure key={key} className={`page-block page-block-image${sizeClass}${cropClass}`}>
+                <img
+                  src={image.url}
+                  alt={block.caption ?? image.alt}
+                  style={cropToFit ? { objectPosition: `${image.focalX}% ${image.focalY}%` } : undefined}
+                />
                 {block.caption && <figcaption>{block.caption}</figcaption>}
               </figure>
             );
