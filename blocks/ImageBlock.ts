@@ -49,5 +49,21 @@ export const ImageBlock: Block = {
           'Normal keeps the photo the same width as the page\'s paragraphs. Large fills the wider content area around it (still has margin on very wide screens). Full Bleed goes all the way to the edges of the browser window, with no margin at all.',
       },
     },
+    {
+      // Defaults on so a tall/portrait photo (common from a phone) can
+      // never push the rest of the page out of view — width alone was
+      // already capped above, but nothing capped height, so a portrait
+      // photo rendered at its full natural height with no limit. Off
+      // switches back to that old "natural size" behavior, for the rare
+      // photo that's meant to be seen in full rather than cropped.
+      name: "cropToFit",
+      type: "checkbox",
+      defaultValue: true,
+      label: "Crop to fit",
+      admin: {
+        description:
+          "Keeps the photo from running too tall and pushing content below it out of view — crops it to a shorter frame using the photo's own focal point (set on the photo itself in the Photos library). Turn off to show the whole photo at its natural height instead.",
+      },
+    },
   ],
 };
