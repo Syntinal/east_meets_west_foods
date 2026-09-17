@@ -11,6 +11,19 @@ export const TwoColumnBlock: Block = {
   admin: { images: { thumbnail: twoColumnThumbnail } },
   fields: [
     {
+      name: "layout",
+      type: "select",
+      defaultValue: "sideBySide",
+      options: [
+        { label: "Side by side", value: "sideBySide" },
+        { label: "Stacked (left column on top)", value: "stacked" },
+      ],
+      admin: {
+        description:
+          "Side by side works best on wider screens (it already collapses to stacked automatically on mobile). Stacked forces one column on top of the other on every screen size — put whichever column should show first (e.g. the photo) in \"Left column\".",
+      },
+    },
+    {
       type: "group",
       name: "left",
       label: "Left column",

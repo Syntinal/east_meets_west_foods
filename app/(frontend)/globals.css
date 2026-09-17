@@ -1600,6 +1600,14 @@ img { max-width: 100%; display: block; }
   align-items: center;
 }
 
+/* Forces one column on top of the other on every screen size, instead of
+   only collapsing at narrow widths the way the plain grid above already
+   does on its own (auto-fit/minmax). DOM order (left column, then right)
+   is what decides top-vs-bottom — no separate "which on top" field. */
+.page-block-two-col--stacked {
+  grid-template-columns: 1fr;
+}
+
 .page-block-two-col .page-block-col img {
   border-radius: 6px;
   margin-bottom: 12px;

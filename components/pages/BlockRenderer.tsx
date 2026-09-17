@@ -11,6 +11,7 @@ export type PageBlock =
   | {
       blockType: "twoColumn";
       id?: string;
+      layout?: "sideBySide" | "stacked" | null;
       left?: { image?: MediaRef; video?: MediaRef; content?: unknown } | null;
       right?: { image?: MediaRef; video?: MediaRef; content?: unknown } | null;
     }
@@ -112,13 +113,17 @@ export function BlockRenderer({ blocks }: { blocks: PageBlock[] }) {
               </div>
             );
 
-          case "twoColumn":
+          case "twoColumn": {
+            // "sideBySide" (the default) adds no modifier class — same
+            // plain .page-block-two-col grid as before this field existed.
+            const layoutClass = block.layout === "stacked" ? " page-block-two-col--stacked" : "";
             return (
-              <div key={key} className="page-block page-block-two-col">
+              <div key={key} className={`page-block page-block-two-col${layoutClass}`}>
                 <Column data={block.left} />
                 <Column data={block.right} />
               </div>
             );
+          }
 
           case "cardGrid":
             return (
