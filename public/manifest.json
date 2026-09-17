@@ -1,0 +1,12 @@
+{
+  "name": "East Meets West Foods Admin",
+  "short_name": "EMW Admin",
+  "start_url": "/admin",
+  "scope": "/admin",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#c8102e",
+  "icons": [
+    { "src": "/assets/bao_bun.png", "sizes": "256x256", "type": "image/png" }
+  ]
+}
