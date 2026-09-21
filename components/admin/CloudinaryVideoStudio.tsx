@@ -614,10 +614,9 @@ export function CloudinaryVideoStudio() {
             >
               Update preview
             </Button>
-            <p style={helpStyle}>
-              This is the only step that renders the real video — everything above (text, styles, music) is free to
-              try out as much as you want first. This is also what shows up in the Live Preview panel, so trying
-              things there without clicking this first won&rsquo;t generate anything new either.
+            <p style={{ ...helpStyle, color: "var(--theme-warning-500, #f5a623)", fontWeight: 600 }}>
+              Only click when ready — this is the one step that uses up our limited monthly allowance.
+              Everything above is free to try first.
             </p>
           </div>
 
