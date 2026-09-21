@@ -749,7 +749,7 @@ export const News: CollectionConfig = {
       name: "message",
       type: "textarea",
       required: true,
-      label: "What do you want to say?",
+      label: "Write a caption for your photo or video",
       admin: {
         condition: atStep(2),
         description:
