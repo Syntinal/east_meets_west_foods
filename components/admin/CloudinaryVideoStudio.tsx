@@ -517,23 +517,6 @@ export function CloudinaryVideoStudio() {
                 value={captionFont.value || "arial"}
                 onChange={(option) => captionFont.setValue(selectValue(option))}
               />
-
-              {framePreviewUrl && (
-                <div style={rowStyle}>
-                  <span style={{ fontSize: 13, fontWeight: 600 }}>Text preview</span>
-                  {/* eslint-disable-next-line @next/next/no-img-element -- a Cloudinary-hosted preview image, not a local/optimizable asset */}
-                  <img
-                    key={framePreviewUrl}
-                    src={framePreviewUrl}
-                    alt="Preview of the caption text on one frame of the video"
-                    style={{ maxWidth: 360, borderRadius: 4 }}
-                  />
-                  <p style={helpStyle}>
-                    A quick, free look at how the text sits on one frame — not the finished video. Use
-                    &ldquo;Update preview&rdquo; below once you&rsquo;re happy with it.
-                  </p>
-                </div>
-              )}
             </>
           )}
 
@@ -599,6 +582,30 @@ export function CloudinaryVideoStudio() {
               Adds one more card at the very end with our name and website — a nice way to close out a promo video.
             </p>
           </div>
+
+          {/* Frame preview sits directly above "Update preview" now, not
+              back up near the caption fields — everything editable (text,
+              caption style/music/closing card) stays grouped together above
+              both previews, and the free still-frame check leads straight
+              into the button that turns it into the real, official one
+              right below, instead of the two previews being split apart by
+              the music/audio/closing-card controls in between. */}
+          {overlayText.value?.trim() && framePreviewUrl && (
+            <div style={rowStyle}>
+              <span style={{ fontSize: 13, fontWeight: 600 }}>Text preview</span>
+              {/* eslint-disable-next-line @next/next/no-img-element -- a Cloudinary-hosted preview image, not a local/optimizable asset */}
+              <img
+                key={framePreviewUrl}
+                src={framePreviewUrl}
+                alt="Preview of the caption text on one frame of the video"
+                style={{ maxWidth: 360, borderRadius: 4 }}
+              />
+              <p style={helpStyle}>
+                A quick, free look at how the text sits on one frame — not the finished video. Use &ldquo;Update
+                preview&rdquo; below once you&rsquo;re happy with it.
+              </p>
+            </div>
+          )}
 
           <div style={rowStyle}>
             {/* Always "Update preview", never "Generate preview" the first
