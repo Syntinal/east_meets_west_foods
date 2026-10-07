@@ -21,10 +21,12 @@ export function FaqView({ faq }: { faq: FaqDoc }) {
       <section className="section faq-section" aria-labelledby="faq-heading">
         <div className="container">
           <header className="section-head">
-            <p className="eyebrow">{faq.eyebrow || "FAQ"}</p>
-            <h1 id="faq-heading" className="section-title">
-              {faq.heading}
-            </h1>
+            <div className="text-panel text-panel--inline">
+              <p className="eyebrow">{faq.eyebrow || "FAQ"}</p>
+              <h1 id="faq-heading" className="section-title">
+                {faq.heading}
+              </h1>
+            </div>
           </header>
           <div className="text-panel text-panel--faq">
             <dl className="faq-list">
