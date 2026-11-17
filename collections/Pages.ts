@@ -20,6 +20,7 @@ import { CardGridBlock } from "@/blocks/CardGridBlock";
 // to explain why. Blocking the slug up front avoids that confusion.
 const RESERVED_SLUGS = new Set([
   "admin",
+  "manage",
   "api",
   "next",
   "media",

@@ -1,0 +1,1100 @@
+/* /manage — the simplified owner editor.
+   Light mode only, on purpose. Sizes follow the agreed rules:
+   18–20px body text, 24px+ headings, buttons/tiles at least 56px tall. */
+
+:root {
+  color-scheme: light;
+  --m-red: #c8102e;
+  --m-red-dark: #9c0b22;
+  --m-ink: #1a1a1a;
+  --m-muted: #4a4a4a; /* still ~9:1 on white — readable, just quieter */
+  --m-bg: #fbfaf6;
+  --m-card: #ffffff;
+  --m-line: #d8d2c0;
+  --m-green: #146c2e;
+  --m-green-bg: #e7f4ea;
+  --m-amber-bg: #fff4d6;
+  --m-amber-line: #e0b84c;
+  --m-error: #a4161a;
+  --m-error-bg: #fdecec;
+  --m-focus: #1d4ed8;
+  --m-radius: 14px;
+  --m-tap: 56px;
+  --m-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+.m-body {
+  margin: 0;
+  background: var(--m-bg);
+  color: var(--m-ink);
+  font-family: var(--m-font);
+  font-size: 20px;
+  line-height: 1.5;
+}
+
+:focus-visible {
+  outline: 4px solid var(--m-focus);
+  outline-offset: 3px;
+}
+
+/* ---------- Page frame ---------- */
+
+.m-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px;
+  background: var(--m-card);
+  border-bottom: 2px solid var(--m-line);
+}
+
+.m-brand {
+  font-weight: 700;
+  font-size: 20px;
+}
+
+.m-main {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 24px 16px 64px;
+}
+
+.m-main h1 {
+  font-size: 30px;
+  line-height: 1.25;
+  margin: 0 0 8px;
+}
+
+.m-main h2 {
+  font-size: 24px;
+  line-height: 1.3;
+  margin: 32px 0 12px;
+}
+
+.m-intro {
+  margin: 0 0 24px;
+  color: var(--m-muted);
+}
+
+/* ---------- Buttons ---------- */
+
+.m-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: var(--m-tap);
+  padding: 12px 24px;
+  border-radius: var(--m-radius);
+  border: 2px solid var(--m-ink);
+  background: var(--m-card);
+  color: var(--m-ink);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.m-btn--primary {
+  background: var(--m-red);
+  border-color: var(--m-red);
+  color: #fff;
+}
+
+.m-btn--primary:hover {
+  background: var(--m-red-dark);
+  border-color: var(--m-red-dark);
+}
+
+.m-btn--block {
+  display: flex;
+  width: 100%;
+}
+
+.m-btn[disabled] {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.m-btn--small {
+  min-height: 48px;
+  padding: 8px 16px;
+  font-size: 18px;
+}
+
+.m-link {
+  color: var(--m-focus);
+  font-weight: 600;
+}
+
+/* ---------- Home tiles ---------- */
+
+.m-tiles {
+  display: grid;
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+@media (min-width: 640px) {
+  .m-tiles {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.m-tile {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-height: 104px;
+  height: 100%;
+  padding: 18px 20px;
+  border: 2px solid var(--m-line);
+  border-radius: var(--m-radius);
+  background: var(--m-card);
+  color: var(--m-ink);
+  text-decoration: none;
+}
+
+.m-tile:hover {
+  border-color: var(--m-ink);
+}
+
+.m-tile-icon {
+  flex: none;
+  font-size: 40px;
+  line-height: 1;
+}
+
+.m-tile-label {
+  display: block;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.m-tile-hint {
+  display: block;
+  margin-top: 2px;
+  font-size: 18px;
+  color: var(--m-muted);
+}
+
+/* ---------- Notices ---------- */
+
+.m-notice {
+  padding: 16px 18px;
+  border-radius: var(--m-radius);
+  border: 2px solid var(--m-line);
+  background: var(--m-card);
+  margin: 0 0 24px;
+}
+
+.m-notice--good {
+  border-color: var(--m-green);
+  background: var(--m-green-bg);
+}
+
+.m-notice--warn {
+  border-color: var(--m-amber-line);
+  background: var(--m-amber-bg);
+}
+
+.m-notice--error {
+  border-color: var(--m-error);
+  background: var(--m-error-bg);
+  color: var(--m-error);
+  font-weight: 600;
+}
+
+/* ---------- Forms ---------- */
+
+.m-field {
+  display: block;
+  margin: 0 0 20px;
+}
+
+.m-label {
+  display: block;
+  font-weight: 700;
+  margin: 0 0 6px;
+}
+
+.m-input {
+  display: block;
+  width: 100%;
+  min-height: var(--m-tap);
+  padding: 12px 14px;
+  border: 2px solid var(--m-muted);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--m-ink);
+  font: inherit;
+}
+
+.m-input:focus {
+  border-color: var(--m-focus);
+}
+
+.m-password-row {
+  display: flex;
+  gap: 8px;
+}
+
+.m-password-row .m-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.m-stack {
+  display: grid;
+  gap: 12px;
+}
+
+.m-footer-actions {
+  margin-top: 40px;
+  padding-top: 24px;
+  border-top: 2px solid var(--m-line);
+}
+
+/* ---------- Posting screen ---------- */
+
+.m-step-count {
+  margin: 0 0 4px;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--m-muted);
+}
+
+.m-btn--tall {
+  min-height: 72px;
+  font-size: 22px;
+}
+
+.m-hint {
+  color: var(--m-muted);
+  font-size: 18px;
+}
+
+.m-textarea {
+  min-height: 220px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.m-photo-preview {
+  display: block;
+  width: 100%;
+  max-height: 60vh;
+  object-fit: contain;
+  border-radius: var(--m-radius);
+  border: 2px solid var(--m-line);
+  background: #fff;
+}
+
+.m-nav-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 32px;
+}
+
+.m-linkbtn {
+  background: none;
+  border: none;
+  padding: 8px 0;
+  font: inherit;
+  font-size: 18px;
+  color: var(--m-error);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.m-quote {
+  margin: 0 0 24px;
+  padding: 12px 16px;
+  border-left: 4px solid var(--m-line);
+  background: var(--m-card);
+  white-space: pre-wrap;
+}
+
+/* On/off destination tiles. "On" must be unmistakable without relying on
+   color alone: solid green fill + a big ✓ + the words "Will post". */
+.m-choices {
+  display: grid;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.m-choice {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  min-height: 88px;
+  padding: 14px 18px;
+  border-radius: var(--m-radius);
+  border: 3px solid var(--m-line);
+  background: var(--m-card);
+  color: var(--m-ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.m-choice--on {
+  border-color: var(--m-green);
+  background: var(--m-green-bg);
+}
+
+.m-choice--off {
+  border-style: dashed;
+  color: var(--m-muted);
+}
+
+.m-choice--fixed {
+  cursor: default;
+}
+
+.m-choice-mark {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  border: 3px solid var(--m-muted);
+  background: #fff;
+  font-size: 28px;
+  font-weight: 800;
+  color: #fff;
+}
+
+.m-choice--on .m-choice-mark {
+  border-color: var(--m-green);
+  background: var(--m-green);
+}
+
+.m-choice-label {
+  display: block;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.m-choice-state {
+  display: block;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.m-choice-test {
+  display: block;
+  margin-top: 4px;
+  font-size: 16px;
+  color: #7a4d00;
+}
+
+.m-preview-card {
+  margin: 0 0 20px;
+  border: 2px solid var(--m-line);
+  border-radius: var(--m-radius);
+  background: #fff;
+  overflow: hidden;
+}
+
+.m-preview-card img {
+  display: block;
+  width: 100%;
+  max-height: 50vh;
+  object-fit: cover;
+}
+
+.m-preview-text {
+  margin: 0;
+  padding: 14px 16px 6px;
+  white-space: pre-wrap;
+}
+
+.m-preview-link {
+  margin: 0;
+  padding: 0 16px 14px;
+  font-size: 16px;
+  color: var(--m-muted);
+}
+
+.m-center {
+  text-align: center;
+  padding-top: 40px;
+}
+
+.m-spinner {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 20px;
+  border-radius: 50%;
+  border: 8px solid var(--m-line);
+  border-top-color: var(--m-red);
+  animation: m-spin 1s linear infinite;
+}
+
+@keyframes m-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .m-spinner {
+    animation-duration: 3s;
+  }
+}
+
+.m-dests {
+  display: grid;
+  gap: 12px;
+  margin: 0 0 24px;
+  padding: 0;
+  list-style: none;
+}
+
+.m-dest {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  padding: 14px 16px;
+  border-radius: var(--m-radius);
+  border: 2px solid var(--m-line);
+  background: #fff;
+}
+
+.m-dest-mark {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  font-weight: 800;
+  color: #fff;
+  background: var(--m-muted);
+}
+
+.m-dest--good {
+  border-color: var(--m-green);
+  background: var(--m-green-bg);
+}
+
+.m-dest--good .m-dest-mark {
+  background: var(--m-green);
+}
+
+.m-dest--warn {
+  border-color: var(--m-amber-line);
+  background: var(--m-amber-bg);
+}
+
+.m-dest--warn .m-dest-mark {
+  background: #8a5a00;
+}
+
+.m-dest--bad {
+  border-color: var(--m-error);
+  background: var(--m-error-bg);
+}
+
+.m-dest--bad .m-dest-mark {
+  background: var(--m-error);
+}
+
+/* ---------- Menu screens ---------- */
+
+.m-cards {
+  display: grid;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.m-card {
+  padding: 16px;
+  border: 2px solid var(--m-line);
+  border-radius: var(--m-radius);
+  background: var(--m-card);
+}
+
+.m-card-top {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.m-card-thumb {
+  flex: none;
+  width: 84px;
+  height: 84px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid var(--m-line);
+}
+
+.m-card-kicker {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--m-muted);
+}
+
+.m-card-title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.m-card-sub {
+  margin: 4px 0 0;
+  color: var(--m-muted);
+}
+
+.m-card-actions {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+@media (min-width: 560px) {
+  .m-card-actions {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.m-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 8px 0 0;
+}
+
+.m-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 16px;
+  font-weight: 700;
+  border: 2px solid;
+}
+
+.m-badge--warn {
+  background: var(--m-amber-bg);
+  border-color: var(--m-amber-line);
+  color: #6b4600;
+}
+
+.m-badge--bad {
+  background: var(--m-error-bg);
+  border-color: var(--m-error);
+  color: var(--m-error);
+}
+
+.m-badge--good {
+  background: var(--m-green-bg);
+  border-color: var(--m-green);
+  color: var(--m-green);
+}
+
+.m-btn--soldout-on {
+  background: var(--m-error-bg);
+  border-color: var(--m-error);
+  color: var(--m-error);
+}
+
+.m-btn-sub {
+  display: block;
+  font-size: 17px;
+  font-weight: 400;
+  color: var(--m-muted);
+}
+
+.m-btn--tall {
+  flex-direction: column;
+}
+
+.m-fieldset {
+  margin: 0 0 20px;
+  padding: 0;
+  border: 0;
+}
+
+.m-sublabel {
+  display: block;
+  font-size: 17px;
+  color: var(--m-muted);
+  margin-bottom: 4px;
+}
+
+.m-price-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  align-items: end;
+  padding: 12px;
+  margin-bottom: 10px;
+  border: 2px solid var(--m-line);
+  border-radius: 10px;
+  background: #fff;
+}
+
+.m-price-row > button {
+  grid-column: 1 / -1;
+}
+
+.m-order-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.m-order-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.m-diff {
+  margin: 12px 0;
+}
+
+.m-diff > div {
+  margin-bottom: 10px;
+}
+
+.m-diff dt {
+  font-weight: 700;
+}
+
+.m-diff dd {
+  margin: 4px 0 0;
+  display: grid;
+  gap: 4px;
+}
+
+.m-diff-before {
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: #f1efe9;
+  color: var(--m-muted);
+}
+
+.m-diff-after {
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: var(--m-green-bg);
+  font-weight: 600;
+}
+
+.m-details {
+  margin: 0 0 14px;
+}
+
+.m-details summary {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+  color: var(--m-focus);
+  cursor: pointer;
+}
+
+/* ---------- Video in the posting screen ---------- */
+
+.m-progress {
+  height: 28px;
+  margin: 0 0 16px;
+  border-radius: 999px;
+  border: 2px solid var(--m-line);
+  background: #fff;
+  overflow: hidden;
+}
+
+.m-progress > div {
+  height: 100%;
+  background: var(--m-green);
+  transition: width 0.3s ease;
+}
+
+.m-preview-video {
+  display: block;
+  width: 100%;
+  max-height: 60vh;
+  background: #000;
+}
+
+/* ---------- Website pages ---------- */
+
+.m-section-look {
+  margin: 8px 0 14px;
+  padding: 14px;
+  border-radius: 10px;
+  background: #fff;
+  border: 1px dashed var(--m-line);
+}
+
+.m-look-photo {
+  display: block;
+  width: 100%;
+  max-height: 260px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+.m-look-eyebrow {
+  margin: 0 0 4px;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--m-red);
+}
+
+.m-look-heading {
+  margin: 0 0 8px;
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.m-look-text {
+  margin: 0 0 10px;
+  white-space: pre-wrap;
+}
+
+.m-look-empty {
+  margin: 0 0 8px;
+  font-style: italic;
+  color: var(--m-muted);
+}
+
+.m-look-faq dt {
+  font-weight: 700;
+  margin-top: 10px;
+}
+
+.m-look-faq dd {
+  margin: 4px 0 0;
+}
+
+.m-look-gallery {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.m-look-gallery img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+.m-para {
+  padding: 12px;
+  border: 2px solid var(--m-line);
+  border-radius: 10px;
+  background: #fff;
+  display: grid;
+  gap: 8px;
+}
+
+.m-locked {
+  padding: 12px;
+  border-radius: 8px;
+  background: #f1efe9;
+}
+
+.m-gallery-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.m-activity-meta {
+  display: block;
+  margin-top: 2px;
+  font-size: 17px;
+  color: var(--m-muted);
+}
+
+/* ---------- Reviews ---------- */
+
+.m-stars {
+  margin: 0 0 6px;
+  color: #b8860b;
+  font-size: 24px;
+  letter-spacing: 0.08em;
+}
+
+.m-review-quote {
+  margin: 0 0 6px;
+  white-space: pre-wrap;
+}
+
+/* The main Save button on edit screens: clear space above it so it can't be
+   mistaken for (or mis-tapped instead of) the last "+ Add…" button. */
+.m-save {
+  margin-top: 40px;
+}
+
+/* ---------- Calm, compact editing (FAQ and page text) ----------
+   Attention should land on: the question, its answer, "Add another
+   question", and Save changes. Everything else is quiet text. Few borders,
+   no nested cards; touch targets stay at least 44px. */
+
+.m-btn--secondary {
+  border: 2px solid var(--m-line);
+  background: #fff;
+  color: var(--m-ink);
+}
+
+.m-btn--secondary:hover {
+  border-color: var(--m-muted);
+}
+
+/* Quiet text actions: Remove, Add a paragraph, Back. */
+.m-quietbtn,
+.m-textbtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--m-muted);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.m-quietbtn--add {
+  color: var(--m-focus);
+  margin-top: 2px;
+}
+
+.m-textbtn--center {
+  display: flex;
+  margin: 0 auto;
+}
+
+.m-textbtn[disabled],
+.m-quietbtn[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* One continuous answer box; paragraphs divided by thin lines. */
+.m-answer {
+  border: 2px solid var(--m-muted);
+  border-radius: 10px;
+  background: #fff;
+}
+
+.m-answer:focus-within {
+  border-color: var(--m-focus);
+}
+
+.m-answer-para + .m-answer-para {
+  border-top: 1px solid var(--m-line);
+}
+
+.m-answer-para-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 8px 0 14px;
+  min-height: 40px;
+}
+
+.m-answer-label {
+  font-size: 16px;
+  color: var(--m-muted);
+}
+
+.m-answer-para-head .m-quietbtn {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.m-answer-input {
+  display: block;
+  width: 100%;
+  min-height: 112px;
+  padding: 8px 14px 12px;
+  border: 0;
+  background: transparent;
+  color: var(--m-ink);
+  font: inherit;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.m-answer-input:focus {
+  outline: none;
+}
+
+.m-answer-locked {
+  margin: 0;
+  padding: 4px 14px 0;
+  white-space: pre-wrap;
+}
+
+.m-answer-note {
+  margin: 4px 0 0;
+  padding: 0 14px 12px;
+  font-size: 16px;
+  color: var(--m-muted);
+}
+
+/* Question cards: compact, one soft panel each, no inner boxes. */
+.m-q-list {
+  display: grid;
+  gap: 16px;
+}
+
+.m-q-card {
+  padding: 12px 14px 8px;
+  border-radius: var(--m-radius);
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.07);
+}
+
+.m-q-card .m-answer {
+  border-width: 1px;
+  border-color: var(--m-line);
+}
+
+.m-q-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+
+.m-q-title {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.m-q-answer-title {
+  display: block;
+  margin: 10px 0 4px;
+  font-weight: 700;
+}
+
+.m-q-add {
+  justify-self: start;
+  min-height: 50px;
+  padding: 8px 20px;
+}
+
+/* "More" menu (Move up / Move down / Remove question). */
+.m-more {
+  position: relative;
+}
+
+.m-more-toggle {
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--m-line);
+  border-radius: 10px;
+  background: var(--m-bg);
+  color: var(--m-ink);
+  font: inherit;
+  font-size: 17px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.m-more-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 4px);
+  z-index: 5;
+  min-width: 220px;
+  padding: 6px;
+  border: 1px solid var(--m-line);
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.m-more-menu button {
+  display: block;
+  width: 100%;
+  min-height: 48px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--m-ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.m-more-menu button:hover:not([disabled]) {
+  background: var(--m-bg);
+}
+
+.m-more-menu button[disabled] {
+  color: #9a9a9a;
+  cursor: not-allowed;
+}
+
+.m-more-menu .m-more-danger {
+  margin-top: 4px;
+  border-top: 1px solid var(--m-line);
+  border-radius: 0 0 8px 8px;
+  color: var(--m-error);
+}
+
+/* Bottom actions: one primary button, short note, text Back link. */
+.m-save-area {
+  margin-top: 24px;
+}
+
+.m-save-area .m-save {
+  margin-top: 0;
+  min-height: 56px;
+  font-size: 20px;
+}
+
+.m-save-area .m-hint {
+  font-size: 16px;
+}

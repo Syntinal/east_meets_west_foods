@@ -14,7 +14,12 @@ import type { CollectionConfig } from "payload";
 // in /admin → Users once this ships.
 export const Users: CollectionConfig = {
   slug: "users",
-  auth: true,
+  auth: {
+    // Payload's default is 2 hours, which would sign the owner out of
+    // /manage several times a day. 30 days, per the /manage plan's "stay
+    // signed in" decision. Applies to /admin logins too (one shared login).
+    tokenExpiration: 60 * 60 * 24 * 30,
+  },
   admin: {
     group: "Site Settings",
     useAsTitle: "email",

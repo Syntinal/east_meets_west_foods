@@ -22,7 +22,20 @@ export type MenuIntroDoc = {
 
 // Shared between the plain server-rendered /menu page and its live-preview
 // counterpart — same markup either way, just fed different data.
-export function MenuGridView({ items, intro }: { items: MenuItemDoc[]; intro: MenuIntroDoc }) {
+// soldOutIds: items marked "Sold out today" (collections/MenuSoldOut.ts) —
+// still listed, just labeled, so customers know it exists but isn't
+// available right now.
+export function MenuGridView({
+  items,
+  intro,
+  soldOutIds = [],
+}: {
+  items: MenuItemDoc[];
+  intro: MenuIntroDoc;
+  soldOutIds?: string[];
+}) {
+  const soldOut = new Set(soldOutIds.map(String));
+  const isSoldOut = (item: MenuItemDoc) => soldOut.has(String(item.id));
   const mainItems = items.filter((item) => item.group === "main");
   const extraItems = items.filter((item) => item.group === "extras");
 
@@ -42,13 +55,14 @@ export function MenuGridView({ items, intro }: { items: MenuItemDoc[]; intro: Me
             {mainItems.map((item) => {
               const image = item.image && typeof item.image === "object" ? item.image : null;
               return (
-                <article className="menu-card" key={item.id}>
+                <article className={`menu-card${isSoldOut(item) ? " menu-card--sold-out" : ""}`} key={item.id}>
                   {image?.url && (
                     <div className="menu-card-img">
                       <img src={image.url} alt={image.alt ?? item.title} />
                     </div>
                   )}
                   <div className="menu-card-body">
+                    {isSoldOut(item) && <p className="sold-out-badge">Sold out today</p>}
                     {item.tag && <p className="card-tag">{item.tag}</p>}
                     <h2>{item.title}</h2>
                     {item.description && <p>{item.description}</p>}
@@ -73,7 +87,8 @@ export function MenuGridView({ items, intro }: { items: MenuItemDoc[]; intro: Me
         <div className="container">
           <div className="extras-grid">
             {extraItems.map((item) => (
-              <div className="extras-card" key={item.id}>
+              <div className={`extras-card${isSoldOut(item) ? " extras-card--sold-out" : ""}`} key={item.id}>
+                {isSoldOut(item) && <p className="sold-out-badge">Sold out today</p>}
                 <h3>{item.title}</h3>
                 <ul className="extras-list">
                   {item.priceOptions.map((option, i) => (

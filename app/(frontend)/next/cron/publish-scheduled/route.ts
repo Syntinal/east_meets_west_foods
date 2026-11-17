@@ -1,3 +1,4 @@
+import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 import config from "@payload-config";
 import { getPayload } from "payload";
@@ -88,6 +89,12 @@ export async function GET(req: Request) {
       results.push({ id: doc.id, slug, published: false, error: err instanceof Error ? err.message : String(err) });
     }
   }
+
+  // Runs just after midnight Pacific (08:00 UTC). /menu is statically
+  // cached and "Sold out today" marks only count on the day they were set
+  // (collections/MenuSoldOut.ts) — re-render it so yesterday's labels drop
+  // off without anyone having to touch the menu.
+  revalidatePath("/menu");
 
   return NextResponse.json({ checked: due.totalDocs, published: results.filter((r) => r.published).length, results });
 }

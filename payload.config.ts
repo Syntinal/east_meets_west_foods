@@ -9,6 +9,8 @@ import { Users } from "./collections/Users";
 import { Media } from "./collections/Media";
 import { MediaAssets } from "./collections/MediaAssets";
 import { MenuItems } from "./collections/MenuItems";
+import { MenuSoldOut } from "./collections/MenuSoldOut";
+import { ActivityLog } from "./collections/ActivityLog";
 import { News } from "./collections/News";
 import { Testimonials } from "./collections/Testimonials";
 import { Pages } from "./collections/Pages";
@@ -58,7 +60,7 @@ export default buildConfig({
       beforeNavLinks: ["@/components/admin/SitePagesNav#SitePagesNav"],
     },
   },
-  collections: [Users, Media, MediaAssets, MenuItems, News, Testimonials, Pages, PushSubscriptions],
+  collections: [Users, Media, MediaAssets, MenuItems, MenuSoldOut, News, Testimonials, Pages, PushSubscriptions, ActivityLog],
   globals: [Navigation, Home, MenuIntro, NewsIntro, TestimonialsIntro, Sauce, Story, Faq, Contact, ReminderSettings],
   // Adds a "Text Style" color/font dropdown to every richText field's
   // toolbar on top of Payload's own recommended defaults (bold, italic,

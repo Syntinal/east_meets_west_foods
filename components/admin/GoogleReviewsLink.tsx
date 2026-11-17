@@ -1,7 +1,7 @@
 // Just a link to the public Google Maps listing — no API call, nothing
 // fetched or stored. Keeps the "grab a good review" workflow entirely
 // outside Google's Places API terms, since we never touch their API here.
-const GOOGLE_MAPS_URL =
+export const GOOGLE_MAPS_URL =
   "https://www.google.com/maps/place/East+Meets+West+Dumpling+Bar/@48.3013996,-116.5500785,17z/data=!3m1!4b1!4m6!3m5!1s0x5363d1966a6b04e9:0x6d04125dba42b761!8m2!3d48.3013996!4d-116.5475036!16s%2Fg%2F11z8jv38bw";
 
 export function GoogleReviewsLink() {

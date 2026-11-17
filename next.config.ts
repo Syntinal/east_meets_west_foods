@@ -3,6 +3,15 @@ import { withPayload } from "@payloadcms/next/withPayload";
 
 // Mirrors the old Cloudflare Pages _headers / _redirects files.
 const nextConfig: NextConfig = {
+  // Development only: lets a phone on the same Wi-Fi open the dev server
+  // (e.g. http://192.168.1.112:3000/manage) with working buttons — Next.js
+  // otherwise blocks its dev scripts for any host but localhost. Set
+  // DEV_ALLOWED_ORIGINS in .env (comma-separated hosts). No effect in
+  // production builds.
+  allowedDevOrigins: (process.env.DEV_ALLOWED_ORIGINS ?? "")
+    .split(",")
+    .map((h) => h.trim())
+    .filter(Boolean),
   async headers() {
     return [
       {

@@ -10,12 +10,20 @@ import { MenuGridView, type MenuItemDoc, type MenuIntroDoc } from "./MenuGridVie
 // preview session — see the /next/preview route's comment for why running
 // both hooks at once on the same page would be unsafe. `items` is just
 // passed straight through, unedited, on this session.
-export function LiveMenuIntro({ items, intro }: { items: MenuItemDoc[]; intro: MenuIntroDoc }) {
+export function LiveMenuIntro({
+  items,
+  intro,
+  soldOutIds,
+}: {
+  items: MenuItemDoc[];
+  intro: MenuIntroDoc;
+  soldOutIds?: string[];
+}) {
   const { data } = useLivePreview<MenuIntroDoc>({
     initialData: intro,
     serverURL: typeof window !== "undefined" ? window.location.origin : "",
     depth: 0,
   });
 
-  return <MenuGridView items={items} intro={data} />;
+  return <MenuGridView items={items} intro={data} soldOutIds={soldOutIds} />;
 }

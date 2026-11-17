@@ -1,5 +1,6 @@
 import type { GlobalConfig } from "payload";
 import { revalidatePath } from "next/cache";
+import { pageActivityHook } from "@/lib/activityLog";
 import { authenticated } from "@/access/authenticated";
 import { readPublished } from "@/access/readPublished";
 import { getPreviewURL } from "@/lib/preview";
@@ -80,7 +81,7 @@ export const Home: GlobalConfig = {
     },
   },
   hooks: {
-    afterChange: [() => revalidatePath("/")],
+    afterChange: [() => revalidatePath("/"), pageActivityHook("Home")],
   },
   fields: [
     {
