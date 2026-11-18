@@ -4,7 +4,7 @@ import { useState } from "react";
 
 // Posts to Payload's own login endpoint, which sets the same cookie /admin
 // uses — no separate login system. Errors are translated into plain words.
-export function LoginForm({ helpName }: { helpName: string }) {
+export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -30,7 +30,7 @@ export function LoginForm({ helpName }: { helpName: string }) {
       const detail = JSON.stringify(body ?? "").toLowerCase();
       setError(
         detail.includes("locked")
-          ? `Too many tries in a row. Please wait 10 minutes, or call ${helpName}.`
+          ? "Too many tries in a row. Please wait 10 minutes, or reach out for help."
           : "That email or password didn't match. Please try again.",
       );
     } catch {
@@ -72,7 +72,7 @@ export function LoginForm({ helpName }: { helpName: string }) {
         {busy ? "Signing in…" : "Sign in"}
       </button>
       <p style={{ marginTop: 24 }}>
-        <strong>Forgot your password?</strong> Call or text {helpName} to get a new one set up.
+        <strong>Forgot your password?</strong> Reach out and we&apos;ll set up a new one.
       </p>
     </form>
   );

@@ -1,9 +1,8 @@
-// Who the owner contacts for help, shown on every /manage screen.
-// Not a secret — it's shown on screen to anyone logged in. While `phone`
-// is empty, the Call/Text buttons are hidden and the help screen just
-// says to contact this person.
+// How the owner reaches out for help, shown on /manage's Help screen.
+// Deliberately no person's name in the owner-facing app — just "reach out".
+// Not a secret: it's shown to anyone signed in. While `phone` is empty, the
+// Call/Text buttons are hidden and the screen just says to reach out.
 export const HELP_CONTACT = {
-  name: "Kaylee",
   phone: "", // digits only, e.g. "2085551234"
 };
 

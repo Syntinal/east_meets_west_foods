@@ -52,7 +52,7 @@ function freshDraft(platforms: PostablePlatform[]): Draft {
   };
 }
 
-export function PostWizard({ platforms, helpName }: { platforms: PostablePlatform[]; helpName: string }) {
+export function PostWizard({ platforms }: { platforms: PostablePlatform[] }) {
   const [phase, setPhase] = useState<"loading" | "resume" | "editing" | "posting" | "done">("loading");
   const [draft, setDraft] = useState<Draft>(() => freshDraft(platforms));
   const [photoState, setPhotoState] = useState<"idle" | "preparing" | "uploading" | "upload-failed">("idle");
@@ -350,7 +350,7 @@ export function PostWizard({ platforms, helpName }: { platforms: PostablePlatfor
         <h1>{allGood ? "Your post is up! 🎉" : "Your post is on the website"}</h1>
         <ul className="m-dests">
           {outcome.destinations.map((d) => (
-            <DestinationRow key={d.key} d={d} postPath={outcome.postPath} helpName={helpName} />
+            <DestinationRow key={d.key} d={d} postPath={outcome.postPath} />
           ))}
         </ul>
         {needsAction && (
@@ -694,7 +694,7 @@ export function PostWizard({ platforms, helpName }: { platforms: PostablePlatfor
   );
 }
 
-function DestinationRow({ d, postPath, helpName }: { d: Destination; postPath: string; helpName: string }) {
+function DestinationRow({ d, postPath }: { d: Destination; postPath: string }) {
   const test = d.isTest ? " (test mode — nothing really posted)" : "";
   if (d.state === "posted") {
     const href = d.key === "website" ? postPath : d.url;
@@ -743,7 +743,7 @@ function DestinationRow({ d, postPath, helpName }: { d: Destination; postPath: s
       <span className="m-dest-mark">✗</span>
       <span>
         <strong>{d.label} isn&apos;t accepting posts right now.</strong>
-        {test} Your post is safe on the website. Please let {helpName} know.
+        {test} Your post is safe on the website. Please reach out so we can look into it.
       </span>
     </li>
   );

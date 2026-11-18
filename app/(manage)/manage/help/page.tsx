@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { requireManageUser } from "@/lib/manage/auth";
-import { HELP_CONTACT, helpSmsHref, helpTelHref } from "@/lib/manage/help";
+import { helpSmsHref, helpTelHref } from "@/lib/manage/help";
 import { Screen } from "@/components/manage/Screen";
 
 export const dynamic = "force-dynamic";
@@ -37,18 +37,18 @@ export default async function ManageHelpPage() {
 
   return (
     <Screen title="Get help" back={{ href: "/manage", label: "Home" }} hideHelp>
-      <p className="m-intro">Stuck, or not sure something worked? {HELP_CONTACT.name} can help.</p>
+      <p className="m-intro">Stuck, or not sure something worked? Reach out with any questions.</p>
       {tel && sms ? (
         <div className="m-stack">
           <a href={tel} className="m-btn m-btn--primary m-btn--block m-btn--tall">
-            📞 Call {HELP_CONTACT.name}
+            📞 Call for help
           </a>
           <a href={sms} className="m-btn m-btn--block m-btn--tall">
-            💬 Text {HELP_CONTACT.name}
+            💬 Text for help
           </a>
         </div>
       ) : (
-        <p className="m-notice">Contact {HELP_CONTACT.name} for help.</p>
+        <p className="m-notice">Reach out with any questions — we&apos;re happy to help.</p>
       )}
 
       <h2>Quick answers</h2>

@@ -14,6 +14,7 @@ const TASKS = [
   { href: "/manage/website", icon: "✏️", label: "Change words or photos", hint: "Any page of the website" },
   { href: "/manage/reviews", icon: "⭐", label: "Add a customer review", hint: "Copy a good one from Google" },
   { href: "/manage/activity", icon: "🕘", label: "Recent activity", hint: "What's been posted and changed" },
+  { href: "/manage/reminders", icon: "🔔", label: "Reminders", hint: "A nudge when it's time to post" },
   { href: "/manage/help", icon: "📞", label: "Get help", hint: "Call or text for help" },
 ];
 

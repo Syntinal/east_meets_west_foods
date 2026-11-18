@@ -8,6 +8,11 @@ import "./manage.css";
 export const metadata: Metadata = {
   title: "Website Helper — East Meets West",
   robots: { index: false, follow: false },
+  // "Add to Home Screen" makes a "Website Helper" icon that opens /manage.
+  // On iPhone, reminders (push notifications) only work from such an icon.
+  manifest: "/manage-manifest.json",
+  appleWebApp: { capable: true, title: "Website Helper", statusBarStyle: "default" },
+  icons: { apple: "/assets/bao_bun.png" },
 };
 
 export const viewport: Viewport = {

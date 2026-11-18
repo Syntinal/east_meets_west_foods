@@ -1098,3 +1098,55 @@ html {
 .m-save-area .m-hint {
   font-size: 16px;
 }
+
+.m-steps {
+  margin: 0;
+  padding-left: 24px;
+  display: grid;
+  gap: 10px;
+}
+
+/* ---------- Reminder schedule ---------- */
+
+.m-day-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+@media (min-width: 560px) {
+  .m-day-grid {
+    grid-template-columns: repeat(7, 1fr);
+  }
+}
+
+.m-day {
+  min-height: 56px;
+  border-radius: 10px;
+  border: 2px dashed var(--m-line);
+  background: #fff;
+  color: var(--m-muted);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.m-day--on {
+  border: 2px solid var(--m-green);
+  background: var(--m-green-bg);
+  color: var(--m-green);
+}
+
+.m-fieldset[disabled] {
+  opacity: 0.45;
+}
+
+.m-choices--compact .m-choice {
+  min-height: 60px;
+}
+
+.m-choices--compact .m-choice-mark {
+  width: 36px;
+  height: 36px;
+  font-size: 22px;
+}
