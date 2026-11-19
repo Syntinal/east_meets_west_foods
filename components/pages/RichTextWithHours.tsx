@@ -17,7 +17,8 @@ type LexRoot = { root: LexNode & { children: LexNode[] } };
 type Segment =
   | { kind: "rich"; nodes: LexNode[] }
   | { kind: "hours"; rows: { day: string; hours: string }[] }
-  | { kind: "note"; text: string };
+  | { kind: "note"; text: string }
+  | { kind: "plain"; text: string; role: "heading" | "text" };
 
 const DAY_LINE = /^\s*(monday|tuesday|wednesday|thursday|friday|saturday|sunday)s?\s*[:\-–—]\s*(.+?)\s*$/i;
 const NOTE_LINE = /^[\s*]*note\s*[:\-–—]\s*/i;
@@ -69,26 +70,39 @@ function segment(children: LexNode[]): Segment[] {
 
   if (!segments.some((s) => s.kind === "hours")) return segments;
 
-  // Second pass, only for blocks that actually have an hours table: pull
-  // "Note:" paragraphs out into their own callout.
+  // Second pass, only for blocks that actually have an hours table. Plain
+  // lines get the same clean look as the mock-up, whatever bold/underline
+  // the owner typed them with: "Note:" lines become a callout, the line
+  // just before the table a small heading, anything else (e.g. the
+  // sign-off) plain text. Blank lines are dropped. Lines holding a link or
+  // anything else non-plain still render as normal rich text.
   const out: Segment[] = [];
-  for (const s of segments) {
+  for (let si = 0; si < segments.length; si++) {
+    const s = segments[si];
     if (s.kind !== "rich") {
       out.push(s);
       continue;
     }
+    const beforeTable = segments[si + 1]?.kind === "hours";
     let buf: LexNode[] = [];
-    for (const node of s.nodes) {
-      const text = plainParagraphText(node);
-      if (text && NOTE_LINE.test(text)) {
-        if (buf.length) out.push({ kind: "rich", nodes: buf });
-        buf = [];
-        out.push({ kind: "note", text: text.replace(NOTE_LINE, "").trim() });
-      } else {
+    const flush = () => {
+      if (buf.length) out.push({ kind: "rich", nodes: buf });
+      buf = [];
+    };
+    s.nodes.forEach((node, ni) => {
+      const raw = plainParagraphText(node);
+      if (raw === null) {
         buf.push(node);
+        return;
       }
-    }
-    if (buf.length) out.push({ kind: "rich", nodes: buf });
+      const text = raw.trim();
+      if (!text) return;
+      flush();
+      if (NOTE_LINE.test(text)) out.push({ kind: "note", text: text.replace(NOTE_LINE, "").trim() });
+      else if (beforeTable && ni === s.nodes.length - 1) out.push({ kind: "plain", text, role: "heading" });
+      else out.push({ kind: "plain", text, role: "text" });
+    });
+    flush();
   }
   return out;
 }
@@ -127,6 +141,13 @@ export function RichTextWithHours({ data }: { data: unknown }) {
                 ))}
               </tbody>
             </table>
+          );
+        }
+        if (s.kind === "plain") {
+          return (
+            <p key={i} className={s.role === "heading" ? "hours-heading" : "hours-text"}>
+              {s.text}
+            </p>
           );
         }
         return (
