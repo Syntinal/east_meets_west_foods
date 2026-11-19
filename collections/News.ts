@@ -217,7 +217,33 @@ export const News: CollectionConfig = {
       },
     },
   },
+  // Taking a post down (from /manage) soft-deletes it (sets deletedAt), so
+  // "Recently removed" can put it back. Trashed posts are left out of every
+  // normal find() automatically — the News page, the home page banner and
+  // the News card all stop showing it.
+  trash: true,
   hooks: {
+    // Same protection as collections/MenuItems.ts: trashing is a plain
+    // update, which merges onto the LATEST version — if that's an unfinished
+    // /admin autosave, it would be pulled into the live row and the post
+    // would come back from the trash with half-typed text. Write the post's
+    // current LIVE content alongside deletedAt instead.
+    beforeChange: [
+      async ({ data, operation, originalDoc, req }) => {
+        if (operation !== "update" || !data?.deletedAt || !originalDoc?.id || originalDoc.deletedAt) return data;
+        const live = (await req.payload.findByID({
+          collection: "news-posts",
+          id: originalDoc.id,
+          draft: false,
+          trash: true,
+          depth: 0,
+          req,
+          overrideAccess: true,
+        })) as unknown as Record<string, unknown>;
+        const { id: _id, createdAt: _c, updatedAt: _u, deletedAt: _d, ...liveData } = live;
+        return { ...data, ...liveData, deletedAt: data.deletedAt };
+      },
+    ],
     beforeValidate: [
       async ({ data, originalDoc, req }) => {
         if (!data) return data;
@@ -260,6 +286,8 @@ export const News: CollectionConfig = {
               limit: 1,
               depth: 0,
               draft: true,
+              // A taken-down post still holds its slug (it can be put back).
+              trash: true,
               overrideAccess: true,
               req,
             });
@@ -286,6 +314,15 @@ export const News: CollectionConfig = {
       // own write-back (skipSocialPostHook) isn't a separate event either.
       async ({ doc, previousDoc, req, context }) => {
         if (context?.skipSocialPostHook || context?.skipActivity) return;
+        if (doc?.deletedAt && !previousDoc?.deletedAt) {
+          await logActivity(req.payload, { summary: `Took a post off the website: “${doc.title ?? "News post"}”`, area: "post" }, req);
+          return;
+        }
+        if (!doc?.deletedAt && previousDoc?.deletedAt) {
+          await logActivity(req.payload, { summary: `Put a post back on the website: “${doc.title ?? "News post"}”`, area: "post" }, req);
+          return;
+        }
+        if (doc?.deletedAt) return;
         if (doc?._status === "published" && previousDoc?._status !== "published") {
           await logActivity(req.payload, { summary: `Posted on the website: “${doc.title ?? "News post"}”`, area: "post" }, req);
         }
@@ -338,6 +375,8 @@ export const News: CollectionConfig = {
       // screen kept showing the old one until refreshed.
       async ({ doc, previousDoc, req, context }) => {
         if (context?.skipSocialPostHook) return;
+        // Taking a post down, or putting it back, never posts anything.
+        if (doc?.deletedAt || previousDoc?.deletedAt) return;
 
         const socialMedia = doc?.socialMedia ?? {};
         const previousSocialMedia = previousDoc?.socialMedia ?? {};

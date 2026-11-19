@@ -76,11 +76,12 @@ export default function Footer({
                 {page.shortLabel ?? page.label}
               </Link>
             ))}
-            {/* Plain <a>, not next/link: /admin lives under its own root
-                layout (app/(payload)), a separate app from the frontend's
+            {/* Plain <a>, not next/link: /manage lives under its own root
+                layout (app/(manage)), a separate app from the frontend's
                 React tree, so it should be a full page load rather than a
-                client-side transition. */}
-            <a href="/admin">Admin</a>
+                client-side transition. Goes to the simple /manage screens
+                (the owner's); developers reach /admin from there. */}
+            <a href="/manage">Admin</a>
           </nav>
           {SOCIAL_PLATFORMS.some((platform) => socialLinks[platform.key]) && (
             <div className="footer-social-links">

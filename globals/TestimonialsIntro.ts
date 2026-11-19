@@ -1,5 +1,6 @@
 import type { GlobalConfig } from "payload";
 import { revalidatePath } from "next/cache";
+import { pageActivityHook } from "@/lib/activityLog";
 import { authenticated } from "@/access/authenticated";
 import { readPublished } from "@/access/readPublished";
 import { getPreviewURL } from "@/lib/preview";
@@ -44,7 +45,7 @@ export const TestimonialsIntro: GlobalConfig = {
     },
   },
   hooks: {
-    afterChange: [() => revalidatePath("/testimonials")],
+    afterChange: [() => revalidatePath("/testimonials"), pageActivityHook("Reviews (heading)")],
   },
   fields: [
     {

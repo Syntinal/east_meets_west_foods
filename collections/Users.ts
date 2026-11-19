@@ -31,12 +31,13 @@ export const Users: CollectionConfig = {
       required: true,
       defaultValue: "admin",
       options: [
+        { label: "Simple editor (the owner — uses /manage)", value: "simple" },
         { label: "Admin", value: "admin" },
         { label: "Master Admin", value: "master" },
       ],
       admin: {
         description:
-          "Master Admin can see and remove enrolled reminder devices for anyone (Site Settings → Push Subscriptions). Plain Admin can do everything else, including enabling reminders on their own device — this only affects managing other people's.",
+          "Simple editor: always taken to the simplified /manage screens — visiting /admin sends them there (redirected, not blocked; they can still edit everything /manage offers). Master Admin can see and remove enrolled reminder devices for anyone (Site Settings → Push Subscriptions). Plain Admin can do everything else in /admin.",
       },
     },
   ],

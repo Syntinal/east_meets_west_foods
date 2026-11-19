@@ -1150,3 +1150,126 @@ html {
   height: 36px;
   font-size: 22px;
 }
+
+/* ---------- Section subheads (page list, posting step) ---------- */
+.m-subhead {
+  font-size: 1.25rem;
+  margin: 32px 0 12px;
+}
+
+.m-hint--error {
+  color: var(--m-error);
+  font-weight: 600;
+}
+
+/* ---------- Links inside a paragraph ---------- */
+.m-links {
+  padding: 4px 0 8px;
+}
+.m-link-list {
+  list-style: none;
+  margin: 4px 0 8px;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.m-link-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 12px;
+  padding: 10px 12px;
+  background: var(--m-bg);
+  border: 1px solid var(--m-line);
+  border-radius: 10px;
+  font-size: 1rem;
+}
+.m-link-what {
+  overflow-wrap: anywhere;
+}
+.m-link-actions {
+  display: flex;
+  gap: 4px;
+}
+.m-link-panel {
+  margin: 8px 0;
+  padding: 16px;
+  border: 2px solid var(--m-focus);
+  border-radius: var(--m-radius);
+  background: var(--m-card);
+}
+.m-dest-pick {
+  margin-bottom: 12px;
+}
+.m-look-link {
+  color: var(--m-red-dark);
+  text-decoration: underline;
+}
+
+/* ---------- Cards look (custom pages) ---------- */
+.m-look-cards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.m-look-cards li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.m-look-cards img {
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+/* ---------- Your posts ---------- */
+.m-post-row {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  color: inherit;
+  text-decoration: none;
+  min-height: var(--m-tap);
+}
+.m-post-thumb {
+  flex: 0 0 72px;
+  width: 72px;
+  height: 72px;
+  object-fit: cover;
+  border-radius: 10px;
+  background: var(--m-bg);
+}
+.m-post-thumb--none {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.75rem;
+  border: 1px solid var(--m-line);
+}
+.m-post-body {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+.m-post-text {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  white-space: pre-line;
+}
+.m-post-body .m-badge {
+  justify-self: start;
+}
+
+/* Taking something down: an outline in the error color, never a filled button. */
+.m-btn--danger {
+  color: var(--m-error);
+  border-color: var(--m-error);
+  background: #fff;
+}

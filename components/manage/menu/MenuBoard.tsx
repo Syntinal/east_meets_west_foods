@@ -124,6 +124,9 @@ export function MenuBoard({ items, changesWaiting }: { items: MenuItemView[]; ch
         <Link href="/manage/menu/removed" className="m-btn m-btn--block">
           🗑 Recently removed
         </Link>
+        <Link href="/manage/website/menu-intro" className="m-btn m-btn--block">
+          ✏️ The menu&apos;s heading and notes at the bottom
+        </Link>
       </div>
     </>
   );

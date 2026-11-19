@@ -1,10 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import type { PageView, PageUndo } from "@/lib/manage/websiteOps";
-import type { FaqRow, FieldDef, FieldValue, GalleryRow, PageDef, Photo } from "@/lib/manage/websitePages";
+import type { CardRow, FaqRow, FieldDef, FieldValue, GalleryRow, PageDef, Photo } from "@/lib/manage/websitePages";
 import type { Paragraph } from "@/lib/manage/richParagraphs";
+import { describeLink, type LinkTarget } from "@/lib/manage/linkTargets";
+import { LinkTargetsContext, useLinkTargets } from "./LinkEditing";
 import { publishPage, savePageSection, undoPageChange } from "@/app/(manage)/manage/website/actions";
 import { UndoBar } from "@/components/manage/UndoBar";
 import { SectionFields } from "./SectionFields";
@@ -16,6 +18,14 @@ type After = { kind: "saved"; undo: PageUndo | null } | { kind: "published"; und
 // section opens just that section's fields (one task per screen). Saving
 // never touches the website; "Put this page on the website" does.
 export function PageEditor({ def, view }: { def: PageDef; view: PageView }) {
+  return (
+    <LinkTargetsContext.Provider value={view.linkTargets}>
+      <PageEditorInner def={def} view={view} />
+    </LinkTargetsContext.Provider>
+  );
+}
+
+function PageEditorInner({ def, view }: { def: PageDef; view: PageView }) {
   const [sections, setSections] = useState(view.sections);
   const [waiting, setWaiting] = useState(view.waiting);
   const [editing, setEditing] = useState<string | null>(null);
@@ -218,14 +228,22 @@ export function PageEditor({ def, view }: { def: PageDef; view: PageView }) {
           return (
             <li key={s.key} className="m-card">
               <p className="m-card-kicker">{sec.title}</p>
-              <div className="m-section-look">
-                {sec.fields.map((f) => (
-                  <FieldLook key={f.path} field={f} value={s.values[f.path]} />
-                ))}
-              </div>
-              <button type="button" className="m-btn m-btn--block" onClick={() => open(s.key)}>
-                ✏️ Change this
-              </button>
+              {sec.fields.length > 0 ? (
+                <>
+                  <div className="m-section-look">
+                    {sec.fields.map((f) => (
+                      <FieldLook key={f.path} field={f} value={s.values[f.path]} />
+                    ))}
+                  </div>
+                  <button type="button" className="m-btn m-btn--block" onClick={() => open(s.key)}>
+                    ✏️ Change this
+                  </button>
+                </>
+              ) : (
+                <p className="m-hint" style={{ margin: 0 }}>
+                  {sec.note} Reach out if it needs changing.
+                </p>
+              )}
             </li>
           );
         })}
@@ -233,7 +251,7 @@ export function PageEditor({ def, view }: { def: PageDef; view: PageView }) {
 
       {def.elsewhere && (
         <p className="m-hint" style={{ marginTop: 24 }}>
-          <strong>Not shown here:</strong> {def.elsewhere}. Those are changed in the regular editor — ask for help if you need
+          <strong>Not shown here:</strong> {def.elsewhere}. Those are changed in the regular editor — reach out if you need
           them changed.
         </p>
       )}
@@ -245,10 +263,50 @@ export function PageEditor({ def, view }: { def: PageDef; view: PageView }) {
   );
 }
 
+// Paragraph text with its links underlined, the way they look on the website.
+function ParaLook({ p }: { p: Paragraph }) {
+  const spans = p.kind === "plain" ? (p.spans ?? []).filter((sp) => sp.link) : [];
+  if (!spans.length) return <>{p.text}</>;
+  const parts: ReactNode[] = [];
+  let pos = 0;
+  spans.forEach((sp, i) => {
+    if (sp.start > pos) parts.push(p.text.slice(pos, sp.start));
+    parts.push(
+      <span key={i} className="m-look-link">
+        {p.text.slice(sp.start, sp.end)}
+      </span>,
+    );
+    pos = sp.end;
+  });
+  parts.push(p.text.slice(pos));
+  return <>{parts}</>;
+}
+
 // A section's content, shown roughly the way it looks on the website.
 function FieldLook({ field, value }: { field: FieldDef; value: FieldValue }) {
+  const targets: LinkTarget[] = useLinkTargets();
   const empty = <p className="m-look-empty">({field.label}: empty)</p>;
   switch (field.kind) {
+    case "link": {
+      const url = value as string;
+      return url ? <p className="m-look-text">🔗 The button goes to: {describeLink(url, targets)}</p> : empty;
+    }
+    case "cards": {
+      const rows = value as CardRow[];
+      return rows.length ? (
+        <ul className="m-look-cards">
+          {rows.map((r, i) => (
+            <li key={r.id ?? i}>
+              {r.image?.url && <img src={r.image.url} alt="" />}
+              <strong>{r.title}</strong>
+              {r.priceLine && <span> — {r.priceLine}</span>}
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="m-look-empty">(No cards yet)</p>
+      );
+    }
     case "photo": {
       const p = value as Photo | null;
       return p?.url ? <img src={p.url} alt="" className="m-look-photo" /> : empty;
@@ -267,7 +325,7 @@ function FieldLook({ field, value }: { field: FieldDef; value: FieldValue }) {
         <>
           {paras.map((p, i) => (
             <p key={i} className="m-look-text">
-              {p.text}
+              <ParaLook p={p} />
             </p>
           ))}
         </>

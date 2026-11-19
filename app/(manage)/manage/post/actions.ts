@@ -7,6 +7,7 @@ import { MOCK_NOTE_PREFIX } from "@/lib/socialPostMock";
 import type { SocialPlatform } from "@/lib/socialPost";
 import { captionFromMessage, pickTrackId } from "@/lib/manage/videoChoices";
 import { logActivity } from "@/lib/activityLog";
+import { bannerEnd, clearOtherBanners } from "@/lib/manage/postsOps";
 
 export type PostVideo = { publicId: string; durationSeconds: number | null; withMusic: boolean };
 
@@ -98,6 +99,8 @@ export async function submitPost(input: {
   imageId: number | string | null;
   video?: PostVideo | null;
   platforms: SocialPlatform[];
+  /** Also show it at the top of the home page: for this many days, or null = until taken off. */
+  banner?: { on: boolean; days: number | null } | null;
 }): Promise<PostOutcome> {
   const { payload, user } = await getManageSession();
   if (!user) return SIGNED_OUT;
@@ -159,6 +162,8 @@ export async function submitPost(input: {
     }
   }
 
+  const banner = input.banner?.on ? { on: true, days: [1, 3, 7].includes(input.banner.days as number) ? input.banner.days : null } : null;
+
   const socialMedia: Record<string, boolean> = {};
   for (const p of chosen) socialMedia[CHECKBOX_FIELD[p.platform]] = true;
 
@@ -175,9 +180,16 @@ export async function submitPost(input: {
         ...(cloudinaryVideo ? { cloudinaryVideo } : {}),
         submissionKey: input.submissionKey,
         socialMedia,
+        ...(banner ? { showAsHomepageBanner: true, bannerEndDate: bannerEnd(banner) } : {}),
         _status: "published",
       } as never,
     });
+    // Only one post on the home page banner at a time.
+    if (banner) {
+      await clearOtherBanners({ payload, user }, (created as unknown as NewsDoc).id).catch((err) =>
+        payload.logger.error(`[manage/post] couldn't clear older banners: ${err instanceof Error ? err.message : String(err)}`),
+      );
+    }
     return describe(created as unknown as NewsDoc);
   } catch (err) {
     // The unique submissionKey refused a second copy (two taps racing).

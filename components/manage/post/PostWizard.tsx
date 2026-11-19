@@ -12,6 +12,8 @@ import { uploadVideo, videoPosterUrl } from "@/lib/manage/uploadVideo";
 import { reportUploadProblem } from "@/app/(manage)/manage/activity/actions";
 import { captionFromMessage, MAX_VIDEO_BYTES, pickTrackId, trackPublicId } from "@/lib/manage/videoChoices";
 import { buildCaptionFramePreviewUrl, buildOverlayVideoUrl } from "@/lib/cloudinaryVideo";
+import { bannerChoiceOf, BANNER_PICKS, type BannerPick } from "@/lib/manage/bannerChoices";
+import { BannerPicker } from "@/components/manage/posts/BannerPicker";
 
 const CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
 
@@ -28,6 +30,8 @@ type Draft = {
   video: { publicId: string; durationSeconds: number | null } | null;
   /** The one question asked about a video. null = not answered yet. */
   withMusic: boolean | null;
+  /** Also show it at the top of the home page? Off unless chosen. */
+  banner?: BannerPick;
 };
 
 const DRAFT_KEY = "post";
@@ -49,6 +53,7 @@ function freshDraft(platforms: PostablePlatform[]): Draft {
     photo: null,
     video: null,
     withMusic: null,
+    banner: "off",
   };
 }
 
@@ -251,6 +256,10 @@ export function PostWizard({ platforms }: { platforms: PostablePlatform[] }) {
         imageId: draft.video ? null : (draft.photo?.mediaId ?? null),
         video: draft.video ? { ...draft.video, withMusic: Boolean(draft.withMusic) } : null,
         platforms: draft.platforms,
+        banner: (() => {
+          const b = bannerChoiceOf(draft.banner ?? "off");
+          return b.on ? { on: true, days: typeof b.days === "number" ? b.days : null } : null;
+        })(),
       });
       if (result.ok) {
         setOutcome(result);
@@ -586,6 +595,11 @@ export function PostWizard({ platforms }: { platforms: PostablePlatform[] }) {
               );
             })}
           </ul>
+          <h2 className="m-subhead">Also show it at the top of your home page?</h2>
+          <p className="m-hint" style={{ marginTop: 0 }}>
+            Good for sales, specials or closures. Only one post shows there at a time.
+          </p>
+          <BannerPicker value={draft.banner ?? "off"} onChange={(banner) => update({ banner })} />
         </>
       )}
 
@@ -617,6 +631,12 @@ export function PostWizard({ platforms }: { platforms: PostablePlatform[] }) {
           <p>
             <strong>Going to:</strong> Website
             {chosen.map((p) => `, ${p.label}${p.isTest ? " (test mode)" : ""}`).join("")}
+            {draft.banner && draft.banner !== "off" && (
+              <>
+                <br />
+                <strong>Top of your home page:</strong> {BANNER_PICKS.find((b) => b.value === draft.banner)?.label.replace("Show it ", "") ?? "yes"}
+              </>
+            )}
           </p>
           <div className="m-stack" style={{ marginBottom: 20 }}>
             <button className="m-btn m-btn--small" onClick={() => goTo("photo")}>

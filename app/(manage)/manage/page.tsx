@@ -3,6 +3,7 @@ import { requireManageUser } from "@/lib/manage/auth";
 import { daysAgoInWords, getLastSuccessfulPostDate } from "@/lib/manage/lastPost";
 import { countChangesWaiting } from "@/lib/manage/menu";
 import { countPagesWaiting } from "@/lib/manage/websiteOps";
+import { isSimpleEditor } from "@/lib/manage/roles";
 import { Screen } from "@/components/manage/Screen";
 import { SignOutButton } from "@/components/manage/SignOutButton";
 
@@ -10,6 +11,7 @@ export const dynamic = "force-dynamic";
 
 const TASKS = [
   { href: "/manage/post", icon: "📣", label: "Tell customers something", hint: "Post a photo and a message" },
+  { href: "/manage/posts", icon: "📰", label: "Your posts", hint: "Fix, feature or take down a post" },
   { href: "/manage/menu", icon: "🥟", label: "Change the menu", hint: "Prices, items, and sold out" },
   { href: "/manage/website", icon: "✏️", label: "Change words or photos", hint: "Any page of the website" },
   { href: "/manage/reviews", icon: "⭐", label: "Add a customer review", hint: "Copy a good one from Google" },
@@ -67,6 +69,15 @@ export default async function ManageHomePage() {
       </ul>
       <div className="m-footer-actions">
         <SignOutButton />
+        {/* Developers only (admin/master accounts) — the owner's Simple
+            editor account never sees this, and /admin sends them back here. */}
+        {!isSimpleEditor(user) && (
+          <p style={{ textAlign: "center", marginTop: 16 }}>
+            <a href="/admin" className="m-textbtn" style={{ display: "inline-flex" }}>
+              Advanced editor
+            </a>
+          </p>
+        )}
       </div>
     </Screen>
   );

@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import type { FaqRow, FieldDef, FieldValue, GalleryRow, Photo } from "@/lib/manage/websitePages";
-import type { Paragraph } from "@/lib/manage/richParagraphs";
+import type { CardRow, FaqRow, FieldDef, FieldValue, GalleryRow, Photo } from "@/lib/manage/websitePages";
+import { adjustSpans, type Paragraph } from "@/lib/manage/richParagraphs";
 import { PhotoPicker } from "@/components/manage/PhotoPicker";
+import { DestinationPicker, ParagraphLinks } from "./LinkEditing";
 
 type Props = {
   fields: FieldDef[];
@@ -62,6 +63,15 @@ export function SectionFields({ fields, values, onChange, onPhotoBusy }: Props) 
                 <GalleryEditor value={(v as GalleryRow[]) ?? []} onChange={set} onPhotoBusy={onPhotoBusy} />
               </div>
             );
+          case "link":
+            return (
+              <div key={f.path} className="m-field">
+                <span className="m-label">{f.label}</span>
+                <DestinationPicker value={(v as string) || null} onChange={set} />
+              </div>
+            );
+          case "cards":
+            return <CardsEditor key={f.path} value={(v as CardRow[]) ?? []} onChange={set} onPhotoBusy={onPhotoBusy} />;
         }
       })}
     </>
@@ -76,13 +86,11 @@ function move<T>(list: T[], i: number, dir: -1 | 1): T[] {
   return copy;
 }
 
-// One box per paragraph. Paragraphs with a link or special formatting are
-// locked (shown, not editable) so they never silently lose that — see
-// lib/manage/richParagraphs.ts.
 // The answer/text as ONE continuous editing box: paragraphs are separated by
-// thin dividers, not separate cards. Paragraphs with a link or special style
-// are locked (shown, not editable) so they never silently lose that — see
-// lib/manage/richParagraphs.ts — with a small note instead of a grey box.
+// thin dividers, not separate cards. Links and bold words are kept as the
+// owner types (lib/manage/richParagraphs.ts) and links are listed under
+// their paragraph in plain words, with Change / Remove. Only unusual
+// paragraphs (lists, links to a specific document) are locked.
 function ParagraphsEditor({ value, onChange }: { value: Paragraph[]; onChange: (v: Paragraph[]) => void }) {
   const showLabels = value.length > 1;
   return (
@@ -108,16 +116,23 @@ function ParagraphsEditor({ value, onChange }: { value: Paragraph[]; onChange: (
             {p.kind === "locked" ? (
               <>
                 <p className="m-answer-locked">{p.text}</p>
-                <p className="m-answer-note">🔒 Has a link or special style — changed in the regular editor. Ask for help if it needs changing.</p>
+                <p className="m-answer-note">🔒 This part is a list or has a special kind of link, so it&apos;s changed in the regular editor. Reach out if it needs changing.</p>
               </>
             ) : (
-              <textarea
-                className="m-answer-input"
-                rows={4}
-                value={p.text}
-                aria-label={`Paragraph ${i + 1}`}
-                onChange={(e) => onChange(value.map((x, j) => (j === i ? { ...x, text: e.target.value } : x)))}
-              />
+              <>
+                <textarea
+                  className="m-answer-input"
+                  rows={4}
+                  value={p.text}
+                  aria-label={`Paragraph ${i + 1}`}
+                  onChange={(e) => {
+                    const text = e.target.value;
+                    // Links and bold words move along with the typing.
+                    onChange(value.map((x, j) => (j === i && x.kind === "plain" ? { ...x, text, spans: adjustSpans(x.spans, x.text, text) } : x)));
+                  }}
+                />
+                <ParagraphLinks p={p} onChange={(next) => onChange(value.map((x, j) => (j === i ? next : x)))} />
+              </>
             )}
           </div>
         ))}
@@ -138,6 +153,7 @@ function QuestionMenu({
   onUp,
   onDown,
   onRemove,
+  removeLabel = "Remove question",
 }: {
   n: number;
   canUp: boolean;
@@ -145,6 +161,7 @@ function QuestionMenu({
   onUp: () => void;
   onDown: () => void;
   onRemove: () => void;
+  removeLabel?: string;
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -170,7 +187,7 @@ function QuestionMenu({
         className="m-more-toggle"
         aria-haspopup="menu"
         aria-expanded={open}
-        aria-label={`More options for question ${n}`}
+        aria-label={`More options for ${removeLabel.replace("Remove ", "")} ${n}`}
         onClick={() => setOpen((o) => !o)}
       >
         More <span aria-hidden="true">▾</span>
@@ -184,7 +201,7 @@ function QuestionMenu({
             ↓ Move down
           </button>
           <button type="button" role="menuitem" className="m-more-danger" onClick={act(onRemove)}>
-            Remove question
+            {removeLabel}
           </button>
         </div>
       )}
@@ -293,6 +310,63 @@ function GalleryEditor({
           }}
         />
       </div>
+    </div>
+  );
+}
+
+// Cards (a page's "Card Grid"): one box per card, laid out like the FAQ editor.
+function CardsEditor({
+  value,
+  onChange,
+  onPhotoBusy,
+}: {
+  value: CardRow[];
+  onChange: (v: CardRow[]) => void;
+  onPhotoBusy: (b: boolean) => void;
+}) {
+  const edit = (i: number, patch: Partial<CardRow>) => onChange(value.map((x, j) => (j === i ? { ...x, ...patch } : x)));
+  return (
+    <div className="m-q-list">
+      {value.map((row, i) => {
+        const n = i + 1;
+        return (
+          <section key={row.id ?? `new-${i}`} className="m-q-card" aria-label={`Card ${n}`}>
+            <div className="m-q-head">
+              <label className="m-q-title" htmlFor={`card-t-${i}`}>
+                Card {n}
+              </label>
+              <QuestionMenu
+                n={n}
+                canUp={i > 0}
+                canDown={i < value.length - 1}
+                onUp={() => onChange(move(value, i, -1))}
+                onDown={() => onChange(move(value, i, 1))}
+                onRemove={() => {
+                  if (confirm(`Remove the card “${row.title || "(blank)"}”?`)) onChange(value.filter((_, j) => j !== i));
+                }}
+                removeLabel="Remove card"
+              />
+            </div>
+            <span className="m-q-answer-title">Name</span>
+            <input id={`card-t-${i}`} className="m-input" value={row.title} onChange={(e) => edit(i, { title: e.target.value })} />
+            <span className="m-q-answer-title">Photo (optional)</span>
+            <PhotoPicker value={row.image} onChange={(image) => edit(i, { image })} onBusyChange={onPhotoBusy} />
+            <span className="m-q-answer-title">Text (optional)</span>
+            <ParagraphsEditor value={row.body} onChange={(body) => edit(i, { body })} />
+            <label className="m-field" style={{ marginTop: 12 }}>
+              <span className="m-q-answer-title">Price or short line at the bottom (optional)</span>
+              <input className="m-input" value={row.priceLine} onChange={(e) => edit(i, { priceLine: e.target.value })} />
+            </label>
+          </section>
+        );
+      })}
+      <button
+        type="button"
+        className="m-btn m-btn--secondary m-q-add"
+        onClick={() => onChange([...value, { title: "", image: null, body: [{ kind: "plain", text: "" }], priceLine: "" }])}
+      >
+        + Add another card
+      </button>
     </div>
   );
 }

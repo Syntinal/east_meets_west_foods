@@ -3,6 +3,7 @@ import { authenticated } from "@/access/authenticated";
 import { readPublished } from "@/access/readPublished";
 import { getPreviewURL } from "@/lib/preview";
 import { safeRevalidatePath } from "@/lib/safeRevalidate";
+import { logActivity } from "@/lib/activityLog";
 import { resolveAutoSlug } from "@/lib/slugify";
 import { NAV_PAGES } from "@/lib/navigation";
 import { RichTextBlock, ImageBlock, GalleryBlock, CallToActionBlock, TwoColumnBlock, FileBlock, VideoBlock, QuoteBlock, FaqBlock } from "@/blocks";
@@ -113,6 +114,19 @@ export const Pages: CollectionConfig = {
       ({ doc }) => {
         if (doc?.slug) safeRevalidatePath(`/${doc.slug}`);
         safeRevalidatePath("/", "layout");
+      },
+      // "Recent activity". /manage describes its own saves (context.activity);
+      // otherwise only publishing is logged — /admin autosaves drafts every
+      // few seconds while typing, which would flood the list.
+      async ({ doc, req, context }) => {
+        if (context?.skipActivity) return;
+        const summary =
+          typeof context?.activity === "string"
+            ? context.activity
+            : doc?._status === "published"
+              ? `Put the ${doc.title ?? ""} page on the website`
+              : null;
+        if (summary) await logActivity(req.payload, { summary, area: "page" }, req);
       },
     ],
     afterDelete: [

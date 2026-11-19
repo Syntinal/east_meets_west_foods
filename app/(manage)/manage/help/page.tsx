@@ -25,6 +25,18 @@ const QUESTIONS = [
     button: "Open Recently removed",
   },
   {
+    q: "There's a mistake in a post I already made.",
+    a: "Open Your posts and tap the post. You can fix the words, or take it off the website. Facebook, Instagram and TikTok keep what they already have.",
+    href: "/manage/posts",
+    button: "Open Your posts",
+  },
+  {
+    q: "I took a post down by mistake.",
+    a: "Posts you take down are kept. Tap Bring it back.",
+    href: "/manage/posts/removed",
+    button: "Open Posts you took down",
+  },
+  {
     q: "I changed something by mistake.",
     a: "Right after you save, an Undo button shows for 30 seconds. After that, call or text for help — earlier versions are always kept.",
   },
