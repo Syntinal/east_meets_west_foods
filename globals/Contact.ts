@@ -1,5 +1,6 @@
 import type { GlobalConfig, TextFieldSingleValidation } from "payload";
 import { revalidatePath } from "next/cache";
+import { pageActivityHook } from "@/lib/activityLog";
 import { authenticated } from "@/access/authenticated";
 import { readPublished } from "@/access/readPublished";
 import { getPreviewURL } from "@/lib/preview";
@@ -61,7 +62,7 @@ export const Contact: GlobalConfig = {
     },
   },
   hooks: {
-    afterChange: [() => revalidatePath("/contact")],
+    afterChange: [() => revalidatePath("/contact"), pageActivityHook("Contact")],
   },
   fields: [
     { name: "heading", type: "text", admin: { description: "The page heading." } },

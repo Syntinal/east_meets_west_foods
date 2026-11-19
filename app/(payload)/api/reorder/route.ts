@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import config from "@payload-config";
 import { getPayload, type CollectionSlug } from "payload";
+import { logActivity } from "@/lib/activityLog";
 
 // Dedicated, narrow endpoint for admin drag-reorder UIs (see
 // components/admin/ListPreviewSplit.tsx's `persistOrder()`).
@@ -76,6 +77,7 @@ export async function POST(req: Request) {
       )
     );
   } catch (err) {
+    await logActivity(payload, { summary: "Couldn't change the order of the menu", status: "failed", area: "menu", who: user.email });
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Failed to save the new order" },
       { status: 500 }
@@ -83,5 +85,8 @@ export async function POST(req: Request) {
   }
 
   entry.revalidate();
+  // This endpoint writes the order directly (bypassing the collection's own
+  // hooks — see the comment above), so it records its own activity line.
+  await logActivity(payload, { summary: "Changed the order of the menu", area: "menu", who: user.email });
   return NextResponse.json({ success: true });
 }

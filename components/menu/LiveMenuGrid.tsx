@@ -16,6 +16,7 @@ export function LiveMenuGrid({
   initialItems,
   seedItem,
   intro,
+  soldOutIds,
 }: {
   initialItems: MenuItemDoc[];
   seedItem: MenuItemDoc;
@@ -25,6 +26,7 @@ export function LiveMenuGrid({
   // one useLivePreview subscription should be active per preview session,
   // see the /next/preview route's comment for why.
   intro: MenuIntroDoc;
+  soldOutIds?: string[];
 }) {
   // `useLivePreview` needs a real, existing document to seed `initialData` —
   // it round-trips to `/api/menu-items/{initialData.id}` on every keystroke
@@ -36,5 +38,5 @@ export function LiveMenuGrid({
     depth: 1,
   });
 
-  return <MenuGridView items={mergeItem(initialItems, data)} intro={intro} />;
+  return <MenuGridView items={mergeItem(initialItems, data)} intro={intro} soldOutIds={soldOutIds} />;
 }

@@ -140,6 +140,20 @@ export function SocialPostStatusNotice({ platform }: { platform: Platform }) {
     );
   }
 
+  if (status === "unknown") {
+    return (
+      <div style={isMock ? mockStyle : boxStyle}>
+        <strong>
+          {isMock ? `🧪 Test mode — simulated an unknown result on ${label}` : `❔ Not sure yet whether this reached ${label}`}
+        </strong>
+        <p style={{ margin: "4px 0 0" }}>
+          {error || "We didn't hear back in time."} Saving again checks first and only posts if it really didn&rsquo;t
+          go out — it won&rsquo;t create a duplicate.
+        </p>
+      </div>
+    );
+  }
+
   if (status === "failed_permanent") {
     return (
       <div style={isMock ? mockStyle : boxStyle}>

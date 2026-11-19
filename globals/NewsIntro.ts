@@ -1,5 +1,6 @@
 import type { GlobalConfig } from "payload";
 import { revalidatePath } from "next/cache";
+import { pageActivityHook } from "@/lib/activityLog";
 import { authenticated } from "@/access/authenticated";
 import { readPublished } from "@/access/readPublished";
 import { getPreviewURL } from "@/lib/preview";
@@ -45,7 +46,7 @@ export const NewsIntro: GlobalConfig = {
     },
   },
   hooks: {
-    afterChange: [() => revalidatePath("/news")],
+    afterChange: [() => revalidatePath("/news"), pageActivityHook("News (heading)")],
   },
   fields: [
     { name: "eyebrow", type: "text", defaultValue: "News", admin: { description: "Small label above the heading." } },

@@ -1,0 +1,12 @@
+{
+  "name": "East Meets West — Website Helper",
+  "short_name": "Website Helper",
+  "start_url": "/manage",
+  "scope": "/manage",
+  "display": "standalone",
+  "background_color": "#fbfaf6",
+  "theme_color": "#ffffff",
+  "icons": [
+    { "src": "/assets/bao_bun.png", "sizes": "256x256", "type": "image/png" }
+  ]
+}

@@ -1,5 +1,6 @@
 import type { GlobalConfig } from "payload";
 import { revalidatePath } from "next/cache";
+import { pageActivityHook } from "@/lib/activityLog";
 import { authenticated } from "@/access/authenticated";
 import { readPublished } from "@/access/readPublished";
 import { getPreviewURL } from "@/lib/preview";
@@ -52,7 +53,7 @@ export const MenuIntro: GlobalConfig = {
     },
   },
   hooks: {
-    afterChange: [() => revalidatePath("/menu")],
+    afterChange: [() => revalidatePath("/menu"), pageActivityHook("Menu (heading and notes)")],
   },
   fields: [
     {
