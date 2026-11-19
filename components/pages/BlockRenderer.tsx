@@ -1,5 +1,6 @@
 import { RichText } from "@/components/StyledRichText";
 import { GalleryGrid, type GalleryPhoto } from "@/components/home/GalleryGrid";
+import { RichTextWithHours } from "@/components/pages/RichTextWithHours";
 
 type MediaRef =
   | { url?: string | null; alt?: string | null; focalX?: number | null; focalY?: number | null }
@@ -90,7 +91,7 @@ export function BlockRenderer({ blocks }: { blocks: PageBlock[] }) {
           case "richText":
             return (
               <div key={key} className="page-block text-panel">
-                <RichText data={block.content as never} />
+                <RichTextWithHours data={block.content} />
               </div>
             );
 

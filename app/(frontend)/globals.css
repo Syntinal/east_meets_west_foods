@@ -1406,6 +1406,58 @@ img { max-width: 100%; display: block; }
   padding: 16px 36px;
 }
 
+/* ============ STORE HOURS (components/pages/RichTextWithHours.tsx) ============ */
+.hours-table {
+  width: 100%;
+  max-width: 640px;
+  border-collapse: collapse;
+  margin: 8px 0 18px;
+}
+.hours-table th,
+.hours-table td {
+  padding: 7px 0;
+  text-align: left;
+  vertical-align: baseline;
+}
+.hours-table th {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--black);
+  width: 55%;
+}
+.hours-table td {
+  font-size: 1.1rem;
+  font-weight: 400;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.hours-table tr.is-closed td {
+  color: var(--gray);
+}
+.hours-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  max-width: 640px;
+  margin: 0 0 18px;
+  padding: 10px 14px;
+  background: var(--cream);
+  border: 1px solid var(--line-dark);
+  border-radius: 6px;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  color: var(--ink);
+}
+.hours-note-icon {
+  flex: none;
+  margin-top: 2px;
+  color: var(--gray);
+}
+@media (max-width: 480px) {
+  .hours-table th { font-size: 1.1rem; width: 45%; }
+  .hours-table td { font-size: 1rem; }
+}
+
 /* ============ MISSION H1 (visually matches existing mission-statement aesthetics) ============ */
 /*
  * The home page h1 is the brand name, displayed prominently but without
