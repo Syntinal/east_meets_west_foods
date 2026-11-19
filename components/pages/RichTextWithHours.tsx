@@ -18,7 +18,7 @@ type Segment =
   | { kind: "rich"; nodes: LexNode[] }
   | { kind: "hours"; rows: { day: string; hours: string }[] }
   | { kind: "note"; text: string }
-  | { kind: "plain"; text: string; role: "heading" | "text" };
+  | { kind: "plain"; text: string; role: "heading" | "text" | "signoff" };
 
 const DAY_LINE = /^\s*(monday|tuesday|wednesday|thursday|friday|saturday|sunday)s?\s*[:\-–—]\s*(.+?)\s*$/i;
 const NOTE_LINE = /^[\s*]*note\s*[:\-–—]\s*/i;
@@ -104,7 +104,26 @@ function segment(children: LexNode[]): Segment[] {
     });
     flush();
   }
+  // The block's last line, if it's plain text after the table, is the
+  // sign-off ("High Regards…Roger and Selena").
+  const last = out[out.length - 1];
+  if (last?.kind === "plain" && last.role === "text") last.role = "signoff";
   return out;
+}
+
+// "Winter Season Store Hours (beginning 11/11/26)" → title + subtitle.
+function splitHeading(text: string): { title: string; sub: string | null } {
+  const m = text.match(/^(.*?)\s*\(([^)]+)\)\s*$/);
+  if (!m || !m[1]) return { title: text, sub: null };
+  return { title: m[1], sub: m[2].charAt(0).toUpperCase() + m[2].slice(1) };
+}
+
+// "High Regards…Roger and Selena" → closing + names. Splits on the first
+// ellipsis, comma or dash; anything else stays one line.
+function splitSignoff(text: string): { closing: string | null; names: string } {
+  const m = text.match(/^(.+?)\s*(?:…|\.{2,}|,|\s[-–—]\s)\s*(.+)$/);
+  if (!m) return { closing: null, names: text };
+  return { closing: m[1], names: m[2].replace(/\s+and\s+/i, " & ") };
 }
 
 function NoteIcon() {
@@ -144,8 +163,26 @@ export function RichTextWithHours({ data }: { data: unknown }) {
           );
         }
         if (s.kind === "plain") {
+          if (s.role === "heading") {
+            const { title, sub } = splitHeading(s.text);
+            return (
+              <div key={i} className="hours-heading">
+                <h2 className="hours-heading-title">{title}</h2>
+                {sub ? <p className="hours-heading-sub">{sub}</p> : null}
+              </div>
+            );
+          }
+          if (s.role === "signoff") {
+            const { closing, names } = splitSignoff(s.text);
+            return (
+              <p key={i} className="hours-signoff">
+                {closing ? <span className="hours-signoff-closing">{closing},</span> : null}
+                <span className="hours-signoff-names">{names}</span>
+              </p>
+            );
+          }
           return (
-            <p key={i} className={s.role === "heading" ? "hours-heading" : "hours-text"}>
+            <p key={i} className="hours-text">
               {s.text}
             </p>
           );

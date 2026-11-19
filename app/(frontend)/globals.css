@@ -1408,10 +1408,57 @@ img { max-width: 100%; display: block; }
 
 /* ============ STORE HOURS (components/pages/RichTextWithHours.tsx) ============ */
 .hours-heading {
-  margin: 0 0 6px;
-  font-size: 1rem;
-  font-weight: 400;
+  max-width: 640px;
+  margin: 0 0 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line-dark);
+}
+.hours-heading-title {
+  margin: 0;
+  font-family: "Lora", Georgia, serif;
+  font-size: clamp(1.5rem, 3vw, 1.9rem);
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--black);
+}
+.hours-heading-sub {
+  margin: 6px 0 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--red);
+}
+.hours-signoff {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-width: 640px;
+  margin: 8px 0 0;
+  padding-top: 16px;
+  position: relative;
+  font-family: "Lora", Georgia, serif;
   color: var(--ink);
+}
+.hours-signoff::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 40px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--red);
+}
+.hours-signoff-closing {
+  font-style: italic;
+  font-size: 1rem;
+  color: var(--gray);
+}
+.hours-signoff-names {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--black);
 }
 .hours-text {
   margin: 0 0 4px;
