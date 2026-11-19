@@ -2,7 +2,14 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "@payloadcms/ui";
-import { describeDevice, urlBase64ToUint8Array } from "@/lib/webPushClient";
+import {
+  getThisDeviceReminderStatus,
+  isIOSDevice,
+  isStandaloneDisplay,
+  sendTestReminder,
+  turnOffRemindersForThisDevice,
+  turnOnRemindersForThisDevice,
+} from "@/lib/webPushClient";
 
 // Lets whoever's logged into /admin opt their own device in to the
 // "haven't posted in a while" push reminder (globals/ReminderSettings.ts
@@ -28,41 +35,11 @@ import { describeDevice, urlBase64ToUint8Array } from "@/lib/webPushClient";
 // preamble that wouldn't apply to them.
 type Status = "checking" | "unsupported" | "denied" | "subscribed" | "not-subscribed";
 
-async function postJSON(url: string, body: unknown) {
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    credentials: "include", // sends the Payload admin session cookie, same as any other same-origin admin fetch
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) throw new Error(`Request to ${url} failed (${res.status})`);
-  return res.json();
-}
-
 const stepListStyle = { margin: "0 0 12px", paddingLeft: 20, display: "flex", flexDirection: "column" as const, gap: 6 };
 const stepTextStyle = { fontSize: 13.5, opacity: 0.85 };
 
-// Real iPhone/iPad UA (not just "any touch device") — iPadOS 13+ reports
-// as "Macintosh" in the UA string, which this deliberately doesn't try to
-// catch via maxTouchPoints tricks: an iPad hitting the plain desktop-Mac
-// branch below just sees the Enable button with no walkthrough, which is
-// only wrong if that Enable click then fails — an acceptable, narrow gap
-// for a feature built around the owner's phone, not chased further here.
-function isIOSDevice() {
-  return typeof navigator !== "undefined" && /iPad|iPhone|iPod/.test(navigator.userAgent);
-}
-
-function isStandaloneDisplay() {
-  if (typeof window === "undefined") return false;
-  return (
-    window.matchMedia("(display-mode: standalone)").matches ||
-    // iOS Safari's own pre-manifest-standard flag — still the only signal
-    // on older iOS versions, so kept alongside the modern media query
-    // rather than instead of it.
-    (navigator as unknown as { standalone?: boolean }).standalone === true
-  );
-}
-
+// isIOSDevice/isStandaloneDisplay and the on/off/test steps live in
+// lib/webPushClient.ts, shared with /manage's reminder screen.
 export function PushReminderButton() {
   const [status, setStatus] = useState<Status>("checking");
   const [busy, setBusy] = useState(false);
@@ -73,24 +50,9 @@ export function PushReminderButton() {
 
   useEffect(() => {
     let cancelled = false;
-    async function check() {
-      if (typeof window === "undefined" || !("serviceWorker" in navigator) || !("PushManager" in window)) {
-        if (!cancelled) setStatus("unsupported");
-        return;
-      }
-      if (Notification.permission === "denied") {
-        if (!cancelled) setStatus("denied");
-        return;
-      }
-      try {
-        const registration = await navigator.serviceWorker.register("/sw.js");
-        const existing = await registration.pushManager.getSubscription();
-        if (!cancelled) setStatus(existing ? "subscribed" : "not-subscribed");
-      } catch {
-        if (!cancelled) setStatus("unsupported");
-      }
-    }
-    check();
+    getThisDeviceReminderStatus().then((st) => {
+      if (!cancelled) setStatus(st);
+    });
     return () => {
       cancelled = true;
     };
@@ -99,24 +61,7 @@ export function PushReminderButton() {
   const enable = useCallback(async () => {
     setBusy(true);
     try {
-      const permission = await Notification.requestPermission();
-      if (permission !== "granted") {
-        setStatus("denied");
-        return;
-      }
-      const registration = await navigator.serviceWorker.ready;
-      const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
-      if (!publicKey) throw new Error("NEXT_PUBLIC_VAPID_PUBLIC_KEY is not set");
-      const subscription = await registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        // Cast needed purely for TS's benefit — lib.dom's `BufferSource`
-        // wants a Uint8Array<ArrayBuffer> specifically, while a plain
-        // `new Uint8Array(...)` types as the more general
-        // Uint8Array<ArrayBufferLike>; the actual value is fine at runtime.
-        applicationServerKey: urlBase64ToUint8Array(publicKey) as BufferSource,
-      });
-      await postJSON("/api/push/subscribe", { ...subscription.toJSON(), label: describeDevice(navigator.userAgent) });
-      setStatus("subscribed");
+      setStatus(await turnOnRemindersForThisDevice());
     } catch (err) {
       alert(err instanceof Error ? err.message : "Couldn't enable reminders on this device.");
     } finally {
@@ -127,13 +72,7 @@ export function PushReminderButton() {
   const disable = useCallback(async () => {
     setBusy(true);
     try {
-      const registration = await navigator.serviceWorker.ready;
-      const subscription = await registration.pushManager.getSubscription();
-      if (subscription) {
-        await postJSON("/api/push/unsubscribe", { endpoint: subscription.endpoint });
-        await subscription.unsubscribe();
-      }
-      setStatus("not-subscribed");
+      setStatus(await turnOffRemindersForThisDevice());
     } catch (err) {
       alert(err instanceof Error ? err.message : "Couldn't disable reminders on this device.");
     } finally {
@@ -145,7 +84,7 @@ export function PushReminderButton() {
     setBusy(true);
     setTestResult(null);
     try {
-      const result = await postJSON("/api/push/test", {});
+      const result = await sendTestReminder();
       // "Sent" here only means the push service accepted it — a real,
       // separate gotcha this session hit directly: the browser can report
       // Notification permission as "granted" while the OS/device's own

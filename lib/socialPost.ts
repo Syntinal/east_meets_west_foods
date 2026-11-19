@@ -136,11 +136,29 @@ export type SocialPostResult = {
   error?: string;
   /** True only for a permanent-looking failure (401 bad key, 400 invalid request) — see collections/News.ts's eligibility logic for what this changes. */
   permanent?: boolean;
-  /** Informational note attached to an otherwise-successful post (e.g. "posted, pending confirmation"). Never set alongside a failure. */
+  /** Informational note attached to an otherwise-successful post. Never set alongside a failure. */
   note?: string;
+  /**
+   * True when we genuinely don't know whether the post went out — e.g. the
+   * create request timed out after Post for Me may already have accepted
+   * it, or Post for Me accepted it but never confirmed the platform's
+   * result within our poll window. Always `success: false`. Callers must
+   * NOT treat this as a failure to blindly retry: the next attempt reuses
+   * the same `externalId`, and postToSocialPlatform() looks that up first
+   * instead of creating a second post.
+   */
+  unknown?: boolean;
 };
 
 export type SocialPostInput = {
+  /**
+   * Our own id for this specific attempt, sent to Post for Me as
+   * `external_id`. Must stay the SAME when retrying an attempt whose outcome
+   * is unknown (so the lookup in postToSocialPlatform() finds it), and
+   * change for a deliberate new attempt after a confirmed result. See
+   * collections/News.ts's afterChange hook for how it's built.
+   */
+  externalId: string;
   /** The whole post, as the owner wrote it in the single message box (collections/News.ts) — used as-is (truncated per-platform) as the caption. */
   message: string;
   /** Absolute URL — the platforms need a real link, not a site-relative path. */
@@ -157,6 +175,26 @@ function apiKey(): string {
 function accountId(platform: SocialPlatform): string {
   return process.env[PLATFORM_ACCOUNT_ENV_VAR[platform]] || "";
 }
+
+export const SOCIAL_PLATFORMS: SocialPlatform[] = ["facebook", "instagram", "tiktok"];
+
+/** True when this platform has real credentials — i.e. posting really goes out (not mock mode). */
+export function isPlatformLive(platform: SocialPlatform): boolean {
+  return Boolean(apiKey() && accountId(platform));
+}
+
+/** Plain facts /manage needs to validate a post before it's sent — safe to hand to client components. */
+export function platformInfo(platform: SocialPlatform) {
+  return {
+    platform,
+    label: PLATFORM_LABEL[platform],
+    maxCaptionChars: MAX_CAPTION_CHARS[platform],
+    // Instagram and TikTok have no text-only post type (see the create
+    // call's comment below); Facebook does.
+    needsPhotoOrVideo: platform !== "facebook",
+  };
+}
+export type PlatformInfo = ReturnType<typeof platformInfo>;
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -286,21 +324,40 @@ async function pollResult(platform: SocialPlatform, postId: string): Promise<Soc
     return { success: false, error: detail || "Post for Me reported failure with no further detail." };
   }
 
-  if (!reachedApi) {
-    return {
-      success: false,
-      error: "Post for Me accepted the post, but we couldn't reach it afterward to confirm the result (network or Post for Me outage) — this will retry automatically.",
-    };
-  }
-
-  // Reached Post for Me at least once, it just hadn't confirmed the real
-  // outcome within our poll budget. Treated as success-with-a-note rather
-  // than guessed at as failed; same posture this file has used for every
-  // previous vendor's own response-ambiguity edge case.
+  // Post for Me accepted the post (we have its id), but we don't have the
+  // platform's real outcome — either we couldn't reach Post for Me to ask,
+  // or it hadn't confirmed yet. Both are genuinely UNKNOWN, not failures:
+  // treating them as failures used to mean the next save created a second,
+  // duplicate post. The next attempt looks this one up by externalId
+  // instead (see postToSocialPlatform()).
   return {
-    success: true,
-    note: "Post for Me accepted the post but hadn't confirmed the result within our check window — worth a quick look at Post for Me's own dashboard to confirm it actually went out.",
+    success: false,
+    unknown: true,
+    error: reachedApi
+      ? `${PLATFORM_LABEL[platform]} hadn't confirmed the post yet.`
+      : "We couldn't reach Post for Me to confirm whether the post went out.",
   };
+}
+
+type ExistingLookup = { kind: "found"; id: string } | { kind: "none" } | { kind: "unreachable" };
+
+// Has an earlier attempt with this exact externalId already reached Post
+// for Me? Asked before every create. Post for Me doesn't enforce
+// external_id uniqueness itself (confirmed against its OpenAPI spec, Nov
+// 2026: no idempotency/409 behavior), but GET /v1/social-posts can filter
+// by it — so this lookup is what actually prevents duplicates.
+async function findExistingPost(platform: SocialPlatform, externalId: string): Promise<ExistingLookup> {
+  const params = new URLSearchParams({ external_id: externalId, social_account_id: accountId(platform), limit: "1" });
+  try {
+    const res = await fetch(`${API_BASE}/v1/social-posts?${params.toString()}`, { headers: authHeaders() });
+    if (!res.ok) return { kind: "unreachable" };
+    const body = await res.json().catch(() => null);
+    if (!body || !Array.isArray(body.data)) return { kind: "unreachable" };
+    const match = body.data.find((p: { id?: string; external_id?: string }) => p?.external_id === externalId);
+    return match?.id ? { kind: "found", id: match.id } : { kind: "none" };
+  } catch {
+    return { kind: "unreachable" };
+  }
 }
 
 // Recognized only in mock mode (see below) — lets the hook's full range
@@ -315,7 +372,7 @@ async function pollResult(platform: SocialPlatform, postId: string): Promise<Soc
 // e.g. "Facebook succeeds, TikTok fails" now that the 3 platforms retry
 // independently. Checked against the message (the owner-typed field) —
 // there's no separate title field to hide these markers in anymore.
-function matchesMockMarker(message: string, kind: "fail" | "fail_permanent", platform: SocialPlatform): boolean {
+function matchesMockMarker(message: string, kind: "fail" | "fail_permanent" | "unknown", platform: SocialPlatform): boolean {
   return message.includes(`[[mock:${kind}:${platform}]]`) || message.includes(`[[mock:${kind}]]`);
 }
 
@@ -341,6 +398,13 @@ export async function postToSocialPlatform(platform: SocialPlatform, input: Soci
     if (matchesMockMarker(input.message, "fail", platform)) {
       return { success: false, error: `${MOCK_NOTE_PREFIX}Simulated transient failure (mock mode, ${label}).` };
     }
+    if (matchesMockMarker(input.message, "unknown", platform)) {
+      return {
+        success: false,
+        unknown: true,
+        error: `${MOCK_NOTE_PREFIX}Simulated unknown outcome (mock mode, ${label}).`,
+      };
+    }
     return {
       success: true,
       url: MOCK_URL[platform],
@@ -348,11 +412,29 @@ export async function postToSocialPlatform(platform: SocialPlatform, input: Soci
     };
   }
 
+  // Lookup-before-create: if an earlier attempt with this same externalId
+  // already reached Post for Me (a timed-out request, an unconfirmed
+  // result, or a server that stopped mid-request), resolve THAT post's
+  // outcome instead of creating a duplicate. If we can't even ask, we
+  // don't post — "unknown" is safer than a possible duplicate, and a
+  // Post for Me outage would fail the create anyway.
+  const existing = await findExistingPost(platform, input.externalId);
+  if (existing.kind === "found") return await pollResult(platform, existing.id);
+  if (existing.kind === "unreachable") {
+    return {
+      success: false,
+      unknown: true,
+      error: "We couldn't reach Post for Me to check whether this was already posted, so we didn't post it again.",
+    };
+  }
+
+  let requestSent = false;
   try {
     const body: Record<string, unknown> = {
       caption: buildCaptionWithLink(platform, input),
       social_accounts: [account],
       platform_configurations: platformConfiguration(platform),
+      external_id: input.externalId,
     };
     // No manual size/format precheck here (unlike the previous two
     // vendors) — Post for Me's own docs say it processes/resizes media
@@ -386,6 +468,7 @@ export async function postToSocialPlatform(platform: SocialPlatform, input: Soci
       body.media = [media];
     }
 
+    requestSent = true;
     const res = await fetch(`${API_BASE}/v1/social-posts`, {
       method: "POST",
       headers: { "Content-Type": "application/json", ...authHeaders() },
@@ -394,10 +477,19 @@ export async function postToSocialPlatform(platform: SocialPlatform, input: Soci
     if (!res.ok) return await parseCreateError(platform, res);
 
     const created = await res.json().catch(() => null);
-    if (!created?.id) return { success: false, error: "Post for Me's response had no post id." };
+    // A 2xx with an unreadable body means Post for Me did accept something.
+    if (!created?.id) {
+      return { success: false, unknown: true, error: "Post for Me accepted the request but its reply was unreadable." };
+    }
 
     return await pollResult(platform, created.id);
   } catch (err) {
-    return { success: false, error: err instanceof Error ? err.message : String(err) };
+    // Once the request was sent, a thrown error (timeout, dropped
+    // connection) does NOT mean Post for Me didn't get it — the classic
+    // "accepted, but the reply never arrived" case. Unknown, not failed.
+    const detail = err instanceof Error ? err.message : String(err);
+    return requestSent
+      ? { success: false, unknown: true, error: `The connection dropped before we heard back (${detail}).` }
+      : { success: false, error: detail };
   }
 }

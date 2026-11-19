@@ -1,5 +1,6 @@
 import type { GlobalConfig } from "payload";
 import { revalidatePath } from "next/cache";
+import { pageActivityHook } from "@/lib/activityLog";
 import { authenticated } from "@/access/authenticated";
 import { readPublished } from "@/access/readPublished";
 import { getPreviewURL } from "@/lib/preview";
@@ -45,7 +46,7 @@ export const Sauce: GlobalConfig = {
     },
   },
   hooks: {
-    afterChange: [() => revalidatePath("/sauce")],
+    afterChange: [() => revalidatePath("/sauce"), pageActivityHook("Our Sauce")],
   },
   fields: [
     {

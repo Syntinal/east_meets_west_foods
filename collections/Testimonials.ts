@@ -1,6 +1,7 @@
 import type { CollectionConfig, TextFieldSingleValidation } from "payload";
 import { revalidatePath } from "next/cache";
 import { authenticated } from "@/access/authenticated";
+import { logActivity } from "@/lib/activityLog";
 import { readPublished } from "@/access/readPublished";
 import { getPreviewURL } from "@/lib/preview";
 
@@ -21,7 +22,26 @@ export const Testimonials: CollectionConfig = {
   },
   hooks: {
     // Shown on both the homepage carousel and the dedicated /testimonials page.
-    afterChange: [() => revalidatePath("/"), () => revalidatePath("/testimonials")],
+    afterChange: [
+      () => revalidatePath("/"),
+      () => revalidatePath("/testimonials"),
+      async ({ doc, previousDoc, operation, req, context }) => {
+        if (context?.skipActivity) return;
+        const from = `the review from ${doc.authorName ?? "a customer"}`;
+        const wasLive = previousDoc?._status === "published";
+        const summary =
+          typeof context?.activity === "string"
+            ? context.activity
+            : doc._status === "published"
+              ? operation === "create" || !wasLive
+                ? `Put ${from} on the website`
+                : `Changed ${from}`
+              : wasLive
+                ? `Took ${from} off the website`
+                : `Saved ${from} (not on the website yet)`;
+        await logActivity(req.payload, { summary, area: "review" }, req);
+      },
+    ],
     afterDelete: [() => revalidatePath("/"), () => revalidatePath("/testimonials")],
   },
   admin: {

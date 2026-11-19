@@ -1,3 +1,5 @@
+import { logActivity } from "@/lib/activityLog";
+import { MOCK_NOTE_PREFIX } from "@/lib/socialPostMock";
 import type { CollectionConfig, Field } from "payload";
 import { authenticated } from "@/access/authenticated";
 import { readPublished } from "@/access/readPublished";
@@ -29,6 +31,14 @@ type PlatformFieldConfig = {
   urlField: string;
   errorField: string;
   failureCountField: string;
+  /**
+   * How many attempts on this platform have reached a CONFIRMED result
+   * (success or failure). Part of each attempt's Post for Me external_id
+   * (see the afterChange hook) — it only moves on to a new number once the
+   * previous attempt's outcome is actually known, so an attempt with an
+   * unknown outcome is always looked up, never re-created.
+   */
+  attemptsField: string;
 };
 
 const PLATFORM_FIELDS: PlatformFieldConfig[] = [
@@ -39,6 +49,7 @@ const PLATFORM_FIELDS: PlatformFieldConfig[] = [
     urlField: "facebookPostUrl",
     errorField: "facebookPostError",
     failureCountField: "facebookPostFailureCount",
+    attemptsField: "facebookPostAttempts",
   },
   {
     platform: "instagram",
@@ -47,6 +58,7 @@ const PLATFORM_FIELDS: PlatformFieldConfig[] = [
     urlField: "instagramPostUrl",
     errorField: "instagramPostError",
     failureCountField: "instagramPostFailureCount",
+    attemptsField: "instagramPostAttempts",
   },
   {
     platform: "tiktok",
@@ -55,6 +67,7 @@ const PLATFORM_FIELDS: PlatformFieldConfig[] = [
     urlField: "tikTokPostUrl",
     errorField: "tikTokPostError",
     failureCountField: "tikTokPostFailureCount",
+    attemptsField: "tikTokPostAttempts",
   },
 ];
 
@@ -90,6 +103,10 @@ function platformSocialFields(cfg: PlatformFieldConfig): Field[] {
         { label: "Posted", value: "posted" },
         { label: "Failed (will retry)", value: "failed" },
         { label: "Failed (needs attention)", value: "failed_permanent" },
+        // Genuinely don't know whether it went out (timeout / unconfirmed).
+        // Not "settled": the next published save re-checks it by
+        // external_id instead of posting again — see lib/socialPost.ts.
+        { label: "Not sure yet — will check before retrying", value: "unknown" },
       ],
       admin: { readOnly: true, hidden: true },
     },
@@ -101,6 +118,7 @@ function platformSocialFields(cfg: PlatformFieldConfig): Field[] {
     // hook's comment) still stops auto-retrying after a few tries.
     // Resets to 0 on any success or explicit uncheck/recheck.
     { name: cfg.failureCountField, type: "number", defaultValue: 0, admin: { readOnly: true, hidden: true } },
+    { name: cfg.attemptsField, type: "number", defaultValue: 0, admin: { readOnly: true, hidden: true } },
     {
       // `type: "ui"` fields store nothing — this renders the live status
       // (queued/posted/failed) inline when the checkbox above is on,
@@ -199,9 +217,35 @@ export const News: CollectionConfig = {
       },
     },
   },
+  // Taking a post down (from /manage) soft-deletes it (sets deletedAt), so
+  // "Recently removed" can put it back. Trashed posts are left out of every
+  // normal find() automatically — the News page, the home page banner and
+  // the News card all stop showing it.
+  trash: true,
   hooks: {
+    // Same protection as collections/MenuItems.ts: trashing is a plain
+    // update, which merges onto the LATEST version — if that's an unfinished
+    // /admin autosave, it would be pulled into the live row and the post
+    // would come back from the trash with half-typed text. Write the post's
+    // current LIVE content alongside deletedAt instead.
+    beforeChange: [
+      async ({ data, operation, originalDoc, req }) => {
+        if (operation !== "update" || !data?.deletedAt || !originalDoc?.id || originalDoc.deletedAt) return data;
+        const live = (await req.payload.findByID({
+          collection: "news-posts",
+          id: originalDoc.id,
+          draft: false,
+          trash: true,
+          depth: 0,
+          req,
+          overrideAccess: true,
+        })) as unknown as Record<string, unknown>;
+        const { id: _id, createdAt: _c, updatedAt: _u, deletedAt: _d, ...liveData } = live;
+        return { ...data, ...liveData, deletedAt: data.deletedAt };
+      },
+    ],
     beforeValidate: [
-      ({ data, originalDoc }) => {
+      async ({ data, originalDoc, req }) => {
         if (!data) return data;
         // Title (the internal page heading) and slug (its URL) are no
         // longer owner-typed — both derive automatically from whatever
@@ -226,7 +270,31 @@ export const News: CollectionConfig = {
         const message = typeof data.message === "string" ? data.message : "";
         if (!originalDoc?.titleFinalized && message.trim()) {
           data.title = deriveTitleFromMessage(message);
-          data.slug = slugify(data.title as string);
+          // Two posts that start with the same words ("Test", "Open today!")
+          // would derive the same slug and the second would be refused by
+          // the unique constraint — found testing /manage on a real phone.
+          // Add -2, -3… instead. Only while the slug is still being derived;
+          // a published post's slug is frozen (titleFinalized) as before.
+          const base = slugify(data.title as string);
+          let candidate = base;
+          for (let n = 2; n < 100; n++) {
+            const taken = await req.payload.find({
+              collection: "news-posts",
+              where: {
+                and: [{ slug: { equals: candidate } }, ...(originalDoc?.id ? [{ id: { not_equals: originalDoc.id } }] : [])],
+              },
+              limit: 1,
+              depth: 0,
+              draft: true,
+              // A taken-down post still holds its slug (it can be put back).
+              trash: true,
+              overrideAccess: true,
+              req,
+            });
+            if (taken.totalDocs === 0) break;
+            candidate = `${base}-${n}`;
+          }
+          data.slug = candidate;
         }
         if (data._status === "published") {
           data.titleFinalized = true;
@@ -239,6 +307,25 @@ export const News: CollectionConfig = {
         safeRevalidatePath("/news");
         if (doc?.slug) safeRevalidatePath(`/news/${doc.slug}`);
         safeRevalidatePath("/");
+      },
+      // "Recent activity": only the moment a post goes on the website.
+      // Draft saves aren't logged — /admin autosaves News every couple of
+      // seconds while typing, which would flood the list. The social hook's
+      // own write-back (skipSocialPostHook) isn't a separate event either.
+      async ({ doc, previousDoc, req, context }) => {
+        if (context?.skipSocialPostHook || context?.skipActivity) return;
+        if (doc?.deletedAt && !previousDoc?.deletedAt) {
+          await logActivity(req.payload, { summary: `Took a post off the website: “${doc.title ?? "News post"}”`, area: "post" }, req);
+          return;
+        }
+        if (!doc?.deletedAt && previousDoc?.deletedAt) {
+          await logActivity(req.payload, { summary: `Put a post back on the website: “${doc.title ?? "News post"}”`, area: "post" }, req);
+          return;
+        }
+        if (doc?.deletedAt) return;
+        if (doc?._status === "published" && previousDoc?._status !== "published") {
+          await logActivity(req.payload, { summary: `Posted on the website: “${doc.title ?? "News post"}”`, area: "post" }, req);
+        }
       },
       // Real social publishing (Facebook, Instagram, TikTok), via
       // lib/socialPost.ts (Post for Me). Runs inline/awaited — no queue or
@@ -288,6 +375,8 @@ export const News: CollectionConfig = {
       // screen kept showing the old one until refreshed.
       async ({ doc, previousDoc, req, context }) => {
         if (context?.skipSocialPostHook) return;
+        // Taking a post down, or putting it back, never posts anything.
+        if (doc?.deletedAt || previousDoc?.deletedAt) return;
 
         const socialMedia = doc?.socialMedia ?? {};
         const previousSocialMedia = previousDoc?.socialMedia ?? {};
@@ -362,11 +451,24 @@ export const News: CollectionConfig = {
               : null,
         };
 
+        // Each attempt's Post for Me external_id. Built from the post's
+        // /manage submissionKey when it has one (stable even if this
+        // document's own save rolled back and the owner resubmitted,
+        // creating a new doc id) or else the doc id, plus the platform and
+        // the confirmed-attempts counter. Same id until an attempt's outcome
+        // is known → a retry of an unknown attempt finds it instead of
+        // posting twice (lookup-before-create in lib/socialPost.ts).
+        const attemptKey = doc.submissionKey ? `sub-${doc.submissionKey}` : `news-${doc.id}`;
+
         const attempts = await Promise.all(
           eligiblePlatforms.map(async ({ cfg, justReChecked }) => {
             let result: SocialPostResult;
+            const attemptNumber = Number(socialMedia[cfg.attemptsField] ?? 0);
             try {
-              result = await postToSocialPlatform(cfg.platform, input);
+              result = await postToSocialPlatform(cfg.platform, {
+                ...input,
+                externalId: `emw-${attemptKey}-${cfg.platform}-${attemptNumber}`,
+              });
             } catch (err) {
               result = { success: false, error: err instanceof Error ? err.message : String(err) };
             }
@@ -378,6 +480,25 @@ export const News: CollectionConfig = {
             return { cfg, justReChecked, result };
           })
         );
+
+        // "Recent activity", one line per platform. Written on its own (no
+        // req): the post already went out (or didn't) at Facebook etc., so
+        // that fact must be recorded even if this save later rolls back.
+        for (const { cfg, result } of attempts) {
+          const label = PLATFORM_LABEL[cfg.platform];
+          const test = (result.error ?? result.note ?? "").startsWith(MOCK_NOTE_PREFIX) ? " (test mode)" : "";
+          const title = `“${doc.title ?? "News post"}”`;
+          await logActivity(req.payload, {
+            summary: result.success
+              ? `Posted to ${label}${test}: ${title}`
+              : result.unknown
+                ? `Not sure yet whether ${label} got the post${test}: ${title}`
+                : `${label} posting failed${test}: ${title}`,
+            status: result.success ? "success" : result.unknown ? "unknown" : "failed",
+            area: "post",
+            who: (req.user as { email?: string } | null)?.email,
+          });
+        }
 
         // Post for Me's own polling (lib/socialPost.ts) can take several
         // seconds, up from the near-instant Buffer/Upload-Post calls this
@@ -413,6 +534,17 @@ export const News: CollectionConfig = {
           // the failure counter too" behavior this hook is documented to
           // have. (Caught by this session's own verification pass —
           // see CLAUDE.md.)
+          const priorAttempts = Number(priorSocialMedia[cfg.attemptsField] ?? 0);
+          if (result.unknown) {
+            // Don't know yet: keep the same attempt number (so the next
+            // try looks THIS attempt up rather than creating a new post)
+            // and don't count it as a failure.
+            nextSocialMedia[cfg.statusField] = "unknown";
+            nextSocialMedia[cfg.errorField] = result.error ?? null;
+            nextSocialMedia[cfg.attemptsField] = priorAttempts;
+            continue;
+          }
+          nextSocialMedia[cfg.attemptsField] = priorAttempts + 1;
           const priorFailureCount = justReChecked ? 0 : ((priorSocialMedia[cfg.failureCountField] as number) ?? 0);
           const failureCount = result.success ? 0 : priorFailureCount + 1;
           nextSocialMedia[cfg.statusField] = result.success
@@ -808,6 +940,19 @@ export const News: CollectionConfig = {
       admin: { hidden: true },
     },
     { name: "titleFinalized", type: "checkbox", defaultValue: false, admin: { hidden: true } },
+    {
+      // One-time code generated in the browser when the owner starts a post
+      // in /manage. Unique, so a double-tap or a resubmit after a dropped
+      // connection can never create a second copy of the same post — the
+      // second create is refused and /manage returns the existing one.
+      // Also feeds the social external_id (see the afterChange hook).
+      // Empty for posts made in /admin.
+      name: "submissionKey",
+      type: "text",
+      unique: true,
+      index: true,
+      admin: { hidden: true },
+    },
     {
       name: "publishedDate",
       type: "date",

@@ -1,5 +1,11 @@
 import type { CollectionConfig } from "payload";
+import { APIError } from "payload";
 import { authenticated } from "@/access/authenticated";
+import { logActivity } from "@/lib/activityLog";
+
+const MAX_UPLOAD_BYTES = 4 * 1024 * 1024;
+const MAX_DIMENSION = 8000;
+const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif", "image/heic", "image/heif", "image/avif"];
 
 // staticDir is only actually used locally — the Vercel Blob storage plugin
 // (payload.config.ts) takes over uploads entirely once BLOB_READ_WRITE_TOKEN
@@ -39,6 +45,42 @@ export const Media: CollectionConfig = {
   upload: {
     staticDir: "public/media",
     mimeTypes: ["image/*"],
+  },
+  hooks: {
+    // Server-side backstop for uploads from both /manage (which already
+    // shrinks photos on the device, see lib/manage/compressImage.ts) and
+    // /admin. Vercel rejects request bodies over ~4.5MB before they get
+    // here at all; this catches what's left with a readable message, plus
+    // absurd dimensions that would make every page using the photo slow.
+    beforeOperation: [
+      ({ operation, req }) => {
+        if (operation !== "create" && operation !== "update") return;
+        const file = req.file;
+        if (!file) return;
+        if (file.size > MAX_UPLOAD_BYTES) {
+          // Written on its own (no req) so it survives the rejected upload.
+          void logActivity(req.payload, { summary: "A photo upload was turned down: too large", status: "failed", area: "photo", who: (req.user as { email?: string } | null)?.email });
+          throw new APIError("This photo is too large. Please choose a smaller one.", 400, undefined, true);
+        }
+        if (!ALLOWED_IMAGE_TYPES.includes(file.mimetype)) {
+          void logActivity(req.payload, { summary: "A photo upload was turned down: not a supported kind of file", status: "failed", area: "photo", who: (req.user as { email?: string } | null)?.email });
+          throw new APIError("This kind of file isn't supported. Please use a regular photo (JPEG or PNG).", 400, undefined, true);
+        }
+      },
+    ],
+    afterChange: [
+      async ({ operation, req }) => {
+        if (operation === "create") await logActivity(req.payload, { summary: "Photo uploaded", area: "photo" }, req);
+      },
+    ],
+    beforeChange: [
+      ({ data }) => {
+        if ((data?.width ?? 0) > MAX_DIMENSION || (data?.height ?? 0) > MAX_DIMENSION) {
+          throw new APIError("This photo is too large. Please choose a smaller one.", 400, undefined, true);
+        }
+        return data;
+      },
+    ],
   },
   fields: [
     {

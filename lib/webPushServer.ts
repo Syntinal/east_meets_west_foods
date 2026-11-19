@@ -36,7 +36,9 @@ type SubscriptionDoc = {
 // summary rather than throwing — one bad subscription shouldn't stop the
 // others from being notified.
 export async function sendPushToAllSubscriptions(
-  payload: PushPayload
+  payload: PushPayload,
+  /** Send to just this one device (e.g. /manage's "Send me a test reminder"), not everyone's. */
+  options: { onlyEndpoint?: string } = {},
 ): Promise<{ sent: number; removed: number; failed: number }> {
   ensureConfigured();
   const db = await getPayload({ config });
@@ -45,6 +47,7 @@ export async function sendPushToAllSubscriptions(
     limit: 100,
     depth: 0,
     overrideAccess: true,
+    ...(options.onlyEndpoint ? { where: { endpoint: { equals: options.onlyEndpoint } } } : {}),
   });
 
   let sent = 0;

@@ -1,5 +1,6 @@
 import type { GlobalConfig } from "payload";
 import { revalidatePath } from "next/cache";
+import { pageActivityHook } from "@/lib/activityLog";
 import { authenticated } from "@/access/authenticated";
 import { readPublished } from "@/access/readPublished";
 import { getPreviewURL } from "@/lib/preview";
@@ -41,7 +42,7 @@ export const Faq: GlobalConfig = {
     },
   },
   hooks: {
-    afterChange: [() => revalidatePath("/faq")],
+    afterChange: [() => revalidatePath("/faq"), pageActivityHook("Questions (FAQ)")],
   },
   fields: [
     { name: "eyebrow", type: "text", defaultValue: "FAQ", admin: { description: "Small label above the page heading." } },

@@ -1811,3 +1811,29 @@ img { max-width: 100%; display: block; }
   .price-list li strong { grid-area: price; }
   .price-list li em { grid-area: tag; padding-top: 2px; }
 }
+
+/* "Sold out today" (collections/MenuSoldOut.ts) — the item stays listed so
+   customers know it exists, just clearly marked and visually quieted. */
+.sold-out-badge {
+  display: inline-block;
+  align-self: flex-start;
+  margin: 0 0 8px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--red);
+  color: var(--white);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.menu-card--sold-out .menu-card-img img {
+  filter: grayscale(0.8);
+  opacity: 0.6;
+}
+
+.menu-card--sold-out .price-list,
+.extras-card--sold-out .extras-list {
+  opacity: 0.55;
+}

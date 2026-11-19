@@ -7,6 +7,7 @@ import { restaurantSchema } from "@/lib/structuredData";
 import { MenuGridView, type MenuItemDoc, type MenuIntroDoc } from "@/components/menu/MenuGridView";
 import { LiveMenuGrid } from "@/components/menu/LiveMenuGrid";
 import { LiveMenuIntro } from "@/components/menu/LiveMenuIntro";
+import { businessToday } from "@/lib/businessDate";
 
 const title = "Menu — Chinese Dumplings & Bao near Sandpoint, ID | East Meets West";
 const description =
@@ -63,6 +64,20 @@ async function getMenuItems(): Promise<MenuItemDoc[]> {
 
 // See getHome() in app/(frontend)/page.tsx for why overrideAccess must be
 // true (not false) for a Global's draft lookup to actually work.
+// Items marked "Sold out today" — only marks set on today's restaurant-local
+// date count, so they clear themselves overnight (see
+// collections/MenuSoldOut.ts and the publish-scheduled cron's revalidate).
+async function getSoldOutIds(): Promise<string[]> {
+  const payload = await getPayload({ config });
+  const result = await payload.find({
+    collection: "menu-sold-out",
+    where: { soldOutOn: { equals: businessToday() } },
+    limit: 200,
+    depth: 0,
+  });
+  return result.docs.map((d) => String((d as unknown as { item: string | number }).item));
+}
+
 async function getMenuIntro(): Promise<MenuIntroDoc> {
   const payload = await getPayload({ config });
   const { isEnabled: isDraftMode } = await draftMode();
@@ -105,7 +120,7 @@ function buildMenuSchema(items: MenuItemDoc[]) {
 }
 
 export default async function MenuPage() {
-  const [items, intro] = await Promise.all([getMenuItems(), getMenuIntro()]);
+  const [items, intro, soldOutIds] = await Promise.all([getMenuItems(), getMenuIntro(), getSoldOutIds()]);
   const menuSchema = buildMenuSchema(items);
   const { isEnabled: isDraftMode } = await draftMode();
   // Set as a cookie by /next/preview rather than read from a query string —
@@ -125,11 +140,11 @@ export default async function MenuPage() {
   // these can't both be mounted at once.
   let body;
   if (isDraftMode && seedItem) {
-    body = <LiveMenuGrid initialItems={items} seedItem={seedItem} intro={intro} />;
+    body = <LiveMenuGrid initialItems={items} seedItem={seedItem} intro={intro} soldOutIds={soldOutIds} />;
   } else if (isDraftMode) {
-    body = <LiveMenuIntro items={items} intro={intro} />;
+    body = <LiveMenuIntro items={items} intro={intro} soldOutIds={soldOutIds} />;
   } else {
-    body = <MenuGridView items={items} intro={intro} />;
+    body = <MenuGridView items={items} intro={intro} soldOutIds={soldOutIds} />;
   }
 
   return (

@@ -104,7 +104,9 @@ export async function GET(req: Request) {
         const result = await sendPushToAllSubscriptions({
           title: "East Meets West Foods",
           body: (settings.message as string | undefined) || "Haven't posted in a while — want to create a new post?",
-          url: "/admin/collections/news-posts/create",
+          // Straight to /manage's "Tell customers something" — the simple
+          // posting screen the owner uses (admins can use it too).
+          url: "/manage/post",
         });
         if (result.sent > 0) {
           summary = `Reminder sent to ${result.sent} device(s)${result.failed ? `, ${result.failed} failed` : ""}.`;
