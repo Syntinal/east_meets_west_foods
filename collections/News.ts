@@ -440,7 +440,10 @@ export const News: CollectionConfig = {
           // buildCaption(), which used to concatenate a separate title +
           // excerpt.
           message: doc.message ?? "",
-          link: `${process.env.SITE_URL || ""}/news/${doc.slug ?? ""}`,
+          // SITE_URL isn't set on Vercel — the old `|| ""` fallback sent a
+          // bare relative "/news/<slug>" link that isn't clickable on
+          // Facebook/Instagram/TikTok. Fall back to the real domain.
+          link: `${process.env.SITE_URL || "https://eastmeetswestfoods.co"}/news/${doc.slug ?? ""}`,
           featuredImage: resolvedFeaturedImage ? { url: resolvedFeaturedImage.url } : null,
           // Takes priority over featuredImage in postToSocialPlatform()
           // when both are set — see lib/socialPost.ts.

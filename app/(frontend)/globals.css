@@ -365,6 +365,22 @@ img { max-width: 100%; display: block; }
   font-size: 1rem;
 }
 
+/* ============ FACEBOOK FEED (/news) ============ */
+.facebook-feed {
+  max-width: 500px;
+  margin: 0 auto;
+  text-align: center;
+}
+.facebook-feed iframe {
+  display: block;
+  margin: 0 auto;
+  max-width: 100%;
+  background: var(--white);
+}
+.facebook-feed-fallback {
+  margin: 16px 0 0;
+}
+
 /* ============ MENU GRID ============ */
 .menu-grid {
   display: grid;

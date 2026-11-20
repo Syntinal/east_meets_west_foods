@@ -8,12 +8,20 @@ import { NewsListView, type NewsListDoc, type NewsIntroDoc } from "./NewsListVie
 // global doc directly. `posts` is just passed straight through, unedited,
 // on this session (individual News posts preview on their own
 // /news/[slug] page, not here — see components/news/LiveNewsPost.tsx).
-export function LiveNewsIntro({ posts, intro }: { posts: NewsListDoc[]; intro: NewsIntroDoc }) {
+export function LiveNewsIntro({
+  posts,
+  intro,
+  facebookUrl,
+}: {
+  posts: NewsListDoc[];
+  intro: NewsIntroDoc;
+  facebookUrl?: string | null;
+}) {
   const { data } = useLivePreview<NewsIntroDoc>({
     initialData: intro,
     serverURL: typeof window !== "undefined" ? window.location.origin : "",
     depth: 0,
   });
 
-  return <NewsListView posts={posts} intro={data} />;
+  return <NewsListView posts={posts} intro={data} facebookUrl={facebookUrl} />;
 }

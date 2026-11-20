@@ -58,13 +58,23 @@ async function getNewsIntro(): Promise<NewsIntroDoc> {
   return intro as unknown as NewsIntroDoc;
 }
 
+// The footer's Facebook link (Navigation global) doubles as the source for
+// the "Latest on Facebook" feed box, so there's only one place to change it.
+async function getFacebookUrl(): Promise<string | null> {
+  const payload = await getPayload({ config });
+  const nav = (await payload.findGlobal({ slug: "navigation", depth: 0 })) as unknown as {
+    socialLinks?: { facebook?: string | null } | null;
+  };
+  return nav.socialLinks?.facebook || null;
+}
+
 export default async function NewsPage() {
-  const [posts, intro] = await Promise.all([getNewsPosts(), getNewsIntro()]);
+  const [posts, intro, facebookUrl] = await Promise.all([getNewsPosts(), getNewsIntro(), getFacebookUrl()]);
   const { isEnabled: isDraftMode } = await draftMode();
 
   return isDraftMode ? (
-    <LiveNewsIntro posts={posts} intro={intro} />
+    <LiveNewsIntro posts={posts} intro={intro} facebookUrl={facebookUrl} />
   ) : (
-    <NewsListView posts={posts} intro={intro} />
+    <NewsListView posts={posts} intro={intro} facebookUrl={facebookUrl} />
   );
 }

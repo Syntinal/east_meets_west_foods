@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { FacebookPageFeed } from "./FacebookPageFeed";
 import { deriveExcerptFromMessage } from "@/lib/newsText";
 import { resolveFeaturedImageUrl } from "@/lib/cloudinaryImage";
 import { buildCaptionFramePreviewUrl, type CaptionFont, type CaptionPosition, type CaptionStyle } from "@/lib/cloudinaryVideo";
@@ -42,7 +43,17 @@ export type NewsIntroDoc = {
 // — same markup either way, just fed different data. Mirrors
 // components/menu/MenuGridView.tsx's split between editable chrome and a
 // plain server-fetched list.
-export function NewsListView({ posts, intro }: { posts: NewsListDoc[]; intro: NewsIntroDoc }) {
+// `facebookUrl` is the footer's Facebook link (Navigation global →
+// socialLinks.facebook) — one place to change it. Blank → no feed section.
+export function NewsListView({
+  posts,
+  intro,
+  facebookUrl,
+}: {
+  posts: NewsListDoc[];
+  intro: NewsIntroDoc;
+  facebookUrl?: string | null;
+}) {
   return (
     <main>
       <section className="section">
@@ -121,6 +132,18 @@ export function NewsListView({ posts, intro }: { posts: NewsListDoc[]; intro: Ne
           )}
         </div>
       </section>
+
+      {facebookUrl && (
+        <section className="section section-cream">
+          <div className="container">
+            <header className="section-head">
+              <p className="eyebrow">Follow Along</p>
+              <h2 className="section-title">Latest on Facebook</h2>
+            </header>
+            <FacebookPageFeed pageUrl={facebookUrl} />
+          </div>
+        </section>
+      )}
     </main>
   );
 }
