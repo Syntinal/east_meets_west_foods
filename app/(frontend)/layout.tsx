@@ -4,6 +4,8 @@ import config from "@payload-config";
 import { getPayload } from "payload";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
+import { getBusinessInfo } from "@/lib/businessInfoServer";
+import { addressLines } from "@/lib/businessInfo";
 import DraftModeBanner from "@/components/DraftModeBanner";
 import { RefreshOnSave } from "@/components/live-preview/RefreshOnSave";
 import { NAV_PAGES, resolveNavLabel, type NavEntry } from "@/lib/navigation";
@@ -100,26 +102,19 @@ async function getVisiblePages(
   };
 }
 
-// See getContact() in app/(frontend)/contact/page.tsx for why overrideAccess
-// must be true (not false) for a Global's draft lookup to actually work.
-// Only address/phone are needed here — the footer's source of truth for
-// both, replacing what used to be its own independently hardcoded copy.
-async function getFooterContactInfo(isDraftMode: boolean): Promise<{ address: string; phone: string }> {
-  const payload = await getPayload({ config });
-  const contact = (await payload.findGlobal({
-    slug: "contact",
-    draft: isDraftMode,
-    overrideAccess: true,
-    depth: 0,
-  })) as unknown as { address?: string | null; phone?: string | null };
-  return { address: contact.address ?? "", phone: contact.phone ?? "" };
+// Address/phone come from the business info record (globals/BusinessInfo.ts),
+// the same source as the Contact page, Google and Facebook. It has no
+// drafts, so preview mode shows the same values as the live site.
+async function getFooterContactInfo(): Promise<{ address: string; phone: string }> {
+  const info = await getBusinessInfo();
+  return { address: addressLines(info.address).join("\n"), phone: info.phone };
 }
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const { isEnabled: isDraftMode } = await draftMode();
   const [{ pages: visiblePages, reviewLink, socialLinks }, contactInfo] = await Promise.all([
     getVisiblePages(isDraftMode),
-    getFooterContactInfo(isDraftMode),
+    getFooterContactInfo(),
   ]);
 
   return (

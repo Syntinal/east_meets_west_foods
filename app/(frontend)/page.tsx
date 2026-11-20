@@ -2,8 +2,7 @@ import type { Metadata } from "next";
 import { draftMode } from "next/headers";
 import config from "@payload-config";
 import { getPayload } from "payload";
-import JsonLd from "@/components/JsonLd";
-import { restaurantSchema } from "@/lib/structuredData";
+import RestaurantJsonLd from "@/components/RestaurantJsonLd";
 import { HomeView, type HomeDoc, type BannerDoc, type TestimonialDoc } from "@/components/home/HomeView";
 import { LiveHome } from "@/components/home/LiveHome";
 import type { LatestNewsPost } from "@/components/home/TeaserCards";
@@ -194,7 +193,7 @@ export default async function HomePage() {
 
   return (
     <>
-      <JsonLd data={restaurantSchema} />
+      <RestaurantJsonLd />
 
       {isDraftMode ? (
         <LiveHome

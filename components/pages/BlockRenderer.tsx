@@ -1,6 +1,7 @@
 import { RichText } from "@/components/StyledRichText";
 import { GalleryGrid, type GalleryPhoto } from "@/components/home/GalleryGrid";
 import { RichTextWithHours } from "@/components/pages/RichTextWithHours";
+import { StoreHoursTable, type HoursContext } from "@/components/pages/StoreHoursTable";
 
 type MediaRef =
   | { url?: string | null; alt?: string | null; focalX?: number | null; focalY?: number | null }
@@ -36,6 +37,7 @@ export type PageBlock =
   | { blockType: "file"; id?: string; file: MediaRef; label: string }
   | { blockType: "video"; id?: string; video: MediaRef; caption?: string | null }
   | { blockType: "quote"; id?: string; quote: string; citation?: string | null }
+  | { blockType: "storeHours"; id?: string; showSpecialDays?: boolean | null }
   | {
       blockType: "faq";
       id?: string;
@@ -82,7 +84,7 @@ function Column({ data }: { data?: { image?: MediaRef; video?: MediaRef; content
 // Renders a Page doc's `layout` array in order. Shared between the plain
 // server-rendered [slug] page and its Live Preview counterpart — same
 // markup either way, just fed different data (see components/pages/PageView.tsx).
-export function BlockRenderer({ blocks }: { blocks: PageBlock[] }) {
+export function BlockRenderer({ blocks, hours }: { blocks: PageBlock[]; hours?: HoursContext }) {
   return (
     <>
       {blocks.map((block, i) => {
@@ -230,6 +232,14 @@ export function BlockRenderer({ blocks }: { blocks: PageBlock[] }) {
                     </div>
                   ))}
                 </dl>
+              </div>
+            );
+
+          case "storeHours":
+            if (!hours) return null;
+            return (
+              <div key={key} className="page-block text-panel">
+                <StoreHoursTable hours={hours} showSpecialDays={block.showSpecialDays !== false} />
               </div>
             );
 

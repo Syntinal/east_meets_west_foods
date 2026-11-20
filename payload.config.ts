@@ -17,6 +17,8 @@ import { Pages } from "./collections/Pages";
 import { PushSubscriptions } from "./collections/PushSubscriptions";
 import { Navigation } from "./globals/Navigation";
 import { ReminderSettings } from "./globals/ReminderSettings";
+import { BusinessInfo } from "./globals/BusinessInfo";
+import { BusinessSync } from "./globals/BusinessSync";
 import { Home } from "./globals/Home";
 import { MenuIntro } from "./globals/MenuIntro";
 import { NewsIntro } from "./globals/NewsIntro";
@@ -61,7 +63,7 @@ export default buildConfig({
     },
   },
   collections: [Users, Media, MediaAssets, MenuItems, MenuSoldOut, News, Testimonials, Pages, PushSubscriptions, ActivityLog],
-  globals: [Navigation, Home, MenuIntro, NewsIntro, TestimonialsIntro, Sauce, Story, Faq, Contact, ReminderSettings],
+  globals: [Navigation, Home, MenuIntro, NewsIntro, TestimonialsIntro, Sauce, Story, Faq, Contact, ReminderSettings, BusinessInfo, BusinessSync],
   // Adds a "Text Style" color/font dropdown to every richText field's
   // toolbar on top of Payload's own recommended defaults (bold, italic,
   // links, lists, headings, etc.) — see lib/richTextState.ts for the actual

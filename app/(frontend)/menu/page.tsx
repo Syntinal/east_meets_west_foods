@@ -3,7 +3,7 @@ import { cookies, draftMode } from "next/headers";
 import config from "@payload-config";
 import { getPayload } from "payload";
 import JsonLd from "@/components/JsonLd";
-import { restaurantSchema } from "@/lib/structuredData";
+import RestaurantJsonLd from "@/components/RestaurantJsonLd";
 import { MenuGridView, type MenuItemDoc, type MenuIntroDoc } from "@/components/menu/MenuGridView";
 import { LiveMenuGrid } from "@/components/menu/LiveMenuGrid";
 import { LiveMenuIntro } from "@/components/menu/LiveMenuIntro";
@@ -149,7 +149,7 @@ export default async function MenuPage() {
 
   return (
     <>
-      <JsonLd data={{ ...restaurantSchema, hasMenu: "https://eastmeetswestfoods.co/menu" }} />
+      <RestaurantJsonLd extra={{ hasMenu: "https://eastmeetswestfoods.co/menu" }} />
       <JsonLd data={menuSchema} />
 
       <main>{body}</main>

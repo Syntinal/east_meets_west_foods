@@ -19,19 +19,10 @@ const validatePhone: TextFieldSingleValidation = (value) => {
   return 'That doesn\'t look like a complete phone number — enter all 10 digits, e.g. "(208) 627-6283".';
 };
 
-// The Contact page, previously hand-coded HTML — now editable. The Google
-// Maps embed/overlay link and the JSON-LD `hasMap` URL in
-// app/(frontend)/contact/page.tsx stay hardcoded on purpose — both are
-// derived from the address in a way that's fragile to regenerate from free
-// text, and the business physically relocating is rare enough to accept as
-// a documented limit (see the `address` field description below) rather
-// than build address→geocoding.
-//
-// `address` and `phone` are also the site-wide footer's source of truth
-// (app/(frontend)/layout.tsx fetches this global and passes them to
-// Footer.tsx) — previously the footer had its own independently hardcoded
-// copy that silently didn't follow edits made here. Editing them updates
-// both the Contact page and the footer on every page.
+// The Contact page, previously hand-coded HTML — now editable.
+// The address, phone and map now come from globals/BusinessInfo.ts ("Hours,
+// Address & Phone"), shared with the footer, Google and Facebook. This
+// global only holds the Contact page's own wording.
 export const Contact: GlobalConfig = {
   slug: "contact",
   label: "Contact",
@@ -67,22 +58,11 @@ export const Contact: GlobalConfig = {
   fields: [
     { name: "heading", type: "text", admin: { description: "The page heading." } },
     { name: "subtitle", type: "text", admin: { description: "Short line under the business name." } },
-    {
-      name: "address",
-      type: "textarea",
-      admin: {
-        description:
-          "Shown on the page. Editing this fixes typos/display text only — the map embed and search-engine location data are separate and won't follow an address change automatically. If the business ever actually relocates, a developer needs to update those too.",
-      },
-    },
-    {
-      name: "phone",
-      type: "text",
-      admin: {
-        description: 'e.g. "(208) 627-6283" — also used to build the click-to-call link (assumes a 10-digit US number).',
-      },
-      validate: validatePhone,
-    },
+    // Superseded by globals/BusinessInfo.ts (the one source for address,
+    // phone and hours, which also feeds Google/Facebook). Kept, hidden, only
+    // so the database columns aren't dropped; nothing reads them anymore.
+    { name: "address", type: "textarea", admin: { hidden: true } },
+    { name: "phone", type: "text", admin: { hidden: true }, validate: validatePhone },
     { name: "blurb", type: "textarea", admin: { description: "Short line about the location, shown under the phone number." } },
     {
       name: "mapLinkText",

@@ -1273,3 +1273,72 @@ html {
   border-color: var(--m-error);
   background: #fff;
 }
+
+/* ---------- Hours, address & phone (/manage/business) ---------- */
+.m-sync-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  align-items: center;
+  margin-top: 10px;
+}
+.m-copy-box {
+  white-space: pre-wrap;
+  font: inherit;
+  font-size: 18px;
+  background: #fff;
+  border: 2px solid var(--m-line);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin: 0 0 10px;
+}
+.m-address-row {
+  display: grid;
+  grid-template-columns: 1fr 5.5rem 7rem;
+  gap: 10px;
+}
+@media (max-width: 420px) {
+  .m-address-row {
+    grid-template-columns: 1fr 1fr;
+  }
+  .m-address-row .m-field:first-child {
+    grid-column: 1 / -1;
+  }
+}
+.m-hours-list {
+  list-style: none;
+  margin: 0 0 20px;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+.m-hours-row {
+  display: grid;
+  gap: 10px;
+  padding: 14px 16px;
+  background: #fff;
+  border: 2px solid var(--m-line);
+  border-radius: var(--m-radius);
+}
+.m-hours-row--past {
+  opacity: 0.6;
+}
+.m-hours-day {
+  font-weight: 700;
+}
+.m-hours-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.m-hours-times {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 8px;
+  align-items: center;
+}
+.m-add-day {
+  padding: 16px;
+  border: 2px dashed var(--m-line);
+  border-radius: var(--m-radius);
+}

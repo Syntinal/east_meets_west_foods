@@ -1,4 +1,5 @@
 import { BlockRenderer, type PageBlock } from "./BlockRenderer";
+import type { HoursContext } from "./StoreHoursTable";
 
 type MediaRef = { url?: string | null; alt?: string | null } | string | null | undefined;
 
@@ -13,7 +14,7 @@ export type PageDoc = {
 // Shared between the plain server-rendered /[slug] page and its
 // live-preview counterpart — same markup either way, just fed different
 // data (see LivePage.tsx). Matches the NewsPostView/LiveNewsPost pattern.
-export function PageView({ page }: { page: PageDoc }) {
+export function PageView({ page, hours }: { page: PageDoc; hours?: HoursContext }) {
   return (
     <>
       <header className="section-head">
@@ -23,7 +24,7 @@ export function PageView({ page }: { page: PageDoc }) {
       </header>
 
       <div className="page-blocks">
-        <BlockRenderer blocks={page.layout ?? []} />
+        <BlockRenderer blocks={page.layout ?? []} hours={hours} />
       </div>
     </>
   );

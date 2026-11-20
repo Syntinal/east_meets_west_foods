@@ -2,8 +2,7 @@ import type { Metadata } from "next";
 import { cookies, draftMode } from "next/headers";
 import config from "@payload-config";
 import { getPayload } from "payload";
-import JsonLd from "@/components/JsonLd";
-import { restaurantSchema } from "@/lib/structuredData";
+import RestaurantJsonLd from "@/components/RestaurantJsonLd";
 import { TestimonialsView, type TestimonialDoc, type TestimonialsIntroDoc } from "@/components/testimonials/TestimonialsView";
 import { LiveTestimonialsGrid } from "@/components/testimonials/LiveTestimonialsGrid";
 import { LiveTestimonialsIntro } from "@/components/testimonials/LiveTestimonialsIntro";
@@ -88,7 +87,7 @@ export default async function TestimonialsPage() {
 
   return (
     <>
-      <JsonLd data={restaurantSchema} />
+      <RestaurantJsonLd />
 
       <main>
         <section className="section">

@@ -2,8 +2,7 @@ import type { Metadata } from "next";
 import { draftMode } from "next/headers";
 import config from "@payload-config";
 import { getPayload } from "payload";
-import JsonLd from "@/components/JsonLd";
-import { restaurantSchema } from "@/lib/structuredData";
+import RestaurantJsonLd from "@/components/RestaurantJsonLd";
 import { StoryView, type StoryDoc } from "@/components/story/StoryView";
 import { LiveStory } from "@/components/story/LiveStory";
 
@@ -55,7 +54,7 @@ export default async function StoryPage() {
 
   return (
     <>
-      <JsonLd data={restaurantSchema} />
+      <RestaurantJsonLd />
       {isDraftMode ? <LiveStory story={story} /> : <StoryView story={story} />}
     </>
   );

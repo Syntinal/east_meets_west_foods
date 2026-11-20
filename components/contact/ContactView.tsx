@@ -1,26 +1,18 @@
+import { addressLines, mapsEmbedUrl, mapsSearchUrl, telHref, type BusinessInfo } from "@/lib/businessInfo";
+
 export type ContactDoc = {
   heading?: string | null;
   subtitle?: string | null;
-  address?: string | null;
-  phone?: string | null;
   blurb?: string | null;
   mapLinkText?: string | null;
 };
 
-// Derives a tel: href from a phone number string — assumes a 10-digit US
-// number (see the `phone` field's admin description in globals/Contact.ts).
-// Falls back to a plain digit string for anything else, rather than
-// guessing at a country code.
-function toTelHref(phone: string): string {
-  const digits = phone.replace(/\D/g, "");
-  return digits.length === 10 ? `tel:+1${digits}` : `tel:${digits}`;
-}
-
 // Shared between the plain server-rendered /contact page and its
-// live-preview counterpart. The map embed/overlay link stay hardcoded here
-// (not sourced from `contact.address`) — see globals/Contact.ts's comment
-// on why.
-export function ContactView({ contact }: { contact: ContactDoc }) {
+// live-preview counterpart. The page's own words come from the Contact
+// global; the name, address, phone and map come from the business info
+// record (globals/BusinessInfo.ts), the same source Google and Facebook get.
+export function ContactView({ contact, business }: { contact: ContactDoc; business: BusinessInfo }) {
+  const lines = addressLines(business.address);
   return (
     <main>
       <section className="section">
@@ -34,13 +26,13 @@ export function ContactView({ contact }: { contact: ContactDoc }) {
 
           <div className="visit-grid">
             <div className="text-panel">
-              <p className="eyebrow">East Meets West Dumplings Bar</p>
+              <p className="eyebrow">{business.name}</p>
               {contact.subtitle && <p className="muted-text">{contact.subtitle}</p>}
-              {contact.address && (
+              {lines.length > 0 && (
                 <div className="visit-row">
                   <strong>Address</strong>
                   <span>
-                    {contact.address.split("\n").map((line, i) => (
+                    {lines.map((line, i) => (
                       <span key={i}>
                         {i > 0 && <br />}
                         {line}
@@ -49,11 +41,11 @@ export function ContactView({ contact }: { contact: ContactDoc }) {
                   </span>
                 </div>
               )}
-              {contact.phone && (
+              {business.phone && (
                 <div className="visit-row">
                   <strong>Phone</strong>
                   <span>
-                    <a href={toTelHref(contact.phone)}>{contact.phone}</a>
+                    <a href={telHref(business.phone)}>{business.phone}</a>
                   </span>
                 </div>
               )}
@@ -61,14 +53,14 @@ export function ContactView({ contact }: { contact: ContactDoc }) {
             </div>
             <div className="visit-map">
               <iframe
-                src="https://www.google.com/maps?q=476534+US+HWY+95+Ponderay+ID+83852&z=15&output=embed"
-                title="East Meets West Dumplings Bar location on Google Maps"
+                src={mapsEmbedUrl(business.address)}
+                title={`${business.name} location on Google Maps`}
                 loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"
               ></iframe>
               <a
                 className="visit-map-overlay"
-                href="https://www.google.com/maps/search/?api=1&query=476534+US+HWY+95+Suite+B+Ponderay+ID+83852"
+                href={mapsSearchUrl(business.address)}
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Open East Meets West location in Google Maps"

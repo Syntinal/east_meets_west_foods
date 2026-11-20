@@ -3,7 +3,7 @@ import { draftMode } from "next/headers";
 import config from "@payload-config";
 import { getPayload } from "payload";
 import JsonLd from "@/components/JsonLd";
-import { restaurantSchema } from "@/lib/structuredData";
+import RestaurantJsonLd from "@/components/RestaurantJsonLd";
 import { richTextToPlainText } from "@/lib/richTextToPlainText";
 import { FaqView, type FaqDoc } from "@/components/faq/FaqView";
 import { LiveFaq } from "@/components/faq/LiveFaq";
@@ -75,7 +75,7 @@ export default async function FaqPage() {
 
   return (
     <>
-      <JsonLd data={restaurantSchema} />
+      <RestaurantJsonLd />
       <JsonLd data={buildFaqSchema(faq)} />
       {isDraftMode ? <LiveFaq faq={faq} /> : <FaqView faq={faq} />}
     </>

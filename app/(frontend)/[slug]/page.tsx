@@ -3,8 +3,9 @@ import { notFound } from "next/navigation";
 import { draftMode } from "next/headers";
 import config from "@payload-config";
 import { getPayload } from "payload";
-import JsonLd from "@/components/JsonLd";
-import { restaurantSchema } from "@/lib/structuredData";
+import RestaurantJsonLd from "@/components/RestaurantJsonLd";
+import { getBusinessInfo } from "@/lib/businessInfoServer";
+import { businessToday } from "@/lib/businessDate";
 import { PageView, type PageDoc } from "@/components/pages/PageView";
 import { LivePage } from "@/components/pages/LivePage";
 
@@ -72,12 +73,16 @@ export default async function DynamicPage({ params }: Params) {
   const page = await getPage(slug);
   if (!page) notFound();
   const { isEnabled: isDraftMode } = await draftMode();
+  // Only fetched when the page actually has a Store Hours block.
+  const hours = page.layout?.some((b) => b.blockType === "storeHours")
+    ? { info: await getBusinessInfo(), today: businessToday() }
+    : undefined;
 
   return (
     <main>
-      <JsonLd data={restaurantSchema} />
+      <RestaurantJsonLd />
       <section className="section">
-        <div className="container">{isDraftMode ? <LivePage initialData={page} /> : <PageView page={page} />}</div>
+        <div className="container">{isDraftMode ? <LivePage initialData={page} hours={hours} /> : <PageView page={page} hours={hours} />}</div>
       </section>
     </main>
   );

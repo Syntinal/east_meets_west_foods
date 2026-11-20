@@ -161,10 +161,8 @@ export const WEBSITE_PAGES: PageDef[] = [
       {
         key: "details",
         title: "Address and phone",
-        fields: [
-          { path: "address", label: "Address", kind: "textarea" },
-          { path: "phone", label: "Phone number", kind: "text" },
-        ],
+        fields: [],
+        note: 'The address and phone number are changed under "Hours, address & phone" on the home screen, so Google and Facebook get the change too.',
       },
       {
         key: "extra",
@@ -344,6 +342,15 @@ export function buildCustomPageDef(doc: { id: number | string; title?: string; s
         ];
       case "video":
         return [{ key: b.id, title: n("Video"), fields: [], note: "Videos on this page are changed in the regular editor." }];
+      case "storeHours":
+        return [
+          {
+            key: b.id,
+            title: n("Store hours"),
+            fields: [],
+            note: 'These hours fill in by themselves. Change them under "Hours, address & phone" on the home screen.',
+          },
+        ];
       case "file":
         return [{ key: b.id, title: n("File download"), fields: [], note: "Downloadable files are changed in the regular editor." }];
       default:
